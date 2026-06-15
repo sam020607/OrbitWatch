@@ -164,8 +164,9 @@ function PlanetsTab({ data }) {
         const cell = row.cells?.[0];
         if (!cell) return null;
         const name = cell.name || row.entry?.name;
-        const alt = parseFloat(cell.position?.horizontal?.altitude?.degrees || 0);
-        const az = parseFloat(cell.position?.horizontal?.azimuth?.degrees || 0);
+        const horiz = cell.position?.horizontal || cell.position?.horizonal;
+        const alt = parseFloat(horiz?.altitude?.degrees || 0);
+        const az = parseFloat(horiz?.azimuth?.degrees || 0);
         const rise = cell.extraInfo?.rise?.time;
         const set = cell.extraInfo?.set?.time;
         const mag = cell.extraInfo?.magnitude?.raw;
@@ -210,7 +211,10 @@ function MoonTab({ data }) {
   const phase = data?.data?.phase;
   if (!phase) return <LoadingPlaceholder label="Loading moon data..." />;
 
-  const illumination = phase.illumination;
+  const rawIllum = phase.illumination;
+  const illumination = typeof rawIllum === 'string'
+    ? parseFloat(rawIllum.replace('%', ''))
+    : (rawIllum || 0);
   const phaseName = phase.name;
   const emoji = phase.emoji || '🌙';
   const age = phase.age?.days?.toFixed(1);

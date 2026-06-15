@@ -36,13 +36,12 @@ export function useSatellites() {
   // Animate satellite marker positions every 5 seconds
   useEffect(() => {
     if (!location || state.satellites.length === 0) return;
-    const interval = setInterval(() => {
-      actions.setSatellites(prev =>
-        prev.map(sat => animateSatellite(sat, location))
-      );
+    const timer = setTimeout(() => {
+      const animated = state.satellites.map(sat => animateSatellite(sat, location));
+      actions.setSatellites(animated);
     }, 5000);
-    return () => clearInterval(interval);
-  }, [location, state.satellites.length, actions]);
+    return () => clearTimeout(timer);
+  }, [location, state.satellites, actions]);
 
   return { satellites: state.satellites };
 }

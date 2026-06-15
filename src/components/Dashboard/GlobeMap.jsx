@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, Fragment } from 'react';
 import { MapContainer, TileLayer, Marker, Polyline, Polygon, Circle, useMap, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { useApp } from '../../context/AppContext.jsx';
@@ -192,7 +192,7 @@ export default function GlobeMap({ className = '' }) {
             : null;
 
           return (
-            <div key={sat.satid}>
+            <Fragment key={sat.satid}>
               {/* Orbital arc */}
               <Polyline
                 positions={arcPositions}
@@ -251,7 +251,7 @@ export default function GlobeMap({ className = '' }) {
                   </div>
                 </Popup>
               </Marker>
-            </div>
+            </Fragment>
           );
         })}
       </MapContainer>

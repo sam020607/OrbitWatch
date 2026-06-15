@@ -12,6 +12,7 @@ export default defineConfig({
       '/api/n2yo': {
         target: 'https://api.n2yo.com',
         changeOrigin: true,
+        secure: false,
         rewrite: (path) => path.replace(/^\/api\/n2yo/, ''),
         headers: {
           'Accept': 'application/json',

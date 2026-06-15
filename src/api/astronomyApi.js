@@ -13,8 +13,8 @@
 import axios from 'axios';
 
 // TODO: Add your AstronomyAPI credentials
-const APP_ID = '';
-const APP_SECRET = '';
+const APP_ID = import.meta.env.VITE_ASTRONOMY_APP_ID ?? '';
+const APP_SECRET = import.meta.env.VITE_ASTRONOMY_APP_SECRET ?? '';
 const USE_MOCK = !APP_ID || !APP_SECRET;
 
 const BASE_URL = '/api/astronomy';

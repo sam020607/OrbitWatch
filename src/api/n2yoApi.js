@@ -14,14 +14,67 @@
  */
 import axios from 'axios';
 import { MOCK_SATELLITES, MOCK_PASSES } from '../data/mockSatellites.js';
+import { azimuthToCompass } from '../utils/orbitMath.js';
 
 // TODO: Replace with your N2YO API key
-const N2YO_API_KEY = '';
-
+const N2YO_API_KEY = import.meta.env.VITE_N2YO_API_KEY ?? '';
 const USE_MOCK = !N2YO_API_KEY;
 
 // Satellites above the observer within 90° elevation
 const BASE_URL = '/api/n2yo/rest/v1/satellite';
+
+/**
+ * Enriches raw N2YO satellite objects with missing properties and maps satlng to satlon.
+ */
+function enrichSatelliteData(sat) {
+  const satlon = sat.satlng !== undefined ? parseFloat(sat.satlng) : parseFloat(sat.satlon);
+  const satlat = parseFloat(sat.satlat);
+  
+  // Set reasonable default altitude and velocity based on satname or satid
+  let satalt = parseFloat(sat.satalt) || 550.0;
+  let velocity = parseFloat(sat.velocity) || 7.59;
+  let type = sat.type || 'comms';
+  let intDesignator = sat.intDesignator || 'Unknown';
+  let launchDate = sat.launchDate || 'Unknown';
+  
+  const name = (sat.satname || '').toUpperCase();
+  if (name.includes('ISS') || name.includes('SPACE STATION') || name.includes('TIANGONG') || name.includes('CSS')) {
+    type = 'space-station';
+    satalt = 408.0;
+    velocity = 7.66;
+  } else if (name.includes('NOAA') || name.includes('METEOR') || name.includes('GOES') || name.includes('FENGYUN')) {
+    type = 'weather';
+    satalt = 830.0;
+    velocity = 7.45;
+  } else if (name.includes('GPS') || name.includes('GLONASS') || name.includes('GALILEO') || name.includes('BEIDOU')) {
+    type = 'gps';
+    satalt = 20200.0;
+    velocity = 3.87;
+  } else if (name.includes('STARLINK') || name.includes('ONEWEB') || name.includes('IRIDIUM')) {
+    type = 'comms';
+    satalt = 550.0;
+    velocity = 7.59;
+  } else if (name.includes('DEBRIS') || name.includes('R/B') || name.includes('DEB')) {
+    type = 'debris';
+    satalt = 600.0;
+    velocity = 7.55;
+  } else if (name.includes('AQUA') || name.includes('TERRA') || name.includes('LANDSAT') || name.includes('SENTINEL')) {
+    type = 'earth-obs';
+    satalt = 705.0;
+    velocity = 7.50;
+  }
+  
+  return {
+    ...sat,
+    satlat,
+    satlon,
+    satalt,
+    velocity,
+    type,
+    intDesignator,
+    launchDate
+  };
+}
 
 /**
  * Fetch satellites currently above the observer.
@@ -49,7 +102,8 @@ export async function fetchAboveSatellites(lat, lon, alt = 0) {
     const category = 0; // all
     const url = `${BASE_URL}/above/${lat}/${lon}/${alt}/${radius}/${category}/&apiKey=${N2YO_API_KEY}`;
     const response = await axios.get(url, { timeout: 10000 });
-    return response.data.above || [];
+    const above = response.data.above || [];
+    return above.map(enrichSatelliteData);
   } catch (error) {
     console.error('[N2YO] fetchAboveSatellites failed:', error.message);
     return MOCK_SATELLITES;
@@ -73,11 +127,17 @@ export async function fetchSatellitePasses(satId, lat, lon, alt = 0) {
   }
 
   try {
-    const days = 1;
+    const days = 10;
     const minElevation = 10;
     const url = `${BASE_URL}/passes/${satId}/${lat}/${lon}/${alt}/${days}/${minElevation}/&apiKey=${N2YO_API_KEY}`;
     const response = await axios.get(url, { timeout: 10000 });
-    return response.data.passes || [];
+    const passes = response.data.passes || [];
+    return passes.map(p => ({
+      ...p,
+      startAzCompass: p.startAzTxt || azimuthToCompass(p.startAz),
+      maxAzCompass: p.maxAzTxt || azimuthToCompass(p.maxAz),
+      endAzCompass: p.endAzTxt || azimuthToCompass(p.endAz)
+    }));
   } catch (error) {
     console.error('[N2YO] fetchSatellitePasses failed:', error.message);
     return adjustPassTimesToNow(MOCK_PASSES[25544]);

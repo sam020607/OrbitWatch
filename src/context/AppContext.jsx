@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useCallback } from 'react';
+import { createContext, useContext, useReducer, useMemo } from 'react';
 
 /** ─── Initial State ─────────────────────────────────────────────────────── */
 const initialState = {
@@ -92,24 +92,24 @@ const AppContext = createContext(null);
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  // Convenience action creators
-  const actions = {
-    setLocation: useCallback((location) => dispatch({ type: 'SET_LOCATION', payload: location }), []),
-    setLocationName: useCallback((name) => dispatch({ type: 'SET_LOCATION_NAME', payload: name }), []),
-    setISSPosition: useCallback((pos) => dispatch({ type: 'SET_ISS_POSITION', payload: pos }), []),
-    setSatellites: useCallback((sats) => dispatch({ type: 'SET_SATELLITES', payload: sats }), []),
-    selectSatellite: useCallback((sat) => dispatch({ type: 'SELECT_SATELLITE', payload: sat }), []),
-    setISSPasses: useCallback((passes) => dispatch({ type: 'SET_ISS_PASSES', payload: passes }), []),
-    setSatPasses: useCallback((satId, passes) => dispatch({ type: 'SET_SAT_PASSES', satId, payload: passes }), []),
-    setNightSky: useCallback((data) => dispatch({ type: 'SET_NIGHT_SKY', payload: data }), []),
-    setMoonPhase: useCallback((data) => dispatch({ type: 'SET_MOON_PHASE', payload: data }), []),
-    setLoading: useCallback((v, msg) => dispatch({ type: 'SET_LOADING', payload: v, message: msg }), []),
-    setError: useCallback((e) => dispatch({ type: 'SET_ERROR', payload: e }), []),
-    clearError: useCallback(() => dispatch({ type: 'CLEAR_ERROR' }), []),
-    setActiveView: useCallback((v) => dispatch({ type: 'SET_ACTIVE_VIEW', payload: v }), []),
-    toggleConeOverlay: useCallback(() => dispatch({ type: 'TOGGLE_CONE_OVERLAY' }), []),
-    reset: useCallback(() => dispatch({ type: 'RESET' }), []),
-  };
+  // Convenience action creators (memoized to prevent infinite render loops)
+  const actions = useMemo(() => ({
+    setLocation: (location) => dispatch({ type: 'SET_LOCATION', payload: location }),
+    setLocationName: (name) => dispatch({ type: 'SET_LOCATION_NAME', payload: name }),
+    setISSPosition: (pos) => dispatch({ type: 'SET_ISS_POSITION', payload: pos }),
+    setSatellites: (sats) => dispatch({ type: 'SET_SATELLITES', payload: sats }),
+    selectSatellite: (sat) => dispatch({ type: 'SELECT_SATELLITE', payload: sat }),
+    setISSPasses: (passes) => dispatch({ type: 'SET_ISS_PASSES', payload: passes }),
+    setSatPasses: (satId, passes) => dispatch({ type: 'SET_SAT_PASSES', satId, payload: passes }),
+    setNightSky: (data) => dispatch({ type: 'SET_NIGHT_SKY', payload: data }),
+    setMoonPhase: (data) => dispatch({ type: 'SET_MOON_PHASE', payload: data }),
+    setLoading: (v, msg) => dispatch({ type: 'SET_LOADING', payload: v, message: msg }),
+    setError: (e) => dispatch({ type: 'SET_ERROR', payload: e }),
+    clearError: () => dispatch({ type: 'CLEAR_ERROR' }),
+    setActiveView: (v) => dispatch({ type: 'SET_ACTIVE_VIEW', payload: v }),
+    toggleConeOverlay: () => dispatch({ type: 'TOGGLE_CONE_OVERLAY' }),
+    reset: () => dispatch({ type: 'RESET' }),
+  }), [dispatch]);
 
   return (
     <AppContext.Provider value={{ state, actions }}>
