@@ -303,7 +303,6 @@ export default function LandingPage({ onLocationSet }) {
           transition={{ delay: 1.5 }}
           className="absolute bottom-8 left-0 right-0 flex flex-col items-center gap-2 pointer-events-none"
         >
-          <p className="text-muted text-xs font-mono tracking-widest uppercase">Select a location to begin</p>
           <ChevronDown className="w-5 h-5 text-muted animate-bounce" />
         </motion.div>
       </div>
