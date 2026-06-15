@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Satellite, ChevronDown, MapPin, Globe } from 'lucide-react';
+import { Satellite, MapPin, Globe } from 'lucide-react';
 import StarfieldCanvas from './StarfieldCanvas.jsx';
 import LocationSearch from './LocationSearch.jsx';
 import { useApp } from '../../context/AppContext.jsx';
