@@ -133,14 +133,14 @@ export async function fetchSatellitePasses(satId, lat, lon, alt = 0) {
   try {
     const days = 10;
     const minElevation = 10;
-    const url = `${BASE_URL}/passes/${satId}/${lat}/${lon}/${alt}/${days}/${minElevation}/&apiKey=${N2YO_API_KEY}`;
+    const url = `${BASE_URL}/radiopasses/${satId}/${lat}/${lon}/${alt}/${days}/${minElevation}/&apiKey=${N2YO_API_KEY}`;
     const response = await axios.get(url, { timeout: 10000 });
     const passes = response.data.passes || [];
     return passes.map(p => ({
       ...p,
-      startAzCompass: p.startAzTxt || azimuthToCompass(p.startAz),
-      maxAzCompass: p.maxAzTxt || azimuthToCompass(p.maxAz),
-      endAzCompass: p.endAzTxt || azimuthToCompass(p.endAz)
+      startAzCompass: p.startAzCompass || p.startAzTxt || azimuthToCompass(p.startAz),
+      maxAzCompass: p.maxAzCompass || p.maxAzTxt || azimuthToCompass(p.maxAz),
+      endAzCompass: p.endAzCompass || p.endAzTxt || azimuthToCompass(p.endAz)
     }));
   } catch (error) {
     console.error('[N2YO] fetchSatellitePasses failed:', error.message);
