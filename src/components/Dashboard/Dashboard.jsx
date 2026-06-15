@@ -62,7 +62,7 @@ export default function Dashboard({ onReset }) {
         <div className="flex items-center gap-2">
           <Satellite className="w-5 h-5 text-cyan" style={{ filter: 'drop-shadow(0 0 4px #00d4ff)' }} />
           <span className="font-mono font-bold text-text text-sm hidden sm:block">
-            Orbit<span className="text-cyan">Watch</span>
+            Project <span className="text-cyan">Zenith</span>
           </span>
         </div>
 

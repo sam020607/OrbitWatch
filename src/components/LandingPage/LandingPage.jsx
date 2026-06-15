@@ -1,9 +1,36 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Satellite, ChevronDown } from 'lucide-react';
+import { Satellite, ChevronDown, MapPin, Globe } from 'lucide-react';
 import StarfieldCanvas from './StarfieldCanvas.jsx';
 import LocationSearch from './LocationSearch.jsx';
 import { useApp } from '../../context/AppContext.jsx';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import { reverseGeocode } from '../../api/geocodeApi.js';
+
+// Custom Leaflet locator marker icon
+const locatorIcon = L.divIcon({
+  className: 'locator-marker-icon',
+  html: `<div style="
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 3px solid #00d4ff;
+    background: rgba(0, 212, 255, 0.4);
+    box-shadow: 0 0 12px #00d4ff, 0 0 24px rgba(0, 212, 255, 0.4);
+  "></div>`,
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+});
+
+// Click locator map handler component
+function GlobeClickLocator({ onClick }) {
+  useMapEvents({
+    click(e) {
+      onClick(e.latlng.lat, e.latlng.lng);
+    }
+  });
+  return null;
+}
 
 const POPULAR_LOCATIONS = [
   { name: 'New York', lat: 40.7128, lon: -74.0060 },
@@ -27,6 +54,10 @@ const FEATURE_ITEMS = [
 export default function LandingPage({ onLocationSet }) {
   const { actions } = useApp();
   const [mounted, setMounted] = useState(false);
+  const [method, setMethod] = useState('search'); // 'search' | 'globe'
+  const [clickedCoords, setClickedCoords] = useState(null); // { lat, lon }
+  const [resolvingName, setResolvingName] = useState(false);
+  const [resolvedName, setResolvedName] = useState('');
 
   useEffect(() => {
     setMounted(true);
@@ -36,6 +67,29 @@ export default function LandingPage({ onLocationSet }) {
     actions.setLocation(location);
     actions.setLocationName(location.name);
     onLocationSet(location);
+  }
+
+  async function handleGlobeClick(lat, lon) {
+    setClickedCoords({ lat, lon });
+    setResolvingName(true);
+    try {
+      const name = await reverseGeocode(lat, lon);
+      setResolvedName(name);
+    } catch (err) {
+      setResolvedName(`${lat.toFixed(4)}°, ${lon.toFixed(4)}°`);
+    } finally {
+      setResolvingName(false);
+    }
+  }
+
+  function confirmGlobeLocation() {
+    if (!clickedCoords) return;
+    handleLocationSelect({
+      lat: clickedCoords.lat,
+      lon: clickedCoords.lon,
+      name: resolvedName || `${clickedCoords.lat.toFixed(2)}°, ${clickedCoords.lon.toFixed(2)}°`,
+      country: ''
+    });
   }
 
   return (
@@ -94,17 +148,22 @@ export default function LandingPage({ onLocationSet }) {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-center mb-8"
+          className="text-center mb-6"
         >
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <Satellite className="w-8 h-8 text-cyan" style={{ filter: 'drop-shadow(0 0 8px #00d4ff)' }} />
-            <h1 className="text-5xl md:text-6xl font-bold font-mono text-white tracking-tight"
-              style={{ textShadow: '0 0 30px rgba(0, 212, 255, 0.4)' }}>
-              Orbit<span className="text-cyan">Watch</span>
-            </h1>
-            <Satellite className="w-8 h-8 text-cyan transform -scale-x-100" style={{ filter: 'drop-shadow(0 0 8px #00d4ff)' }} />
+          <div className="flex flex-col items-center justify-center gap-1.5 mb-2">
+            <span className="text-cyan text-xs font-mono tracking-[0.25em] uppercase" style={{ filter: 'drop-shadow(0 0 4px rgba(0, 212, 255, 0.5))' }}>
+              The Celestial Eye
+            </span>
+            <div className="flex items-center gap-3">
+              <Satellite className="w-7 h-7 text-cyan" style={{ filter: 'drop-shadow(0 0 8px #00d4ff)' }} />
+              <h1 className="text-4xl md:text-5xl font-bold font-mono text-white tracking-tight"
+                style={{ textShadow: '0 0 30px rgba(0, 212, 255, 0.4)' }}>
+                Project <span className="text-cyan">Zenith</span>
+              </h1>
+              <Satellite className="w-7 h-7 text-cyan transform -scale-x-100" style={{ filter: 'drop-shadow(0 0 8px #00d4ff)' }} />
+            </div>
           </div>
-          <p className="text-muted-light text-lg md:text-xl font-light tracking-wide max-w-lg mx-auto">
+          <p className="text-muted-light text-base md:text-lg font-light tracking-wide max-w-lg mx-auto mt-2">
             Real-time satellite tracking & personal sky visibility — anywhere on Earth
           </p>
         </motion.div>
@@ -130,14 +189,91 @@ export default function LandingPage({ onLocationSet }) {
           ))}
         </motion.div>
 
-        {/* Search */}
+        {/* Selection Method Tabs */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.6 }}
-          className="w-full max-w-xl mb-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="flex bg-navy/60 border border-border/80 rounded-lg p-1 mb-6"
         >
-          <LocationSearch onLocationSelect={handleLocationSelect} />
+          <button
+            onClick={() => setMethod('search')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-mono transition-all
+              ${method === 'search' ? 'bg-cyan text-space font-bold' : 'text-muted-light hover:text-text'}`}
+          >
+            <MapPin className="w-3.5 h-3.5" />
+            <span>Text Search</span>
+          </button>
+          <button
+            onClick={() => setMethod('globe')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-mono transition-all
+              ${method === 'globe' ? 'bg-cyan text-space font-bold' : 'text-muted-light hover:text-text'}`}
+          >
+            <Globe className="w-3.5 h-3.5" />
+            <span>Interactive Globe</span>
+          </button>
+        </motion.div>
+
+        {/* Content based on selection method */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7, duration: 0.5 }}
+          className="w-full max-w-xl flex flex-col items-center mb-6 min-h-[160px]"
+        >
+          {method === 'search' ? (
+            <LocationSearch onLocationSelect={handleLocationSelect} />
+          ) : (
+            <div className="flex flex-col items-center gap-4 w-full">
+              {/* Circular Globe container */}
+              <div className="relative w-64 h-64 rounded-full overflow-hidden border-2 border-border/80 bg-space shadow-[0_0_20px_rgba(0,212,255,0.15)] z-[10]">
+                {/* Globe clipping ring overlay */}
+                <div className="absolute inset-0 rounded-full border border-cyan/25 pointer-events-none z-[1000]" />
+                
+                <MapContainer
+                  center={[10, 0]}
+                  zoom={1}
+                  className="w-full h-full"
+                  style={{ background: '#0a0a0f' }}
+                  zoomControl={false}
+                  attributionControl={false}
+                >
+                  <TileLayer
+                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                    maxZoom={10}
+                    subdomains="abcd"
+                  />
+                  <GlobeClickLocator onClick={handleGlobeClick} />
+                  {clickedCoords && (
+                    <Marker position={[clickedCoords.lat, clickedCoords.lon]} icon={locatorIcon} />
+                  )}
+                </MapContainer>
+              </div>
+
+              {/* Coordinates status & confirm */}
+              <div className="text-center h-14 flex flex-col justify-center items-center">
+                {resolvingName ? (
+                  <p className="text-xs font-mono text-cyan animate-pulse">Resolving location coordinates...</p>
+                ) : clickedCoords ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <p className="text-sm font-mono text-text font-bold truncate max-w-[320px]">
+                      📍 {resolvedName}
+                    </p>
+                    <button
+                      onClick={confirmGlobeLocation}
+                      className="px-4 py-1 rounded bg-cyan text-space text-xs font-mono font-bold hover:opacity-95 transition-all shadow-[0_0_12px_rgba(0,212,255,0.4)]"
+                    >
+                      Confirm Observer Location
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-xs font-mono text-muted max-w-[280px]">
+                    Click anywhere on the globe above to select your coordinate location
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </motion.div>
 
         {/* Popular locations quick-select */}

@@ -43,7 +43,7 @@ export async function geocodeSearch(query) {
       },
       headers: {
         'Accept-Language': 'en',
-        'User-Agent': 'OrbitWatch/1.0 (satellite-tracker)',
+        'User-Agent': 'ProjectZenith/1.0 (satellite-tracker)',
       },
       timeout: 8000,
     });
@@ -79,7 +79,7 @@ export async function reverseGeocode(lat, lon) {
       params: { lat, lon, format: 'json' },
       headers: {
         'Accept-Language': 'en',
-        'User-Agent': 'OrbitWatch/1.0',
+        'User-Agent': 'ProjectZenith/1.0',
       },
       timeout: 8000,
     });
