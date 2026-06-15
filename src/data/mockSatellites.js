@@ -167,6 +167,26 @@ export const MOCK_SATELLITES = [
     type: 'debris',
     _latOffset: 33.1, _lonOffset: -7.5,
   },
+  {
+    satid: 37820,
+    satname: 'SES-3',
+    intDesignator: '2011-035A',
+    launchDate: '2011-07-15',
+    satlat: 0, satlon: 0, satalt: 35786.2,
+    velocity: 3.07,
+    type: 'tv',
+    _latOffset: 0.1, _lonOffset: -15.5,
+  },
+  {
+    satid: 40982,
+    satname: 'EUTELSAT 8 WEST B',
+    intDesignator: '2015-039B',
+    launchDate: '2015-08-20',
+    satlat: 0, satlon: 0, satalt: 35792.4,
+    velocity: 3.07,
+    type: 'tv',
+    _latOffset: -0.2, _lonOffset: 24.3,
+  },
 ];
 
 /**
@@ -286,6 +306,7 @@ export const SAT_TYPE_CONFIG = {
   'weather':       { label: 'Weather', color: '#10b981', badgeClass: 'badge-green' },
   'gps':           { label: 'GPS', badgeClass: 'badge-amber', color: '#f59e0b' },
   'comms':         { label: 'Comms',   color: '#a78bfa', badgeClass: 'badge-amber' },
+  'tv':            { label: 'TV Sat',  color: '#ec4899', badgeClass: 'badge-pink' },
   'earth-obs':     { label: 'EO Sat',  color: '#f59e0b', badgeClass: 'badge-amber' },
   'debris':        { label: 'Debris',  color: '#ef4444', badgeClass: 'badge-red' },
 };

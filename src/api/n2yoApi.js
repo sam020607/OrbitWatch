@@ -42,6 +42,10 @@ function enrichSatelliteData(sat) {
     type = 'space-station';
     satalt = 408.0;
     velocity = 7.66;
+  } else if (name.includes('SES') || name.includes('EUTELSAT') || name.includes('DIRECTV') || name.includes('ASTRA') || name.includes('ECHOSTAR') || name.includes('GALAXY') || name.includes('INTELSAT') || name.includes('ANIK') || name.includes('BRASILSAT') || name.includes('VIASAT') || name.includes('SATMEX') || name.includes('SKYNET') || name.includes('THAICOM') || name.includes('ASIASAT') || name.includes('TELKOM') || name.includes('MEASAT')) {
+    type = 'tv';
+    satalt = 35786.0;
+    velocity = 3.07;
   } else if (name.includes('NOAA') || name.includes('METEOR') || name.includes('GOES') || name.includes('FENGYUN')) {
     type = 'weather';
     satalt = 830.0;

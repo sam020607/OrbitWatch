@@ -28,6 +28,7 @@ const initialState = {
   error: null,
   activeView: 'map',       // 'map' | 'report' | 'lookup'
   showConeOverlay: true,
+  satelliteFilter: 'major', // 'major' | 'all' | 'tv' | 'gps' | 'comms' | 'weather' | 'space-station' | 'debris' | 'earth-obs'
 };
 
 /** ─── Reducer ───────────────────────────────────────────────────────────── */
@@ -78,6 +79,9 @@ function appReducer(state, action) {
     case 'TOGGLE_CONE_OVERLAY':
       return { ...state, showConeOverlay: !state.showConeOverlay };
 
+    case 'SET_SATELLITE_FILTER':
+      return { ...state, satelliteFilter: action.payload };
+
     case 'RESET':
       return { ...initialState };
 
@@ -108,6 +112,7 @@ export function AppProvider({ children }) {
     clearError: () => dispatch({ type: 'CLEAR_ERROR' }),
     setActiveView: (v) => dispatch({ type: 'SET_ACTIVE_VIEW', payload: v }),
     toggleConeOverlay: () => dispatch({ type: 'TOGGLE_CONE_OVERLAY' }),
+    setSatelliteFilter: (filter) => dispatch({ type: 'SET_SATELLITE_FILTER', payload: filter }),
     reset: () => dispatch({ type: 'RESET' }),
   }), [dispatch]);
 

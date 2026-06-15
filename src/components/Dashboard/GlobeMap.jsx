@@ -70,7 +70,16 @@ function MapController({ location }) {
  */
 export default function GlobeMap({ className = '' }) {
   const { state, actions } = useApp();
-  const { location, issPosition, issTrail, satellites, selectedSatellite, showConeOverlay } = state;
+  const { location, issPosition, issTrail, satellites, selectedSatellite, showConeOverlay, satelliteFilter } = state;
+
+  // Filter based on active selection
+  const filteredSatellites = satellites.filter(sat => {
+    if (satelliteFilter === 'all') return true;
+    if (satelliteFilter === 'major') {
+      return sat.type === 'space-station' || sat.type === 'weather' || sat.type === 'earth-obs' || sat.type === 'gps';
+    }
+    return sat.type === satelliteFilter;
+  });
 
   const issIcon = useRef(createISSIcon()).current;
   const observerIcon = useRef(createObserverIcon()).current;
@@ -183,7 +192,7 @@ export default function GlobeMap({ className = '' }) {
         )}
 
         {/* Satellite markers + orbital arcs */}
-        {satellites.map((sat) => {
+        {filteredSatellites.map((sat) => {
           const isSelected = selectedSatellite?.satid === sat.satid;
           const satIcon = createSatIcon(sat.type, isSelected);
           const arcPositions = generateOrbitalArc(sat.satlat, sat.satlon, 51.6);
@@ -264,10 +273,26 @@ export default function GlobeMap({ className = '' }) {
         </div>
       )}
 
-      {/* Satellite count badge */}
+      {/* Satellite count & Filter badge */}
       {satellites.length > 0 && (
-        <div className="absolute top-3 right-3 z-[1000] px-3 py-1.5 rounded-lg bg-navy/90 border border-amber/30 backdrop-blur-sm">
-          <span className="text-amber text-xs font-mono">{satellites.length} SAT OVERHEAD</span>
+        <div className="absolute top-3 right-3 z-[1000] flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-navy/90 border border-border backdrop-blur-sm shadow-lg">
+          <span className="text-amber text-xs font-mono shrink-0 hidden sm:inline">
+            {filteredSatellites.length}/{satellites.length} OVERHEAD
+          </span>
+          <select
+            value={satelliteFilter}
+            onChange={(e) => actions.setSatelliteFilter(e.target.value)}
+            className="text-xs font-mono bg-panel/90 border border-border/60 rounded px-1.5 py-0.5 text-text focus:outline-none focus:border-cyan cursor-pointer transition-colors"
+          >
+            <option value="major">✨ Major</option>
+            <option value="space-station">🛸 Stations</option>
+            <option value="tv">📺 TV Sats</option>
+            <option value="gps">🧭 GPS</option>
+            <option value="comms">📡 Comms</option>
+            <option value="weather">🌦 Weather</option>
+            <option value="debris">💫 Debris</option>
+            <option value="all">🌐 All</option>
+          </select>
         </div>
       )}
     </div>

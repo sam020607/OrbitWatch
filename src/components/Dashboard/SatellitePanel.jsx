@@ -9,10 +9,19 @@ import { Satellite, ChevronRight, Radio, Gauge } from 'lucide-react';
  */
 export default function SatellitePanel() {
   const { state, actions } = useApp();
-  const { satellites, selectedSatellite } = state;
+  const { satellites, selectedSatellite, satelliteFilter } = state;
+
+  // Filter based on active selection
+  const filtered = satellites.filter(sat => {
+    if (satelliteFilter === 'all') return true;
+    if (satelliteFilter === 'major') {
+      return sat.type === 'space-station' || sat.type === 'weather' || sat.type === 'earth-obs' || sat.type === 'gps';
+    }
+    return sat.type === satelliteFilter;
+  });
 
   // Sort: space stations first, then by altitude
-  const sorted = [...satellites].sort((a, b) => {
+  const sorted = [...filtered].sort((a, b) => {
     if (a.type === 'space-station') return -1;
     if (b.type === 'space-station') return 1;
     return a.satalt - b.satalt;
@@ -26,7 +35,28 @@ export default function SatellitePanel() {
         <h2 className="text-sm font-mono text-text font-bold tracking-wider uppercase">
           Overhead Objects
         </h2>
-        <span className="ml-auto badge badge-amber text-xs">{satellites.length}</span>
+        <span className="ml-auto badge badge-amber text-xs">{sorted.length}</span>
+      </div>
+
+      {/* Filter Selector */}
+      <div className="px-4 py-2 border-b border-border bg-navy/20 flex flex-col gap-1 shrink-0">
+        <label className="text-[9px] font-mono text-muted uppercase tracking-wider">
+          Filter Category
+        </label>
+        <select
+          value={satelliteFilter}
+          onChange={(e) => actions.setSatelliteFilter(e.target.value)}
+          className="w-full text-xs font-mono bg-panel border border-border rounded px-2 py-1 text-text focus:outline-none focus:border-cyan cursor-pointer transition-colors"
+        >
+          <option value="major">✨ Major & Brightest</option>
+          <option value="space-station">🛸 Space Stations</option>
+          <option value="tv">📺 TV & Broadcast</option>
+          <option value="gps">🧭 GPS & Navigation</option>
+          <option value="comms">📡 Comms & Internet</option>
+          <option value="weather">🌦 Weather & Science</option>
+          <option value="debris">💫 Space Debris</option>
+          <option value="all">🌐 Show All Objects</option>
+        </select>
       </div>
 
       {/* Satellite list */}
