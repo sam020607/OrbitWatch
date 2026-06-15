@@ -189,6 +189,26 @@ export default function LandingPage({ onLocationSet }) {
           ))}
         </motion.div>
 
+        {/* Popular locations quick-select */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.55 }}
+          className="flex flex-wrap justify-center gap-2 mb-6"
+        >
+          <span className="text-muted text-xs self-center font-mono uppercase tracking-wider" style={{ fontSize: 10 }}>Quick:</span>
+          {POPULAR_LOCATIONS.map(loc => (
+            <button
+              key={loc.name}
+              onClick={() => handleLocationSelect({ ...loc, name: loc.name, country: '' })}
+              className="px-3 py-0.5 rounded-full text-xs border border-border text-muted-light
+                         hover:border-cyan/50 hover:text-cyan hover:bg-cyan/5 transition-all duration-200"
+            >
+              {loc.name}
+            </button>
+          ))}
+        </motion.div>
+
         {/* Selection Method Tabs */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -274,36 +294,6 @@ export default function LandingPage({ onLocationSet }) {
               </div>
             </div>
           )}
-        </motion.div>
-
-        {/* Popular locations quick-select */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.9 }}
-          className="flex flex-wrap justify-center gap-2"
-        >
-          <span className="text-muted text-sm self-center">Quick:</span>
-          {POPULAR_LOCATIONS.map(loc => (
-            <button
-              key={loc.name}
-              onClick={() => handleLocationSelect({ ...loc, name: loc.name, country: '' })}
-              className="px-3 py-1 rounded-full text-sm border border-border text-muted-light
-                         hover:border-cyan/50 hover:text-cyan hover:bg-cyan/5 transition-all duration-200"
-            >
-              {loc.name}
-            </button>
-          ))}
-        </motion.div>
-
-        {/* Scroll hint */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5 }}
-          className="absolute bottom-8 left-0 right-0 flex flex-col items-center gap-2 pointer-events-none"
-        >
-          <ChevronDown className="w-5 h-5 text-muted animate-bounce" />
         </motion.div>
       </div>
     </div>
