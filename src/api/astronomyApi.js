@@ -59,28 +59,40 @@ export async function fetchNightSkyData(lat, lon, alt = 0, date = null) {
 }
 
 /**
- * Get moon phase data.
- * AstronomyAPI endpoint: GET /api/v2/moon/phase
+ * Get moon phase data using wttr.in API.
  * 
- * @param {string} date  Date string YYYY-MM-DD
+ * @param {number} lat   Observer latitude 
+ * @param {number} lon   Observer longitude 
+ * @param {string|Date} date  Date object or string
  * @returns {Promise<Object>}
  */
 export async function fetchMoonPhase(lat, lon, date = null) {
-  if (USE_MOCK) return getMockMoonPhase();
-
   try {
-    const today = date || new Date().toISOString().split('T')[0];
-    const credentials = btoa(`${APP_ID}:${APP_SECRET}`);
-    const url = `${BASE_URL}/api/v2/moon/phase`;
-    const response = await axios.get(url, {
-      headers: { Authorization: `Basic ${credentials}` },
-      params: { latitude: lat, longitude: lon, format: 'png', style: { moonStyle: 'default', backgroundStyle: 'stars', backgroundColor: '#0d1b2a', headingColor: '#e2e8f0', textColor: '#94a3b8' }, observer: { date: today } },
-      timeout: 10000,
-    });
-    return response.data;
+    const url = `https://wttr.in/${lat},${lon}?format=j1`;
+    const response = await axios.get(url, { timeout: 10000 });
+    
+    const astronomy = response.data?.weather?.[0]?.astronomy?.[0];
+    
+    if (astronomy) {
+      return {
+        phase: astronomy.moon_phase,           
+        illumination: parseInt(astronomy.moon_illumination, 10) || 0, 
+        date: date ? new Date(date).toISOString() : new Date().toISOString()
+      };
+    }
+    
+    return {
+        phase: 'Data Unavailable',
+        illumination: 0,
+        date: date ? new Date(date).toISOString() : new Date().toISOString()
+      };
   } catch (error) {
     console.error('[AstronomyAPI] fetchMoonPhase failed:', error.message);
-    return getMockMoonPhase();
+    return {
+      phase: 'Data Unavailable',
+      illumination: 0,
+      date: new Date().toISOString()
+    };
   }
 }
 

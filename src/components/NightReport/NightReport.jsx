@@ -3,6 +3,8 @@ import { useApp } from '../../context/AppContext.jsx';
 import { formatTime, formatDuration, azimuthToCompass, magnitudeToDescription, getPlanetEmoji } from '../../utils/orbitMath.js';
 import { MOCK_METEOR_SHOWERS } from '../../data/mockSatellites.js';
 import { Moon, Star, Satellite, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import SunCalc from 'suncalc';
+import ThreeMoon from './ThreeMoon.jsx';
 
 const TABS = [
   { id: 'satellites', label: 'Satellites', icon: Satellite },
@@ -208,16 +210,28 @@ function PlanetsTab({ data }) {
 // ─── Tab: Moon ───────────────────────────────────────────────────────────────
 
 function MoonTab({ data }) {
-  const phase = data?.data?.phase;
-  if (!phase) return <LoadingPlaceholder label="Loading moon data..." />;
+  if (!data || !data.phase) return <LoadingPlaceholder label="Loading moon data..." />;
 
-  const rawIllum = phase.illumination;
-  const illumination = typeof rawIllum === 'string'
-    ? parseFloat(rawIllum.replace('%', ''))
-    : (rawIllum || 0);
-  const phaseName = phase.name;
-  const emoji = phase.emoji || '🌙';
-  const age = phase.age?.days?.toFixed(1);
+  const illumination = typeof data.illumination === 'number' ? data.illumination : 0;
+  const phaseName = data.phase;
+  
+  // Use SunCalc to calculate precise moon age
+  const sunCalcMoon = SunCalc.getMoonIllumination(new Date());
+  const age = (sunCalcMoon.phase * 29.530588).toFixed(1);
+  
+  const phaseEmojis = {
+    'new moon': '🌑',
+    'waxing crescent': '🌒',
+    'first quarter': '🌓',
+    '1st quarter': '🌓',
+    'waxing gibbous': '🌔',
+    'full moon': '🌕',
+    'waning gibbous': '🌖',
+    'last quarter': '🌗',
+    '3rd quarter': '🌗',
+    'waning crescent': '🌘',
+  };
+  const emoji = phaseEmojis[phaseName.toLowerCase()] || '🌙';
 
   // Draw moon illumination arc
   const moonR = 45;
@@ -226,33 +240,14 @@ function MoonTab({ data }) {
 
   return (
     <div className="p-4 flex flex-col items-center gap-5">
-      {/* Moon graphic */}
-      <div className="relative">
-        <svg width="120" height="120" viewBox="0 0 120 120">
-          <defs>
-            <clipPath id="moonClip">
-              <circle cx="60" cy="60" r={moonR} />
-            </clipPath>
-          </defs>
-          {/* Dark side */}
-          <circle cx="60" cy="60" r={moonR} fill="#1a2535" />
-          {/* Lit side */}
-          <ellipse
-            cx="60" cy="60"
-            rx={moonR * illum} ry={moonR}
-            fill="#e2e8f0"
-            clipPath="url(#moonClip)"
-            style={{ transform: isWaxing ? 'translateX(0)' : `translateX(${moonR * (1 - illum * 2)}px)`, }}
-          />
-          {/* Glow */}
-          <circle cx="60" cy="60" r={moonR} fill="none"
-            stroke="#e2e8f0" strokeWidth="0.5" opacity="0.4" />
-        </svg>
-        <div className="absolute top-1 right-1 text-2xl">{emoji}</div>
+      {/* 3D Moon Graphic */}
+      <div className="w-full relative flex justify-center mt-2 mb-4">
+        <ThreeMoon illumination={illumination} phaseName={phaseName} />
+        <div className="absolute top-0 right-4 text-2xl drop-shadow-md z-10">{emoji}</div>
       </div>
 
       {/* Phase info */}
-      <div className="text-center">
+      <div className="text-center z-10">
         <p className="font-mono text-xl font-bold text-text">{phaseName}</p>
         <p className="text-amber font-mono text-lg mt-1">{illumination}% illuminated</p>
         {age && <p className="text-muted text-sm mt-1 font-mono">Day {age} of lunar cycle</p>}

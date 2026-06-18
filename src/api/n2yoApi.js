@@ -125,6 +125,33 @@ export async function fetchAboveSatellites(lat, lon, alt = 0) {
  * @returns {Promise<Array>} Array of pass prediction objects
  */
 export async function fetchSatellitePasses(satId, lat, lon, alt = 0) {
+  // Use free Pollux Labs API specifically for live ISS passes
+  if (satId === 25544) {
+    try {
+      const url = `https://iss-api.polluxlabs.io/iss-pass?lat=${lat}&lon=${lon}`;
+      const response = await axios.get(url, { timeout: 10000 });
+      const passes = response.data.passes || [];
+      if (passes.length > 0) {
+        return passes.map(p => ({
+          startUTC: new Date(p.rise.time).getTime() / 1000,
+          maxUTC: new Date(p.culmination.time).getTime() / 1000,
+          endUTC: new Date(p.set.time).getTime() / 1000,
+          startAz: p.rise.azimuth_deg,
+          startAzCompass: p.rise.compass,
+          maxAz: 0,
+          maxAzCompass: 'Peak',
+          endAz: p.set.azimuth_deg,
+          endAzCompass: p.set.compass,
+          maxEl: p.culmination.elevation_deg,
+          duration: p.duration_sec,
+          mag: p.visible ? -2.5 : null
+        }));
+      }
+    } catch (error) {
+      console.error('[Pollux API] ISS passes failed, falling back to mock:', error.message);
+    }
+  }
+
   if (USE_MOCK) {
     const passes = MOCK_PASSES[satId] || MOCK_PASSES[25544]; // fall back to ISS passes
     return adjustPassTimesToNow(passes);
