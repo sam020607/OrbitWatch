@@ -26,6 +26,8 @@ export default {
       fontFamily: {
         mono: ['"Space Mono"', 'Courier Prime', 'monospace'],
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        crimson: ['"Crimson Text"', 'Georgia', 'serif'],
+        playfair: ['"Playfair Display"', 'Georgia', 'serif'],
       },
       animation: {
         'pulse-glow': 'pulseGlow 2s ease-in-out infinite',

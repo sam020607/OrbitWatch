@@ -151,12 +151,12 @@ export default function LandingPage({ onLocationSet }) {
           className="text-center mb-6"
         >
           <div className="flex flex-col items-center justify-center gap-1.5 mb-2">
-            <span className="text-cyan text-xs font-mono tracking-[0.25em] uppercase" style={{ filter: 'drop-shadow(0 0 4px rgba(0, 212, 255, 0.5))' }}>
+            <span className="text-cyan text-xs font-playfair italic tracking-[0.25em] uppercase" style={{ filter: 'drop-shadow(0 0 4px rgba(0, 212, 255, 0.5))' }}>
               The Celestial Eye
             </span>
             <div className="flex items-center gap-3">
               <Satellite className="w-7 h-7 text-cyan" style={{ filter: 'drop-shadow(0 0 8px #00d4ff)' }} />
-              <h1 className="text-4xl md:text-5xl font-bold font-mono text-white tracking-tight"
+              <h1 className="text-4xl md:text-5xl font-bold font-playfair text-white tracking-tight"
                 style={{ textShadow: '0 0 30px rgba(0, 212, 255, 0.4)' }}>
                 Project <span className="text-cyan">Zenith</span>
               </h1>
@@ -196,7 +196,7 @@ export default function LandingPage({ onLocationSet }) {
           transition={{ delay: 0.55 }}
           className="flex flex-wrap justify-center gap-2 mb-6"
         >
-          <span className="text-muted text-xs self-center font-mono uppercase tracking-wider" style={{ fontSize: 10 }}>Quick:</span>
+          <span className="text-muted text-xs self-center font-crimson font-semibold uppercase tracking-wider" style={{ fontSize: 10 }}>Quick:</span>
           {POPULAR_LOCATIONS.map(loc => (
             <button
               key={loc.name}
@@ -218,7 +218,7 @@ export default function LandingPage({ onLocationSet }) {
         >
           <button
             onClick={() => setMethod('search')}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-mono transition-all
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-crimson font-bold transition-all
               ${method === 'search' ? 'bg-cyan text-space font-bold' : 'text-muted-light hover:text-text'}`}
           >
             <MapPin className="w-3.5 h-3.5" />
@@ -226,7 +226,7 @@ export default function LandingPage({ onLocationSet }) {
           </button>
           <button
             onClick={() => setMethod('globe')}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-mono transition-all
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-crimson font-bold transition-all
               ${method === 'globe' ? 'bg-cyan text-space font-bold' : 'text-muted-light hover:text-text'}`}
           >
             <Globe className="w-3.5 h-3.5" />
@@ -273,21 +273,21 @@ export default function LandingPage({ onLocationSet }) {
               {/* Coordinates status & confirm */}
               <div className="text-center h-14 flex flex-col justify-center items-center">
                 {resolvingName ? (
-                  <p className="text-xs font-mono text-cyan animate-pulse">Resolving location coordinates...</p>
+                  <p className="text-xs font-crimson font-semibold text-cyan animate-pulse">Resolving location coordinates...</p>
                 ) : clickedCoords ? (
                   <div className="flex flex-col items-center gap-2">
-                    <p className="text-sm font-mono text-text font-bold truncate max-w-[320px]">
+                    <p className="text-sm font-crimson text-text font-bold truncate max-w-[320px]">
                       📍 {resolvedName}
                     </p>
                     <button
                       onClick={confirmGlobeLocation}
-                      className="px-4 py-1 rounded bg-cyan text-space text-xs font-mono font-bold hover:opacity-95 transition-all shadow-[0_0_12px_rgba(0,212,255,0.4)]"
+                      className="px-4 py-1 rounded bg-cyan text-space text-xs font-crimson font-bold hover:opacity-95 transition-all shadow-[0_0_12px_rgba(0,212,255,0.4)]"
                     >
                       Confirm Observer Location
                     </button>
                   </div>
                 ) : (
-                  <p className="text-xs font-mono text-muted max-w-[280px]">
+                  <p className="text-xs font-crimson text-muted max-w-[280px]">
                     Click anywhere on the globe above to select your coordinate location
                   </p>
                 )}

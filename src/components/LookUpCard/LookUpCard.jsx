@@ -1,25 +1,37 @@
 import { useApp } from '../../context/AppContext.jsx';
 import { azimuthToCompass } from '../../utils/orbitMath.js';
-import { Compass, Target, X, Satellite } from 'lucide-react';
+import { getLocalCoordinates } from '../../data/constellations.js';
+import { Compass, Target, X } from 'lucide-react';
 
 /**
- * LookUpCard — Compass rose + elevation arc for a selected satellite.
+ * LookUpCard — Compass rose + elevation arc for a selected satellite or constellation.
  * Shows exact azimuth heading and elevation to look at in the sky.
- * Works for the current satellite position or an upcoming pass.
  */
 export default function LookUpCard() {
   const { state, actions } = useApp();
-  const { selectedSatellite, issNextPasses, location } = state;
+  const { selectedSatellite, selectedConstellation, viewMode, issNextPasses, location } = state;
   const [now] = [Math.floor(Date.now() / 1000)];
 
   // Determine what to show
   let displayData = null;
   let title = '';
 
-  if (selectedSatellite) {
+  if (viewMode === 'constellations' && selectedConstellation) {
+    const coords = location 
+      ? getLocalCoordinates(selectedConstellation.ra, selectedConstellation.dec, location.lat, location.lon)
+      : { az: 0, el: 0 };
+    displayData = {
+      az: coords.az,
+      el: coords.el,
+      name: selectedConstellation.name,
+      description: selectedConstellation.description,
+      abbr: selectedConstellation.abbr,
+      ra: selectedConstellation.ra,
+      dec: selectedConstellation.dec,
+    };
+    title = 'Constellation Direction';
+  } else if (selectedSatellite) {
     // For a selected satellite, compute approximate elevation
-    // (proper computation needs observer lat/lon and satellite TLE)
-    // Here we use a reasonable mock elevation based on satellite altitude
     const approxEl = Math.max(10, Math.min(85, 90 - (selectedSatellite.satalt / 450) * 50));
     const approxAz = ((selectedSatellite.satlat * 3 + selectedSatellite.satlon + 180) % 360);
     displayData = {
@@ -48,8 +60,8 @@ export default function LookUpCard() {
     return (
       <div className="flex flex-col items-center justify-center p-6 text-center h-full">
         <Compass className="w-10 h-10 text-muted mb-3 opacity-30" />
-        <p className="text-muted text-sm">Select a satellite</p>
-        <p className="text-muted text-xs mt-1">or wait for an ISS pass</p>
+        <p className="text-muted text-sm font-crimson">Select an object to track</p>
+        <p className="text-muted text-xs font-crimson mt-1">to see look-up coordinates</p>
       </div>
     );
   }
@@ -68,12 +80,15 @@ export default function LookUpCard() {
       {/* Header */}
       <div className="flex items-center gap-2">
         <Compass className="w-4 h-4 text-cyan" />
-        <h2 className="text-xs font-mono font-bold tracking-widest uppercase text-muted-light">
+        <h2 className="text-xs font-crimson font-bold tracking-widest uppercase text-muted-light">
           {title}
         </h2>
-        {selectedSatellite && (
+        {(selectedSatellite || selectedConstellation) && (
           <button
-            onClick={() => actions.selectSatellite(null)}
+            onClick={() => {
+              if (selectedSatellite) actions.selectSatellite(null);
+              if (selectedConstellation) actions.selectConstellation(null);
+            }}
             className="ml-auto text-muted hover:text-text transition-colors"
             aria-label="Close look-up card"
           >
@@ -82,12 +97,16 @@ export default function LookUpCard() {
         )}
       </div>
 
-      {/* Satellite name */}
+      {/* Target name */}
       <div className="text-center">
-        <p className="text-cyan font-mono font-bold text-base">{name}</p>
-        {displayData.alt && (
-          <p className="text-muted text-xs font-mono mt-0.5">
-            {displayData.alt?.toFixed(0)} km altitude · {displayData.velocity?.toFixed(2)} km/s
+        <p className="text-cyan font-crimson font-bold text-base">{name}</p>
+        {viewMode === 'constellations' ? (
+          <p className="text-muted text-xs font-crimson mt-0.5">
+            RA: <span className="font-mono">{displayData.ra}h</span> · Dec: <span className="font-mono">{displayData.dec}°</span> · {displayData.abbr}
+          </p>
+        ) : displayData.alt && (
+          <p className="text-muted text-xs font-crimson mt-0.5">
+            <span className="font-mono">{displayData.alt?.toFixed(0)} km</span> altitude · <span className="font-mono">{displayData.velocity?.toFixed(2)} km/s</span>
           </p>
         )}
       </div>
@@ -126,7 +145,7 @@ export default function LookUpCard() {
             const y = 90 + 58 * Math.sin(rad) + 4;
             return (
               <text key={label} x={x} y={y} textAnchor="middle" fill={color}
-                fontSize="11" fontFamily="Space Mono, monospace" fontWeight="700">
+                fontSize="11" fontFamily="Crimson Text, Georgia, serif" fontWeight="700">
                 {label}
               </text>
             );
@@ -155,16 +174,16 @@ export default function LookUpCard() {
           />
 
           {/* Azimuth label */}
-          <text x="90" y="165" textAnchor="middle" fill="#00d4ff" fontSize="11"
-            fontFamily="Space Mono, monospace" fontWeight="700">
-            {az.toFixed(0)}° {compass}
+          <text x="90" y="165" textAnchor="middle" fill="#00d4ff" fontSize="11" fontWeight="700">
+            <tspan fontFamily="Space Mono, monospace">{az.toFixed(0)}°</tspan>
+            <tspan fontFamily="Crimson Text, Georgia, serif" dx="4">{compass}</tspan>
           </text>
         </svg>
       </div>
 
       {/* Elevation Arc */}
       <div className="flex flex-col items-center gap-2">
-        <p className="text-muted text-xs font-mono uppercase tracking-wider">Elevation above horizon</p>
+        <p className="text-muted text-xs font-crimson uppercase tracking-wider">Elevation above horizon</p>
         <div className="flex items-end gap-3">
           <ElevationArc elevation={el} />
           <div className="text-center pb-2">
@@ -172,7 +191,7 @@ export default function LookUpCard() {
               style={{ textShadow: '0 0 15px rgba(245,158,11,0.6)' }}>
               {el.toFixed(0)}°
             </p>
-            <p className="text-muted text-xs">{getElevationLabel(el)}</p>
+            <p className="text-muted text-xs font-crimson">{getElevationLabel(el)}</p>
           </div>
         </div>
       </div>
@@ -180,11 +199,11 @@ export default function LookUpCard() {
       {/* Plain English instruction */}
       <div className="px-4 py-3 rounded-xl border border-cyan/30 bg-cyan/5 text-center">
         <Target className="w-4 h-4 text-cyan mx-auto mb-1" />
-        <p className="text-text text-sm leading-relaxed font-sans">
+        <p className="text-text text-sm leading-relaxed font-crimson">
           Point <span className="text-cyan font-bold">{compass}</span>{' '}
-          at <span className="text-amber font-bold">{el.toFixed(0)}°</span> above the horizon
+          at <span className="text-amber font-mono font-bold">{el.toFixed(0)}°</span> above the horizon
         </p>
-        <p className="text-muted text-xs mt-1">
+        <p className="text-muted text-xs font-crimson mt-1">
           {getElevationHint(el)}
         </p>
       </div>
@@ -205,7 +224,7 @@ function ElevationArc({ elevation }) {
   const y2 = cy + r * Math.sin(endRad);
   const largeArc = elevation > 90 ? 1 : 0;
 
-  // Satellite position dot
+  // Satellite/Constellation position dot
   const satX = cx + r * Math.cos(endRad);
   const satY = cy + r * Math.sin(endRad);
 
@@ -217,7 +236,7 @@ function ElevationArc({ elevation }) {
 
       {/* Zenith label */}
       <text x="70" y="8" textAnchor="middle" fontSize="9" fill="#64748b" fontFamily="Space Mono, monospace">90°</text>
-      <text x="70" y="17" textAnchor="middle" fontSize="7" fill="#64748b" fontFamily="Space Mono, monospace">zenith</text>
+      <text x="70" y="17" textAnchor="middle" fontSize="7" fill="#64748b" fontFamily="Crimson Text, Georgia, serif">zenith</text>
 
       {/* Arc background (full half-circle) */}
       <path
@@ -245,7 +264,7 @@ function ElevationArc({ elevation }) {
         );
       })}
 
-      {/* Satellite dot */}
+      {/* Satellite/Constellation dot */}
       <circle cx={satX} cy={satY} r="5" fill="#f59e0b"
         style={{ filter: 'drop-shadow(0 0 5px rgba(245,158,11,0.9))' }}
       />

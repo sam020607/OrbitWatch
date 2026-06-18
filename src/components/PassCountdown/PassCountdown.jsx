@@ -61,7 +61,7 @@ export default function PassCountdown() {
       {/* Header */}
       <div className="flex items-center gap-2">
         <Timer className="w-4 h-4 text-cyan" />
-        <h2 className="text-xs font-mono font-bold tracking-widest uppercase text-muted-light">
+        <h2 className="text-xs font-crimson font-bold tracking-widest uppercase text-muted-light">
           Next ISS Pass
         </h2>
         {isImminent && (
@@ -90,7 +90,7 @@ export default function PassCountdown() {
           <div className="absolute inset-0 rounded-xl border-2 border-cyan/20 animate-ping" />
         )}
 
-        <p className="text-muted-light text-xs font-mono mb-2 text-center px-4">{countdownLabel}</p>
+        <p className="text-muted-light text-xs font-crimson mb-2 text-center px-4">{countdownLabel}</p>
 
         <div
           className="font-mono text-4xl font-bold tracking-wider"
@@ -105,7 +105,7 @@ export default function PassCountdown() {
 
         {/* Magnitude */}
         {currentPass.mag != null && (
-          <p className="mt-2 text-xs text-muted font-mono">
+          <p className="mt-2 text-xs text-muted font-crimson">
             Brightness: <span className="text-amber">{magnitudeToDescription(currentPass.mag)}</span>
             <span className="text-muted ml-1">({currentPass.mag > 0 ? '+' : ''}{currentPass.mag?.toFixed(1)} mag)</span>
           </p>
@@ -131,7 +131,7 @@ export default function PassCountdown() {
 
       {/* Duration bar */}
       <div>
-        <div className="flex justify-between text-xs font-mono text-muted mb-1">
+        <div className="flex justify-between text-xs font-crimson text-muted mb-1">
           <span>Duration</span>
           <span className="text-muted-light">{formatDuration(currentPass.duration)}</span>
         </div>
@@ -160,7 +160,7 @@ export default function PassCountdown() {
       {/* Upcoming passes nav */}
       {upcomingPasses.length > 1 && (
         <div className="flex items-center gap-2">
-          <span className="text-muted text-xs font-mono">More tonight:</span>
+          <span className="text-muted text-xs font-crimson">More tonight:</span>
           <div className="flex gap-1 flex-wrap">
             {upcomingPasses.slice(0, 4).map((p, i) => (
               <button
@@ -187,7 +187,7 @@ function StatCard({ icon, label, sub, children }) {
     <div className="flex flex-col gap-1 px-3 py-2 rounded-lg bg-navy/40 border border-border">
       <div className="flex items-center gap-1 text-muted" style={{ fontSize: 10 }}>
         {icon}
-        <span className="font-mono tracking-wide uppercase">{label}</span>
+        <span className="font-crimson tracking-wide uppercase">{label}</span>
         {sub && <span className="ml-auto text-muted opacity-70">{sub}</span>}
       </div>
       <div className="flex items-baseline gap-1">{children}</div>

@@ -61,7 +61,7 @@ export default function Dashboard({ onReset }) {
         {/* Logo */}
         <div className="flex items-center gap-2">
           <Satellite className="w-5 h-5 text-cyan" style={{ filter: 'drop-shadow(0 0 4px #00d4ff)' }} />
-          <span className="font-mono font-bold text-text text-sm hidden sm:block">
+          <span className="font-playfair font-bold text-text text-sm hidden sm:block">
             Project <span className="text-cyan">Zenith</span>
           </span>
         </div>
@@ -71,7 +71,7 @@ export default function Dashboard({ onReset }) {
           onClick={() => setShowSearch(s => !s)}
         >
           <div className="w-2 h-2 rounded-full bg-amber animate-pulse" />
-          <span className="font-mono text-sm text-text truncate max-w-[200px]">
+          <span className="font-crimson text-sm font-semibold text-text truncate max-w-[200px]">
             {location?.name || 'No location'}
           </span>
           <span className="text-muted text-xs font-mono hidden md:block">
@@ -82,7 +82,7 @@ export default function Dashboard({ onReset }) {
         {/* ISS live indicator */}
         <div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-cyan/20 bg-cyan/5">
           <div className={`w-1.5 h-1.5 rounded-full ${issPosition ? 'bg-cyan animate-pulse' : 'bg-muted'}`} />
-          <span className="font-mono text-xs text-muted-light hidden sm:block">
+          <span className="font-crimson text-xs font-semibold text-muted-light hidden sm:block">
             ISS {issPosition ? 'LIVE' : 'OFFLINE'}
           </span>
         </div>
@@ -151,7 +151,7 @@ export default function Dashboard({ onReset }) {
                     ${mobileView === id ? 'text-cyan border-t-2 border-cyan -mt-0.5' : 'text-muted'}`}
                 >
                   <Icon className="w-4 h-4" />
-                  <span className="text-xs font-mono">{label}</span>
+                  <span className="text-xs font-crimson font-semibold">{label}</span>
                 </button>
               ))}
             </div>
@@ -166,7 +166,7 @@ export default function Dashboard({ onReset }) {
               <button
                 key={id}
                 onClick={() => setRightPanel(id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-mono transition-all
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-crimson font-semibold transition-all
                   ${rightPanel === id ? 'tab-active' : 'text-muted hover:text-muted-light'}`}
               >
                 <Icon className="w-3 h-3" />

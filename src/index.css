@@ -22,9 +22,13 @@ html, body, #root {
   padding: 0;
   background-color: #0a0a0f;
   color: #e2e8f0;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Crimson Text', Georgia, serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', Georgia, serif;
 }
 
 /* Scrollbars */
@@ -162,6 +166,9 @@ html, body, #root {
 }
 
 .mono { font-family: 'Space Mono', monospace; }
+.font-playfair { font-family: 'Playfair Display', Georgia, serif; }
+.font-crimson { font-family: 'Crimson Text', Georgia, serif; }
+.font-sans { font-family: 'Inter', system-ui, sans-serif; }
 
 /* ─── Scan line effect ──────────────────────────────────────────────────── */
 .scanlines::after {
@@ -220,7 +227,7 @@ html, body, #root {
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 11px;
-  font-family: 'Space Mono', monospace;
+  font-family: 'Crimson Text', Georgia, serif;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;

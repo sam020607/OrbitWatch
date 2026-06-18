@@ -1,18 +1,39 @@
+import { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext.jsx';
-import { SAT_TYPE_CONFIG, MOCK_SATELLITES } from '../../data/mockSatellites.js';
-import { getSatTypeIcon } from '../../utils/orbitMath.js';
-import { Satellite, ChevronRight, Radio, Gauge } from 'lucide-react';
+import { SAT_TYPE_CONFIG } from '../../data/mockSatellites.js';
+import { getSatTypeIcon, azimuthToCompass } from '../../utils/orbitMath.js';
+import { CONSTELLATIONS, getLocalCoordinates } from '../../data/constellations.js';
+import { Satellite, ChevronRight, Star, ChevronDown } from 'lucide-react';
+
+const SATELLITE_CATEGORIES = [
+  { value: 'major', label: 'Major & Brightest', icon: '✨' },
+  { value: 'space-station', label: 'Space Stations', icon: '🛸' },
+  { value: 'tv', label: 'TV & Broadcast', icon: '📺' },
+  { value: 'gps', label: 'GPS & Navigation', icon: '🧭' },
+  { value: 'comms', label: 'Comms & Internet', icon: '📡' },
+  { value: 'weather', label: 'Weather & Science', icon: '🌦' },
+  { value: 'debris', label: 'Space Debris', icon: '💫' },
+  { value: 'all', label: 'Show All Objects', icon: '🌐' },
+];
+
+function getFilterLabel(value) {
+  const cat = SATELLITE_CATEGORIES.find(c => c.value === value);
+  return cat ? cat.label : 'Major & Brightest';
+}
 
 /**
- * SatellitePanel — Sidebar list of tracked overhead satellites.
- * Clicking a satellite centres the map and opens the LookUpCard.
+ * SatellitePanel — Sidebar list of tracked overhead satellites or constellations.
+ * Clicking an item centres the map and opens the LookUpCard.
  */
 export default function SatellitePanel() {
   const { state, actions } = useApp();
-  const { satellites, selectedSatellite, satelliteFilter } = state;
+  const { satellites, selectedSatellite, satelliteFilter, viewMode, selectedConstellation, location } = state;
 
-  // Filter based on active selection
-  const filtered = satellites.filter(sat => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSatellitesSubOpen, setIsSatellitesSubOpen] = useState(false);
+
+  // Filter satellites based on active selection
+  const filteredSats = satellites.filter(sat => {
     if (satelliteFilter === 'all') return true;
     if (satelliteFilter === 'major') {
       return sat.type === 'space-station' || sat.type === 'weather' || sat.type === 'earth-obs' || sat.type === 'gps';
@@ -20,135 +41,316 @@ export default function SatellitePanel() {
     return sat.type === satelliteFilter;
   });
 
-  // Sort: space stations first, then by altitude
-  const sorted = [...filtered].sort((a, b) => {
+  // Sort satellites: space stations first, then by altitude
+  const sortedSats = [...filteredSats].sort((a, b) => {
     if (a.type === 'space-station') return -1;
     if (b.type === 'space-station') return 1;
     return a.satalt - b.satalt;
   });
 
+  // Dynamic calculations of visible constellations
+  const visibleConstellations = useMemo(() => {
+    if (!location) return [];
+    const now = Date.now();
+    return CONSTELLATIONS.map(c => {
+      const coords = getLocalCoordinates(c.ra, c.dec, location.lat, location.lon, now);
+      return { ...c, coords };
+    })
+    .filter(c => c.coords.el > 0)
+    .sort((a, b) => b.coords.el - a.coords.el);
+  }, [location]);
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-        <Satellite className="w-4 h-4 text-amber" />
-        <h2 className="text-sm font-mono text-text font-bold tracking-wider uppercase">
-          Overhead Objects
-        </h2>
-        <span className="ml-auto badge badge-amber text-xs">{sorted.length}</span>
-      </div>
-
-      {/* Filter Selector */}
-      <div className="px-4 py-2 border-b border-border bg-navy/20 flex flex-col gap-1 shrink-0">
-        <label className="text-[9px] font-mono text-muted uppercase tracking-wider">
-          Filter Category
-        </label>
-        <select
-          value={satelliteFilter}
-          onChange={(e) => actions.setSatelliteFilter(e.target.value)}
-          className="w-full text-xs font-mono bg-panel border border-border rounded px-2 py-1 text-text focus:outline-none focus:border-cyan cursor-pointer transition-colors"
-        >
-          <option value="major">✨ Major & Brightest</option>
-          <option value="space-station">🛸 Space Stations</option>
-          <option value="tv">📺 TV & Broadcast</option>
-          <option value="gps">🧭 GPS & Navigation</option>
-          <option value="comms">📡 Comms & Internet</option>
-          <option value="weather">🌦 Weather & Science</option>
-          <option value="debris">💫 Space Debris</option>
-          <option value="all">🌐 Show All Objects</option>
-        </select>
-      </div>
-
-      {/* Satellite list */}
-      <div className="flex-1 overflow-y-auto">
-        {sorted.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-32 text-muted">
-            <Satellite className="w-8 h-8 mb-2 opacity-30" />
-            <p className="text-sm">Loading satellites...</p>
-          </div>
+        {viewMode === 'constellations' ? (
+          <Star className="w-4 h-4 text-amber" />
         ) : (
-          sorted.map((sat) => {
-            const isSelected = selectedSatellite?.satid === sat.satid;
-            const typeConf = SAT_TYPE_CONFIG[sat.type] || { label: 'Unknown', badgeClass: 'badge-amber', color: '#f59e0b' };
-            const altBarWidth = Math.min(100, (sat.satalt / 40000) * 100);
-            const speedBarWidth = Math.min(100, (sat.velocity / 10) * 100);
+          <Satellite className="w-4 h-4 text-cyan" />
+        )}
+        <h2 className="text-sm font-crimson font-bold tracking-wider uppercase text-text">
+          {viewMode === 'constellations' ? 'Visible Constellations' : 'Overhead Objects'}
+        </h2>
+        <span className={`ml-auto badge ${viewMode === 'constellations' ? 'badge-amber' : 'badge-cyan'} text-xs`}>
+          {viewMode === 'constellations' ? visibleConstellations.length : sortedSats.length}
+        </span>
+      </div>
 
-            return (
-              <button
-                key={sat.satid}
-                onClick={() => actions.selectSatellite(isSelected ? null : sat)}
-                className={`w-full text-left px-4 py-3 border-b border-border/50 transition-all duration-200 group
-                  ${isSelected
-                    ? 'bg-cyan/5 border-l-2 border-l-cyan'
-                    : 'hover:bg-panel-light'
-                  }`}
+      {/* Filter / Mode Dropdown Selector */}
+      <div className="px-4 py-2 border-b border-border bg-navy/20 flex flex-col gap-1 shrink-0 relative z-[200]">
+        <label className="text-[9px] font-crimson text-muted uppercase tracking-wider">
+          Tracking Target
+        </label>
+        
+        {/* Custom Dropdown Trigger */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full flex items-center justify-between text-xs font-crimson bg-panel border border-border rounded px-2.5 py-1.5 text-text hover:border-border-light transition-all focus:outline-none"
+        >
+          <span className="flex items-center gap-1.5">
+            {viewMode === 'satellites' ? (
+              <>
+                <Satellite className="w-3.5 h-3.5 text-cyan" />
+                <span>Satellites: {getFilterLabel(satelliteFilter)}</span>
+              </>
+            ) : (
+              <>
+                <Star className="w-3.5 h-3.5 text-amber" />
+                <span>Constellations</span>
+              </>
+            )}
+          </span>
+          <ChevronDown className="w-3.5 h-3.5 text-muted" />
+        </button>
+
+        {/* Custom Dropdown Menu */}
+        {isOpen && (
+          <>
+            {/* Click-away backdrop */}
+            <div className="fixed inset-0 z-40 cursor-default" onClick={() => { setIsOpen(false); setIsSatellitesSubOpen(false); }} />
+            
+            <div className="absolute top-full left-4 right-4 mt-1 bg-panel border border-border rounded-lg shadow-xl z-50 py-1 font-crimson text-xs">
+              {/* Satellites option (Hover/click opens subcategories) */}
+              <div
+                className="relative"
+                onMouseEnter={() => setIsSatellitesSubOpen(true)}
+                onMouseLeave={() => setIsSatellitesSubOpen(false)}
               >
-                <div className="flex items-start justify-between mb-1.5">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-base shrink-0">{getSatTypeIcon(sat.type)}</span>
-                    <div className="min-w-0">
-                      <p className={`text-xs font-mono font-bold truncate ${isSelected ? 'text-cyan' : 'text-text'}`}>
-                        {sat.satname}
-                      </p>
-                      <p className="text-muted text-xs font-mono">#{sat.satid}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0 ml-2">
-                    <span className={`badge ${typeConf.badgeClass}`} style={{ fontSize: 9 }}>
-                      {typeConf.label}
-                    </span>
-                    <ChevronRight className={`w-3 h-3 transition-transform ${isSelected ? 'text-cyan rotate-90' : 'text-muted group-hover:translate-x-0.5'}`} />
-                  </div>
-                </div>
+                <button
+                  onClick={() => setIsSatellitesSubOpen(!isSatellitesSubOpen)}
+                  className={`w-full flex items-center justify-between px-3 py-2 text-left hover:bg-panel-light transition-colors
+                    ${viewMode === 'satellites' ? 'text-cyan font-bold bg-cyan/5' : 'text-text'}`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Satellite className="w-3.5 h-3.5" />
+                    Satellites
+                  </span>
+                  <ChevronRight className="w-3 h-3 text-muted" />
+                </button>
 
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-                  <div>
-                    <div className="flex items-center justify-between mb-0.5">
-                      <span className="text-muted" style={{ fontSize: 10 }}>ALT</span>
-                      <span className="font-mono text-muted-light" style={{ fontSize: 10 }}>
-                        {sat.satalt?.toFixed(0)} km
-                      </span>
-                    </div>
-                    <div className="w-full h-0.5 bg-border rounded-full">
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${altBarWidth}%`,
-                          background: typeConf.color || '#f59e0b',
-                          boxShadow: `0 0 4px ${typeConf.color || '#f59e0b'}80`,
+                {/* Submenu of categories */}
+                {isSatellitesSubOpen && (
+                  <div className="lg:absolute lg:left-full lg:top-0 lg:ml-1 lg:w-52 lg:bg-panel lg:border lg:border-border lg:rounded-lg lg:shadow-xl relative w-full pl-4 bg-navy/30 border-t border-b border-border/30 py-1 z-50">
+                    {SATELLITE_CATEGORIES.map(cat => (
+                      <button
+                        key={cat.value}
+                        onClick={() => {
+                          actions.setViewMode('satellites');
+                          actions.setSatelliteFilter(cat.value);
+                          setIsOpen(false);
+                          setIsSatellitesSubOpen(false);
                         }}
-                      />
-                    </div>
+                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-left hover:bg-panel-light transition-colors
+                          ${viewMode === 'satellites' && satelliteFilter === cat.value ? 'text-cyan font-bold bg-cyan/5' : 'text-text'}`}
+                      >
+                        <span>{cat.icon}</span>
+                        <span>{cat.label}</span>
+                      </button>
+                    ))}
                   </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-0.5">
-                      <span className="text-muted" style={{ fontSize: 10 }}>SPD</span>
-                      <span className="font-mono text-muted-light" style={{ fontSize: 10 }}>
-                        {sat.velocity?.toFixed(2)} km/s
-                      </span>
-                    </div>
-                    <div className="w-full h-0.5 bg-border rounded-full">
-                      <div
-                        className="h-full rounded-full bg-cyan"
-                        style={{
-                          width: `${speedBarWidth}%`,
-                          boxShadow: '0 0 4px rgba(0,212,255,0.5)',
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
+                )}
+              </div>
+
+              {/* Constellations option */}
+              <button
+                onClick={() => {
+                  actions.setViewMode('constellations');
+                  setIsOpen(false);
+                  setIsSatellitesSubOpen(false);
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-panel-light transition-colors
+                  ${viewMode === 'constellations' ? 'text-amber font-bold bg-amber/5' : 'text-text'}`}
+              >
+                <Star className="w-3.5 h-3.5" />
+                Constellations
               </button>
-            );
-          })
+            </div>
+          </>
         )}
       </div>
 
-      {/* Footer: selected satellite info */}
-      {selectedSatellite && (
+      {/* List content */}
+      <div className="flex-1 overflow-y-auto">
+        {viewMode === 'constellations' ? (
+          visibleConstellations.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-32 text-muted text-center px-4">
+              <Star className="w-8 h-8 mb-2 opacity-30 text-amber" />
+              <p className="text-sm font-crimson">No visible constellations</p>
+              <p className="text-xs text-muted font-crimson mt-0.5">Wait or select a different location</p>
+            </div>
+          ) : (
+            visibleConstellations.map((constell) => {
+              const isSelected = selectedConstellation?.id === constell.id;
+              const { az, el } = constell.coords;
+              const compass = azimuthToCompass(az);
+              const elBarWidth = Math.min(100, (el / 90) * 100);
+
+              return (
+                <button
+                  key={constell.id}
+                  onClick={() => actions.selectConstellation(isSelected ? null : constell)}
+                  className={`w-full text-left px-4 py-3 border-b border-border/50 transition-all duration-200 group
+                    ${isSelected
+                      ? 'bg-amber/5 border-l-2 border-l-amber'
+                      : 'hover:bg-panel-light'
+                    }`}
+                >
+                  <div className="flex items-start justify-between mb-1.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-base shrink-0">🌌</span>
+                      <div className="min-w-0">
+                        <p className={`text-xs font-crimson font-bold truncate ${isSelected ? 'text-amber' : 'text-text'}`}>
+                          {constell.name}
+                        </p>
+                        <p className="text-muted text-[10px] font-crimson truncate">
+                          {constell.abbr} · {constell.description}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0 ml-2">
+                      <ChevronRight className={`w-3 h-3 transition-transform ${isSelected ? 'text-amber rotate-90' : 'text-muted group-hover:translate-x-0.5'}`} />
+                    </div>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                    <div>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-muted font-crimson text-[9px]">EL</span>
+                        <span className="font-mono text-muted-light text-[9px]">
+                          {el.toFixed(0)}°
+                        </span>
+                      </div>
+                      <div className="w-full h-0.5 bg-border rounded-full">
+                        <div
+                          className="h-full rounded-full bg-amber"
+                          style={{
+                            width: `${elBarWidth}%`,
+                            boxShadow: '0 0 4px rgba(245,158,11,0.5)',
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-muted font-crimson text-[9px]">AZ</span>
+                        <span className="font-mono text-muted-light text-[9px]">
+                          {az.toFixed(0)}° {compass}
+                        </span>
+                      </div>
+                      <div className="w-full h-0.5 bg-border rounded-full">
+                        <div
+                          className="h-full rounded-full bg-cyan"
+                          style={{
+                            width: `${(az / 360) * 100}%`,
+                            boxShadow: '0 0 4px rgba(0,212,255,0.5)',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })
+          )
+        ) : (
+          sortedSats.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-32 text-muted">
+              <Satellite className="w-8 h-8 mb-2 opacity-30 text-cyan" />
+              <p className="text-sm font-crimson">No overhead objects found</p>
+            </div>
+          ) : (
+            sortedSats.map((sat) => {
+              const isSelected = selectedSatellite?.satid === sat.satid;
+              const typeConf = SAT_TYPE_CONFIG[sat.type] || { label: 'Unknown', badgeClass: 'badge-amber', color: '#f59e0b' };
+              const altBarWidth = Math.min(100, (sat.satalt / 40000) * 100);
+              const speedBarWidth = Math.min(100, (sat.velocity / 10) * 100);
+
+              return (
+                <button
+                  key={sat.satid}
+                  onClick={() => actions.selectSatellite(isSelected ? null : sat)}
+                  className={`w-full text-left px-4 py-3 border-b border-border/50 transition-all duration-200 group
+                    ${isSelected
+                      ? 'bg-cyan/5 border-l-2 border-l-cyan'
+                      : 'hover:bg-panel-light'
+                    }`}
+                >
+                  <div className="flex items-start justify-between mb-1.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-base shrink-0">{getSatTypeIcon(sat.type)}</span>
+                      <div className="min-w-0">
+                        <p className={`text-xs font-crimson font-bold truncate ${isSelected ? 'text-cyan' : 'text-text'}`}>
+                          {sat.satname}
+                        </p>
+                        <p className="text-muted text-[10px] font-mono">#{sat.satid}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0 ml-2">
+                      <span className={`badge ${typeConf.badgeClass}`} style={{ fontSize: 9 }}>
+                        {typeConf.label}
+                      </span>
+                      <ChevronRight className={`w-3 h-3 transition-transform ${isSelected ? 'text-cyan rotate-90' : 'text-muted group-hover:translate-x-0.5'}`} />
+                    </div>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                    <div>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-muted font-crimson text-[9px]">ALT</span>
+                        <span className="font-mono text-muted-light text-[9px]">
+                          {sat.satalt?.toFixed(0)} km
+                        </span>
+                      </div>
+                      <div className="w-full h-0.5 bg-border rounded-full">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${altBarWidth}%`,
+                            background: typeConf.color || '#f59e0b',
+                            boxShadow: `0 0 4px ${typeConf.color || '#f59e0b'}80`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-muted font-crimson text-[9px]">SPD</span>
+                        <span className="font-mono text-muted-light text-[9px]">
+                          {sat.velocity?.toFixed(2)} km/s
+                        </span>
+                      </div>
+                      <div className="w-full h-0.5 bg-border rounded-full">
+                        <div
+                          className="h-full rounded-full bg-cyan"
+                          style={{
+                            width: `${speedBarWidth}%`,
+                            boxShadow: '0 0 4px rgba(0,212,255,0.5)',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })
+          )
+        )}
+      </div>
+
+      {/* Footer: selected object info */}
+      {viewMode === 'constellations' && selectedConstellation && (
+        <div className="p-3 border-t border-border bg-amber/5">
+          <p className="text-amber text-xs font-crimson font-bold text-center">
+            🌌 Tracking: {selectedConstellation.name}
+          </p>
+        </div>
+      )}
+      {viewMode === 'satellites' && selectedSatellite && (
         <div className="p-3 border-t border-border bg-cyan/5">
-          <p className="text-cyan text-xs font-mono font-bold text-center">
+          <p className="text-cyan text-xs font-crimson font-bold text-center">
             📡 Tracking: {selectedSatellite.satname}
           </p>
         </div>

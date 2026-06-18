@@ -150,7 +150,7 @@ export default function LocationSearch({ onLocationSelect }) {
 
       {/* Error message */}
       {error && (
-        <p className="mt-2 text-red-400 text-sm font-mono text-center">{error}</p>
+        <p className="mt-2 text-red-400 text-sm font-crimson font-semibold text-center">{error}</p>
       )}
 
       {/* Results Dropdown */}

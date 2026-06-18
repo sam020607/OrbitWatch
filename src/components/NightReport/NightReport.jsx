@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../../context/AppContext.jsx';
 import { formatTime, formatDuration, azimuthToCompass, magnitudeToDescription, getPlanetEmoji } from '../../utils/orbitMath.js';
 import { MOCK_METEOR_SHOWERS } from '../../data/mockSatellites.js';
-import { Moon, Star, Satellite, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import { Moon, Star, Satellite, Zap, ChevronDown } from 'lucide-react';
 import SunCalc from 'suncalc';
 import ThreeMoon from './ThreeMoon.jsx';
 
@@ -31,12 +31,12 @@ export default function NightReport() {
       <div className="px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2 mb-1">
           <Star className="w-4 h-4 text-amber" />
-          <h2 className="text-sm font-mono font-bold tracking-wider uppercase text-text">
+          <h2 className="text-sm font-crimson font-bold tracking-wider uppercase text-text">
             What's Visible Tonight?
           </h2>
         </div>
         {location && (
-          <p className="text-muted text-xs font-mono">
+          <p className="text-muted text-xs font-crimson">
             📍 {location.name} — {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
           </p>
         )}
@@ -50,10 +50,10 @@ export default function NightReport() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-mono transition-all duration-200
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-crimson font-semibold transition-all duration-200
                 ${activeTab === tab.id ? 'tab-active' : 'text-muted hover:text-muted-light'}`}
             >
-              <Icon className="w-3 h-3" />
+              <Icon className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">{tab.label}</span>
             </button>
           );
@@ -86,8 +86,8 @@ function SatellitePasses({ passes, now, expandedPass, onExpand }) {
 
   if (upcoming.length === 0) {
     return (
-      <div className="p-6 text-center text-muted">
-        <Satellite className="w-8 h-8 mx-auto mb-2 opacity-30" />
+      <div className="p-6 text-center text-muted font-crimson">
+        <Satellite className="w-8 h-8 mx-auto mb-2 opacity-30 text-cyan" />
         <p className="text-sm">No ISS passes found</p>
         <p className="text-xs mt-1">Select a location to load pass data</p>
       </div>
@@ -117,11 +117,11 @@ function SatellitePasses({ passes, now, expandedPass, onExpand }) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-base">🛸</span>
-                  <span className="font-mono text-sm text-text font-bold">ISS</span>
-                  {isVisible && <span className="badge badge-green" style={{ fontSize: 9 }}>VISIBLE</span>}
+                  <span className="font-crimson text-sm text-text font-bold">ISS</span>
+                  {isVisible && <span className="badge badge-green animate-pulse" style={{ fontSize: 9 }}>VISIBLE</span>}
                   {secsAway < 900 && !isVisible && <span className="badge badge-cyan animate-pulse" style={{ fontSize: 9 }}>SOON</span>}
                 </div>
-                <p className="text-muted text-xs font-mono mt-0.5">
+                <p className="text-muted text-xs font-crimson mt-0.5">
                   {pass.startAzCompass} → {pass.maxAzCompass} → {pass.endAzCompass}
                 </p>
               </div>
@@ -129,7 +129,7 @@ function SatellitePasses({ passes, now, expandedPass, onExpand }) {
               {/* Max elevation */}
               <div className="shrink-0 text-right">
                 <p className="font-mono text-base font-bold text-cyan">{pass.maxEl}°</p>
-                <p className="font-mono text-xs text-muted">max el</p>
+                <p className="font-crimson text-xs text-muted">max el</p>
               </div>
 
               <ChevronDown className={`w-4 h-4 text-muted shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
@@ -138,10 +138,10 @@ function SatellitePasses({ passes, now, expandedPass, onExpand }) {
             {/* Expanded details */}
             {isExpanded && (
               <div className="px-4 pb-3 grid grid-cols-2 gap-2 bg-navy/20">
-                <Detail label="AOS" value={`${formatTime(pass.startUTC)} from ${pass.startAzCompass} (${pass.startAz}°)`} />
-                <Detail label="MAX" value={`${formatTime(pass.maxUTC)} — ${pass.maxEl}° at ${pass.maxAzCompass}`} />
-                <Detail label="LOS" value={`${formatTime(pass.endUTC)} to ${pass.endAzCompass} (${pass.endAz}°)`} />
-                <Detail label="Brightness" value={pass.mag != null ? `${magnitudeToDescription(pass.mag)} (mag ${pass.mag > 0 ? '+' : ''}${pass.mag?.toFixed(1)})` : 'N/A'} />
+                <Detail label="AOS" value={<span><span className="font-mono">{formatTime(pass.startUTC)}</span> <span className="font-crimson">from</span> {pass.startAzCompass} (<span className="font-mono">{pass.startAz}°</span>)</span>} />
+                <Detail label="MAX" value={<span><span className="font-mono">{formatTime(pass.maxUTC)}</span> — <span className="font-mono">{pass.maxEl}°</span> <span className="font-crimson">at</span> {pass.maxAzCompass}</span>} />
+                <Detail label="LOS" value={<span><span className="font-mono">{formatTime(pass.endUTC)}</span> <span className="font-crimson">to</span> {pass.endAzCompass} (<span className="font-mono">{pass.endAz}°</span>)</span>} />
+                <Detail label="Brightness" value={pass.mag != null ? <span><span className="font-crimson">{magnitudeToDescription(pass.mag)}</span> (<span className="font-mono">{pass.mag > 0 ? '+' : ''}{pass.mag?.toFixed(1)}</span> <span className="font-crimson">mag</span>)</span> : 'N/A'} />
               </div>
             )}
           </div>
@@ -179,25 +179,25 @@ function PlanetsTab({ data }) {
             <div className="text-2xl">{getPlanetEmoji(name)}</div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className="font-mono text-sm font-bold text-text">{name}</p>
+                <p className="font-crimson text-sm font-bold text-text">{name}</p>
                 {isVisible
                   ? <span className="badge badge-green" style={{ fontSize: 9 }}>VISIBLE</span>
                   : <span className="badge badge-red" style={{ fontSize: 9 }}>BELOW HORIZON</span>
                 }
               </div>
-              <p className="text-muted text-xs font-mono mt-0.5">
-                {az.toFixed(0)}° {azimuthToCompass(az)} · {Math.abs(alt).toFixed(1)}° {alt >= 0 ? 'above' : 'below'} horizon
+              <p className="text-muted text-xs font-crimson mt-0.5">
+                <span className="font-mono">{az.toFixed(0)}°</span> {azimuthToCompass(az)} · <span className="font-mono">{Math.abs(alt).toFixed(1)}°</span> {alt >= 0 ? 'above' : 'below'} horizon
               </p>
               {(rise || set) && (
-                <p className="text-muted text-xs font-mono">
-                  {rise && `↑ ${rise}`} {set && `↓ ${set}`}
+                <p className="text-muted text-xs font-crimson">
+                  {rise && <span>↑ <span className="font-mono">{rise}</span></span>} {set && <span> ↓ <span className="font-mono">{set}</span></span>}
                 </p>
               )}
             </div>
             {mag != null && (
               <div className="text-right shrink-0">
                 <p className="font-mono text-sm text-amber">{mag > 0 ? '+' : ''}{mag.toFixed(1)}</p>
-                <p className="text-muted text-xs">mag</p>
+                <p className="text-muted text-xs font-crimson">mag</p>
               </div>
             )}
           </div>
@@ -233,14 +233,11 @@ function MoonTab({ data }) {
   };
   const emoji = phaseEmojis[phaseName.toLowerCase()] || '🌙';
 
-  // Draw moon illumination arc
-  const moonR = 45;
   const isWaxing = ['New Moon', 'Waxing Crescent', 'First Quarter', 'Waxing Gibbous'].includes(phaseName);
-  const illum = illumination / 100;
 
   return (
     <div className="p-4 flex flex-col items-center gap-5">
-      {/* 3D Moon Graphic */}
+      {/* Moon Graphic */}
       <div className="w-full relative flex justify-center mt-2 mb-4">
         <ThreeMoon illumination={illumination} phaseName={phaseName} />
         <div className="absolute top-0 right-4 text-2xl drop-shadow-md z-10">{emoji}</div>
@@ -248,18 +245,24 @@ function MoonTab({ data }) {
 
       {/* Phase info */}
       <div className="text-center z-10">
-        <p className="font-mono text-xl font-bold text-text">{phaseName}</p>
-        <p className="text-amber font-mono text-lg mt-1">{illumination}% illuminated</p>
-        {age && <p className="text-muted text-sm mt-1 font-mono">Day {age} of lunar cycle</p>}
+        <p className="font-crimson text-lg font-bold text-text">{phaseName}</p>
+        <p className="text-amber font-crimson text-sm mt-1">
+          <span className="font-mono text-base font-bold">{illumination}%</span> illuminated
+        </p>
+        {age && (
+          <p className="text-muted text-xs mt-1 font-crimson">
+            Day <span className="font-mono font-bold">{age}</span> of lunar cycle
+          </p>
+        )}
       </div>
 
       {/* Illumination bar */}
       <div className="w-full max-w-xs">
-        <div className="flex justify-between text-xs font-mono text-muted mb-1">
+        <div className="flex justify-between text-xs font-crimson text-muted mb-1">
           <span>New Moon</span>
           <span>Full Moon</span>
         </div>
-        <div className="w-full h-2 bg-border rounded-full overflow-hidden">
+        <div className="w-full h-1.5 bg-border rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-500"
             style={{
@@ -273,7 +276,7 @@ function MoonTab({ data }) {
 
       {/* Visibility note */}
       <div className="px-4 py-3 rounded-lg border border-border bg-navy/50 text-center w-full max-w-xs">
-        <p className="text-muted-light text-sm font-sans">
+        <p className="text-muted-light text-sm font-crimson">
           {illumination > 50
             ? '🌙 Bright moon tonight — may reduce faint satellite visibility'
             : illumination < 20
@@ -296,17 +299,19 @@ function MeteorTab({ showers }) {
             <span className="text-2xl">☄️</span>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <p className="font-mono text-sm font-bold text-text">{shower.name}</p>
+                <p className="font-crimson text-sm font-bold text-text">{shower.name}</p>
                 {shower.active
                   ? <span className="badge badge-green" style={{ fontSize: 9 }}>ACTIVE NOW</span>
                   : <span className="badge badge-amber" style={{ fontSize: 9 }}>UPCOMING</span>
                 }
               </div>
-              <p className="text-muted text-xs mb-2">Peak: <span className="text-muted-light">{shower.peak}</span></p>
-              <p className="text-muted text-xs mb-2">
-                Rate: <span className="text-amber font-mono">~{shower.rate}/hour</span> at peak
+              <p className="text-muted text-xs mb-1 font-crimson">
+                Peak: <span className="text-muted-light">{shower.peak}</span>
               </p>
-              <p className="text-muted text-xs leading-relaxed">{shower.description}</p>
+              <p className="text-muted text-xs mb-2 font-crimson">
+                Rate: <span className="text-amber font-mono font-bold">~{shower.rate}</span><span className="text-muted-light">/hour at peak</span>
+              </p>
+              <p className="text-muted text-xs leading-relaxed font-crimson">{shower.description}</p>
             </div>
           </div>
         </div>
@@ -320,8 +325,8 @@ function MeteorTab({ showers }) {
 function Detail({ label, value }) {
   return (
     <div className="mt-1">
-      <p className="text-muted text-xs font-mono uppercase">{label}</p>
-      <p className="text-muted-light text-xs font-mono">{value}</p>
+      <p className="text-muted text-[10px] font-crimson uppercase">{label}</p>
+      <p className="text-muted-light text-xs font-crimson">{value}</p>
     </div>
   );
 }
@@ -330,7 +335,7 @@ function LoadingPlaceholder({ label }) {
   return (
     <div className="flex flex-col items-center justify-center h-32 text-muted">
       <div className="spinner mb-3" />
-      <p className="text-sm">{label}</p>
+      <p className="text-sm font-crimson">{label}</p>
     </div>
   );
 }

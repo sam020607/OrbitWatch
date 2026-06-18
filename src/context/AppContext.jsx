@@ -29,13 +29,15 @@ const initialState = {
   activeView: 'map',       // 'map' | 'report' | 'lookup'
   showConeOverlay: true,
   satelliteFilter: 'major', // 'major' | 'all' | 'tv' | 'gps' | 'comms' | 'weather' | 'space-station' | 'debris' | 'earth-obs'
+  viewMode: 'satellites',   // 'satellites' | 'constellations'
+  selectedConstellation: null, // Currently selected constellation
 };
 
 /** ─── Reducer ───────────────────────────────────────────────────────────── */
 function appReducer(state, action) {
   switch (action.type) {
     case 'SET_LOCATION':
-      return { ...state, location: action.payload, issTrail: [], selectedSatellite: null };
+      return { ...state, location: action.payload, issTrail: [], selectedSatellite: null, selectedConstellation: null };
 
     case 'SET_LOCATION_NAME':
       return { ...state, locationName: action.payload };
@@ -50,7 +52,7 @@ function appReducer(state, action) {
       return { ...state, satellites: action.payload };
 
     case 'SELECT_SATELLITE':
-      return { ...state, selectedSatellite: action.payload, activeView: action.payload ? 'lookup' : state.activeView };
+      return { ...state, selectedSatellite: action.payload, selectedConstellation: null, activeView: action.payload ? 'lookup' : state.activeView };
 
     case 'SET_ISS_PASSES':
       return { ...state, issNextPasses: action.payload };
@@ -81,6 +83,12 @@ function appReducer(state, action) {
 
     case 'SET_SATELLITE_FILTER':
       return { ...state, satelliteFilter: action.payload };
+
+    case 'SET_VIEW_MODE':
+      return { ...state, viewMode: action.payload, selectedSatellite: null, selectedConstellation: null };
+
+    case 'SELECT_CONSTELLATION':
+      return { ...state, selectedConstellation: action.payload, selectedSatellite: null, activeView: action.payload ? 'lookup' : state.activeView };
 
     case 'RESET':
       return { ...initialState };
@@ -113,6 +121,8 @@ export function AppProvider({ children }) {
     setActiveView: (v) => dispatch({ type: 'SET_ACTIVE_VIEW', payload: v }),
     toggleConeOverlay: () => dispatch({ type: 'TOGGLE_CONE_OVERLAY' }),
     setSatelliteFilter: (filter) => dispatch({ type: 'SET_SATELLITE_FILTER', payload: filter }),
+    setViewMode: (mode) => dispatch({ type: 'SET_VIEW_MODE', payload: mode }),
+    selectConstellation: (constell) => dispatch({ type: 'SELECT_CONSTELLATION', payload: constell }),
     reset: () => dispatch({ type: 'RESET' }),
   }), [dispatch]);
 

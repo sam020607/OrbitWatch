@@ -1,9 +1,10 @@
-import { useEffect, useRef, useCallback, Fragment } from 'react';
+import { useEffect, useRef, useCallback, Fragment, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Polyline, Polygon, Circle, useMap, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { useApp } from '../../context/AppContext.jsx';
-import { generateOrbitalArc, calculateConeFootprint } from '../../utils/orbitMath.js';
+import { generateOrbitalArc, calculateConeFootprint, azimuthToCompass } from '../../utils/orbitMath.js';
 import { SAT_TYPE_CONFIG } from '../../data/mockSatellites.js';
+import { CONSTELLATIONS, getSubStellarPoint, getLocalCoordinates } from '../../data/constellations.js';
 
 // Fix Leaflet default icon path issue with Vite
 delete L.Icon.Default.prototype._getIconUrl;
@@ -53,6 +54,23 @@ function createObserverIcon() {
   });
 }
 
+// Constellation star marker icon (glowing 5-pointed star clip-path)
+function createConstellationIcon(selected = false) {
+  const size = selected ? 18 : 12;
+  return L.divIcon({
+    className: 'constellation-marker-icon',
+    html: `<div style="
+      width: ${size}px; height: ${size}px;
+      background: ${selected ? '#00d4ff' : '#f59e0b'};
+      box-shadow: 0 0 ${selected ? 12 : 6}px ${selected ? '#00d4ff' : '#f59e0b'};
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    "></div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2],
+  });
+}
+
 /** Map auto-panner to observer location */
 function MapController({ location }) {
   const map = useMap();
@@ -67,10 +85,21 @@ function MapController({ location }) {
 /**
  * GlobeMap — Leaflet map component.
  * Shows: ISS moving dot + trail, satellite markers, orbital arcs, cone of visibility, observer location.
+ * Now supports Constellations view mode showing visible constellations at their sub-stellar coordinates.
  */
 export default function GlobeMap({ className = '' }) {
   const { state, actions } = useApp();
-  const { location, issPosition, issTrail, satellites, selectedSatellite, showConeOverlay, satelliteFilter } = state;
+  const { 
+    location, 
+    issPosition, 
+    issTrail, 
+    satellites, 
+    selectedSatellite, 
+    showConeOverlay, 
+    satelliteFilter,
+    viewMode,
+    selectedConstellation
+  } = state;
 
   // Filter based on active selection
   const filteredSatellites = satellites.filter(sat => {
@@ -80,6 +109,18 @@ export default function GlobeMap({ className = '' }) {
     }
     return sat.type === satelliteFilter;
   });
+
+  // Calculate visible constellations and their sub-stellar map coordinates
+  const visibleConstellations = useMemo(() => {
+    if (!location) return [];
+    const now = Date.now();
+    return CONSTELLATIONS.map(c => {
+      const subStellar = getSubStellarPoint(c.ra, c.dec, now);
+      const coords = getLocalCoordinates(c.ra, c.dec, location.lat, location.lon, now);
+      return { ...c, subStellar, coords };
+    })
+    .filter(c => c.coords.el > 0);
+  }, [location]);
 
   const issIcon = useRef(createISSIcon()).current;
   const observerIcon = useRef(createObserverIcon()).current;
@@ -116,146 +157,211 @@ export default function GlobeMap({ className = '' }) {
         {location && (
           <Marker position={[location.lat, location.lon]} icon={observerIcon}>
             <Popup>
-              <div className="font-mono text-sm">
+              <div className="font-crimson text-sm">
                 <p className="font-bold text-amber">{location.name}</p>
                 <p className="text-muted text-xs mt-1">
-                  {location.lat.toFixed(4)}°N, {location.lon.toFixed(4)}°E
+                  <span className="font-mono">{location.lat.toFixed(4)}°N</span>, <span className="font-mono">{location.lon.toFixed(4)}°E</span>
                 </p>
               </div>
             </Popup>
           </Marker>
         )}
 
-        {/* ISS trail */}
-        {trailPositions.length > 1 && (
-          <Polyline
-            positions={trailPositions}
-            color="#00d4ff"
-            weight={2}
-            opacity={0.4}
-            dashArray="4, 6"
-          />
+        {/* Satellite Tracking View Mode Overlays */}
+        {viewMode === 'satellites' && (
+          <>
+            {/* ISS trail */}
+            {trailPositions.length > 1 && (
+              <Polyline
+                positions={trailPositions}
+                color="#00d4ff"
+                weight={2}
+                opacity={0.4}
+                dashArray="4, 6"
+              />
+            )}
+
+            {/* ISS cone of visibility */}
+            {issCone && (
+              <Polygon
+                positions={issCone}
+                pathOptions={{
+                  color: 'rgba(0, 212, 255, 0.5)',
+                  fillColor: 'rgba(0, 212, 255, 0.06)',
+                  fillOpacity: 1,
+                  weight: 1.5,
+                  dashArray: '6, 4',
+                  className: 'cone-overlay',
+                }}
+              />
+            )}
+
+            {/* ISS marker */}
+            {issPosition && (
+              <Marker
+                position={[issPosition.lat, issPosition.lon]}
+                icon={issIcon}
+                zIndexOffset={1000}
+              >
+                <Popup>
+                  <div className="font-crimson text-sm">
+                    <p className="font-bold text-cyan text-base">🛸 ISS</p>
+                    <p className="text-muted-light mt-1">
+                      Lat: <span className="font-mono text-white">{issPosition.lat.toFixed(4)}°</span>
+                    </p>
+                    <p className="text-muted-light">
+                      Lon: <span className="font-mono text-white">{issPosition.lon.toFixed(4)}°</span>
+                    </p>
+                    <p className="text-muted-light">
+                      Alt: <span className="font-mono text-white">408 km</span>
+                    </p>
+                    <p className="text-muted-light">
+                      Speed: <span className="font-mono text-white">7.66 km/s</span>
+                    </p>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
+
+            {/* Selected Satellite orbit & cone footprint */}
+            {selectedSatellite && (
+              <>
+                {/* Orbital arc */}
+                <Polyline
+                  positions={generateOrbitalArc(selectedSatellite.satlat, selectedSatellite.satlon)}
+                  className="orbital-path"
+                />
+                
+                {/* Cone overlay */}
+                {showConeOverlay && (
+                  <Polygon
+                    positions={calculateConeFootprint(selectedSatellite.satlat, selectedSatellite.satlon, selectedSatellite.satalt)}
+                    pathOptions={{
+                      color: SAT_TYPE_CONFIG[selectedSatellite.type]?.color || '#f59e0b',
+                      fillColor: 'rgba(245, 158, 11, 0.05)',
+                      fillOpacity: 1,
+                      weight: 1,
+                      dashArray: '4, 4',
+                    }}
+                  />
+                )}
+              </>
+            )}
+
+            {/* Satellite markers */}
+            {filteredSatellites.map((sat) => {
+              const isSelected = selectedSatellite?.satid === sat.satid;
+              const satIcon = createSatIcon(sat.type, isSelected);
+
+              return (
+                <Marker
+                  key={sat.satid}
+                  position={[sat.satlat, sat.satlon]}
+                  icon={satIcon}
+                  eventHandlers={{
+                    click: () => actions.selectSatellite(isSelected ? null : sat),
+                  }}
+                >
+                  <Popup>
+                    <div className="font-crimson text-sm min-w-[180px]">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span>{SAT_TYPE_CONFIG[sat.type] ? '' : '🛰️'}</span>
+                        <p className="font-bold text-amber text-sm">{sat.satname}</p>
+                      </div>
+                      <p className="text-muted-light text-xs">
+                        NORAD: <span className="font-mono text-white">{sat.satid}</span>
+                      </p>
+                      <p className="text-muted-light text-xs">
+                        Alt: <span className="font-mono text-white">{sat.satalt?.toFixed(1)} km</span>
+                      </p>
+                      <p className="text-muted-light text-xs">
+                        Speed: <span className="font-mono text-white">{sat.velocity?.toFixed(2)} km/s</span>
+                      </p>
+                      <p className="text-muted-light text-xs">
+                        Type: <span className="capitalize">{sat.type?.replace('-', ' ')}</span>
+                      </p>
+                      <button
+                        onClick={() => actions.selectSatellite(isSelected ? null : sat)}
+                        className="mt-2 w-full text-center text-xs text-cyan border border-cyan/30 rounded px-2 py-1 hover:bg-cyan/10 transition-colors"
+                      >
+                        {isSelected ? 'Deselect' : 'Track this satellite'}
+                      </button>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+          </>
         )}
 
-        {/* ISS cone of visibility */}
-        {issCone && (
-          <Polygon
-            positions={issCone}
-            pathOptions={{
-              color: 'rgba(0, 212, 255, 0.5)',
-              fillColor: 'rgba(0, 212, 255, 0.06)',
-              fillOpacity: 1,
-              weight: 1.5,
-              dashArray: '6, 4',
-              className: 'cone-overlay',
-            }}
-          />
-        )}
-
-        {/* ISS marker */}
-        {issPosition && (
-          <Marker
-            position={[issPosition.lat, issPosition.lon]}
-            icon={issIcon}
-            zIndexOffset={1000}
-          >
-            <Popup>
-              <div className="font-mono text-sm">
-                <p className="font-bold text-cyan text-base">🛸 ISS</p>
-                <p className="text-muted-light mt-1">
-                  Lat: <span className="text-white">{issPosition.lat.toFixed(4)}°</span>
-                </p>
-                <p className="text-muted-light">
-                  Lon: <span className="text-white">{issPosition.lon.toFixed(4)}°</span>
-                </p>
-                <p className="text-muted-light">
-                  Alt: <span className="text-white">408 km</span>
-                </p>
-                <p className="text-muted-light">
-                  Speed: <span className="text-white">7.66 km/s</span>
-                </p>
-              </div>
-            </Popup>
-          </Marker>
-        )}
-
-        {/* ISS orbital arc */}
-        {issPosition && (
-          <Polyline
-            positions={generateOrbitalArc(issPosition.lat, issPosition.lon, 51.6)}
-            color="#00d4ff"
-            weight={1.5}
-            opacity={0.4}
-            dashArray="8, 4"
-            className="orbital-path"
-          />
-        )}
-
-        {/* Satellite markers + orbital arcs */}
-        {filteredSatellites.map((sat) => {
-          const isSelected = selectedSatellite?.satid === sat.satid;
-          const satIcon = createSatIcon(sat.type, isSelected);
-          const arcPositions = generateOrbitalArc(sat.satlat, sat.satlon, 51.6);
-          const satCone = isSelected && showConeOverlay
-            ? calculateConeFootprint(sat.satlat, sat.satlon, sat.satalt || 550)
+        {/* Constellations Tracking View Mode Overlays */}
+        {viewMode === 'constellations' && visibleConstellations.map((constell) => {
+          const isSelected = selectedConstellation?.id === constell.id;
+          const markerIcon = createConstellationIcon(isSelected);
+          const constellCone = isSelected && showConeOverlay
+            ? calculateConeFootprint(constell.subStellar.lat, constell.subStellar.lon, 4000, 10)
             : null;
 
           return (
-            <Fragment key={sat.satid}>
-              {/* Orbital arc */}
-              <Polyline
-                positions={arcPositions}
-                color={isSelected ? '#00d4ff' : (SAT_TYPE_CONFIG[sat.type]?.color || '#f59e0b')}
-                weight={isSelected ? 1.5 : 1}
-                opacity={isSelected ? 0.5 : 0.2}
-                dashArray="6, 4"
-              />
-
-              {/* Visibility cone for selected */}
-              {satCone && (
+            <Fragment key={constell.id}>
+              {/* Constellation visibility cone */}
+              {constellCone && (
                 <Polygon
-                  positions={satCone}
+                  positions={constellCone}
                   pathOptions={{
-                    color: 'rgba(245, 158, 11, 0.5)',
+                    color: 'rgba(245, 158, 11, 0.4)',
                     fillColor: 'rgba(245, 158, 11, 0.05)',
                     fillOpacity: 1,
-                    weight: 1,
+                    weight: 1.5,
+                    dashArray: '6, 4',
+                    className: 'cone-overlay',
+                  }}
+                />
+              )}
+
+              {/* Line linking observer to sub-stellar point */}
+              {isSelected && location && (
+                <Polyline
+                  positions={[
+                    [location.lat, location.lon],
+                    [constell.subStellar.lat, constell.subStellar.lon],
+                  ]}
+                  pathOptions={{
+                    color: '#f59e0b',
+                    weight: 1.5,
                     dashArray: '4, 4',
                   }}
                 />
               )}
 
-              {/* Satellite marker */}
+              {/* Constellation star marker */}
               <Marker
-                position={[sat.satlat, sat.satlon]}
-                icon={satIcon}
+                position={[constell.subStellar.lat, constell.subStellar.lon]}
+                icon={markerIcon}
                 eventHandlers={{
-                  click: () => actions.selectSatellite(isSelected ? null : sat),
+                  click: () => actions.selectConstellation(isSelected ? null : constell),
                 }}
               >
                 <Popup>
-                  <div className="font-mono text-sm min-w-[180px]">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span>{SAT_TYPE_CONFIG[sat.type] ? '' : '🛰️'}</span>
-                      <p className="font-bold text-amber text-sm">{sat.satname}</p>
+                  <div className="font-crimson text-sm min-w-[180px]">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span>🌌</span>
+                      <p className="font-bold text-amber text-sm">{constell.name}</p>
                     </div>
-                    <p className="text-muted-light text-xs">
-                      NORAD: <span className="text-white">{sat.satid}</span>
+                    <p className="text-muted text-xs mb-1">
+                      {constell.abbr} · {constell.description}
+                    </p>
+                    <p className="text-muted-light text-xs mt-1">
+                      Azimuth: <span className="font-mono text-white">{constell.coords.az.toFixed(0)}° {azimuthToCompass(constell.coords.az)}</span>
                     </p>
                     <p className="text-muted-light text-xs">
-                      Alt: <span className="text-white">{sat.satalt?.toFixed(1)} km</span>
-                    </p>
-                    <p className="text-muted-light text-xs">
-                      Speed: <span className="text-white">{sat.velocity?.toFixed(2)} km/s</span>
-                    </p>
-                    <p className="text-muted-light text-xs">
-                      Type: <span className="text-white capitalize">{sat.type?.replace('-', ' ')}</span>
+                      Elevation: <span className="font-mono text-white">{constell.coords.el.toFixed(0)}°</span>
                     </p>
                     <button
-                      onClick={() => actions.selectSatellite(isSelected ? null : sat)}
-                      className="mt-2 w-full text-center text-xs text-cyan border border-cyan/30 rounded px-2 py-1 hover:bg-cyan/10"
+                      onClick={() => actions.selectConstellation(isSelected ? null : constell)}
+                      className="mt-2.5 w-full text-center text-xs text-amber border border-amber/30 rounded px-2 py-1 hover:bg-amber/10 transition-colors"
                     >
-                      {isSelected ? 'Deselect' : 'Track this satellite'}
+                      {isSelected ? 'Deselect' : 'Track this constellation'}
                     </button>
                   </div>
                 </Popup>
@@ -266,35 +372,41 @@ export default function GlobeMap({ className = '' }) {
       </MapContainer>
 
       {/* Map overlay: ISS live badge */}
-      {issPosition && (
+      {viewMode === 'satellites' && issPosition && (
         <div className="absolute top-3 left-3 z-[1000] flex items-center gap-2 px-3 py-1.5 rounded-lg bg-navy/90 border border-cyan/30 backdrop-blur-sm">
           <div className="w-2 h-2 rounded-full bg-cyan animate-pulse" style={{ boxShadow: '0 0 6px #00d4ff' }} />
-          <span className="text-cyan text-xs font-mono">ISS LIVE</span>
+          <span className="text-cyan text-xs font-crimson font-semibold">ISS LIVE</span>
         </div>
       )}
 
-      {/* Satellite count & Filter badge */}
-      {satellites.length > 0 && (
-        <div className="absolute top-3 right-3 z-[1000] flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-navy/90 border border-border backdrop-blur-sm shadow-lg">
-          <span className="text-amber text-xs font-mono shrink-0 hidden sm:inline">
-            {filteredSatellites.length}/{satellites.length} OVERHEAD
+      {/* Satellite / Constellation count & Filter badge */}
+      <div className="absolute top-3 right-3 z-[1000] flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-navy/90 border border-border backdrop-blur-sm shadow-lg">
+        {viewMode === 'constellations' ? (
+          <span className="text-amber text-xs font-crimson font-semibold shrink-0">
+            <span className="font-mono">{visibleConstellations.length}</span> CONSTELLATIONS VISIBLE
           </span>
-          <select
-            value={satelliteFilter}
-            onChange={(e) => actions.setSatelliteFilter(e.target.value)}
-            className="text-xs font-mono bg-panel/90 border border-border/60 rounded px-1.5 py-0.5 text-text focus:outline-none focus:border-cyan cursor-pointer transition-colors"
-          >
-            <option value="major">✨ Major</option>
-            <option value="space-station">🛸 Stations</option>
-            <option value="tv">📺 TV Sats</option>
-            <option value="gps">🧭 GPS</option>
-            <option value="comms">📡 Comms</option>
-            <option value="weather">🌦 Weather</option>
-            <option value="debris">💫 Debris</option>
-            <option value="all">🌐 All</option>
-          </select>
-        </div>
-      )}
+        ) : (
+          <>
+            <span className="text-amber text-xs font-crimson font-semibold shrink-0 hidden sm:inline">
+              <span className="font-mono">{filteredSatellites.length}/{satellites.length}</span> OVERHEAD
+            </span>
+            <select
+              value={satelliteFilter}
+              onChange={(e) => actions.setSatelliteFilter(e.target.value)}
+              className="text-xs font-crimson bg-panel/90 border border-border/60 rounded px-1.5 py-0.5 text-text focus:outline-none focus:border-cyan cursor-pointer transition-colors"
+            >
+              <option value="major">✨ Major</option>
+              <option value="space-station">🛸 Stations</option>
+              <option value="tv">📺 TV Sats</option>
+              <option value="gps">🧭 GPS</option>
+              <option value="comms">📡 Comms</option>
+              <option value="weather">🌦 Weather</option>
+              <option value="debris">💫 Debris</option>
+              <option value="all">All</option>
+            </select>
+          </>
+        )}
+      </div>
     </div>
   );
 }
