@@ -5,6 +5,7 @@ import { useISSTracker } from '../../hooks/useISSTracker.js';
 import { useSatellites } from '../../hooks/useSatellites.js';
 import { usePassPredictions } from '../../hooks/usePassPredictions.js';
 import GlobeMap from './GlobeMap.jsx';
+import Globe3D from './Globe3D.jsx';
 import SatellitePanel from './SatellitePanel.jsx';
 import PassCountdown from '../PassCountdown/PassCountdown.jsx';
 import LookUpCard from '../LookUpCard/LookUpCard.jsx';
@@ -12,7 +13,7 @@ import NightReport from '../NightReport/NightReport.jsx';
 import LocationSearch from '../LandingPage/LocationSearch.jsx';
 import {
   Map, List, Star, Compass, Radio, RotateCcw,
-  Eye, EyeOff, Satellite, Settings, ChevronLeft
+  Eye, EyeOff, Satellite, Settings, ChevronLeft, Globe
 } from 'lucide-react';
 
 const MOBILE_VIEWS = [
@@ -39,6 +40,7 @@ export default function Dashboard({ onReset }) {
   const [mobileView, setMobileView] = useState('map');
   const [rightPanel, setRightPanel] = useState('countdown'); // 'countdown' | 'lookup' | 'report'
   const [showSearch, setShowSearch] = useState(false);
+  const [is3DMode, setIs3DMode] = useState(false);
 
   function handleNewLocation(loc) {
     actions.setLocation(loc);
@@ -138,7 +140,30 @@ export default function Dashboard({ onReset }) {
 
         {/* ── Center: Map ── */}
         <main className="flex-1 relative overflow-hidden">
-          <GlobeMap className="w-full h-full" />
+          {is3DMode ? (
+            <Globe3D className="w-full h-full" />
+          ) : (
+            <GlobeMap className="w-full h-full" />
+          )}
+
+          {/* 3D Globe / 2D Map Toggle Button */}
+          <button
+            onClick={() => setIs3DMode(!is3DMode)}
+            className="absolute bottom-16 lg:bottom-5 right-5 z-[1000] flex items-center gap-2 px-3 py-2 rounded-lg bg-navy/90 border border-cyan/40 text-cyan hover:border-cyan text-xs font-crimson font-semibold backdrop-blur-sm shadow-lg transition-all"
+            title={is3DMode ? 'Switch to flat map' : 'Switch to 3D globe'}
+          >
+            {is3DMode ? (
+              <>
+                <Map className="w-3.5 h-3.5" />
+                <span>View Flat Map</span>
+              </>
+            ) : (
+              <>
+                <Globe className="w-3.5 h-3.5" />
+                <span>View on Globe</span>
+              </>
+            )}
+          </button>
 
           {/* Mobile: bottom tab bar */}
           <div className="lg:hidden absolute bottom-0 left-0 right-0 z-[1000]">
