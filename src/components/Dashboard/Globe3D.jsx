@@ -6,6 +6,7 @@ import { useApp } from '../../context/AppContext.jsx';
 import { generateOrbitalArc } from '../../utils/orbitMath.js';
 import { SAT_TYPE_CONFIG } from '../../data/mockSatellites.js';
 import { CONSTELLATIONS, getSubStellarPoint, getLocalCoordinates, getConstellationShape } from '../../data/constellations.js';
+import worldData from '../../data/world.json';
 
 // Constants for Globe scaling
 const EARTH_RADIUS = 2.0;
@@ -15,9 +16,9 @@ const EARTH_RADIUS = 2.0;
  */
 function latLonToVector3(lat, lon, radius) {
   const phi = (90 - lat) * (Math.PI / 180);
-  const theta = (lon + 180) * (Math.PI / 180);
+  const theta = (lon) * (Math.PI / 180);
 
-  const x = -(radius * Math.sin(phi) * Math.sin(theta));
+  const x = radius * Math.sin(phi) * Math.sin(theta);
   const y = radius * Math.cos(phi);
   const z = radius * Math.sin(phi) * Math.cos(theta);
 
@@ -32,7 +33,7 @@ function EarthMesh({ onClick }) {
   const earthTexture = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
 
   return (
-    <mesh rotation={[0, -Math.PI / 2, 0]} onClick={onClick}>
+    <mesh rotation={[0, Math.PI, 0]} onClick={onClick}>
       <sphereGeometry args={[EARTH_RADIUS, 64, 64]} />
       <meshPhongMaterial
         map={earthTexture}
@@ -49,7 +50,7 @@ function EarthMesh({ onClick }) {
  */
 function FallbackEarth({ onClick }) {
   return (
-    <mesh onClick={onClick}>
+    <mesh rotation={[0, Math.PI, 0]} onClick={onClick}>
       <sphereGeometry args={[EARTH_RADIUS, 32, 32]} />
       <meshPhongMaterial
         color="#0d1b2a"
@@ -102,6 +103,35 @@ function SceneContent() {
     })
     .filter(c => c.coords.el > 0);
   }, [location]);
+
+  // Calculate country border lines once
+  const borderGeometry = useMemo(() => {
+    const points = [];
+    worldData.features.forEach(feature => {
+      const { type, coordinates } = feature.geometry;
+      if (type === 'Polygon') {
+        coordinates.forEach(ring => {
+          for (let i = 0; i < ring.length - 1; i++) {
+            points.push(latLonToVector3(ring[i][1], ring[i][0], EARTH_RADIUS + 0.005));
+            points.push(latLonToVector3(ring[i+1][1], ring[i+1][0], EARTH_RADIUS + 0.005));
+          }
+        });
+      } else if (type === 'MultiPolygon') {
+        coordinates.forEach(polygon => {
+          polygon.forEach(ring => {
+            for (let i = 0; i < ring.length - 1; i++) {
+              points.push(latLonToVector3(ring[i][1], ring[i][0], EARTH_RADIUS + 0.005));
+              points.push(latLonToVector3(ring[i+1][1], ring[i+1][0], EARTH_RADIUS + 0.005));
+            }
+          });
+        });
+      }
+    });
+
+    const geom = new THREE.BufferGeometry();
+    geom.setFromPoints(points);
+    return geom;
+  }, []);
 
   // Convert observer position
   const observerPos = useMemo(() => {
@@ -157,6 +187,11 @@ function SceneContent() {
       <Suspense fallback={<FallbackEarth onClick={handleEarthClick} />}>
         <EarthMesh onClick={handleEarthClick} />
       </Suspense>
+
+      {/* ── Country Borders ── */}
+      <lineSegments geometry={borderGeometry} raycast={() => null}>
+        <lineBasicMaterial color="#00d4ff" opacity={0.35} transparent={true} />
+      </lineSegments>
 
       {/* ── Glowing Atmospheric Grid Overlay ── */}
       <mesh raycast={() => null}>
