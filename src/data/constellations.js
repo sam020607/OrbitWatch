@@ -1,6 +1,46 @@
 export const CONSTELLATIONS = [
-  { id: 'ori', name: 'Orion', ra: 5.6, dec: 0.0, abbr: 'Ori', description: 'The Hunter - one of the most recognizable constellations in the night sky, featuring the famous Orion\'s Belt.' },
-  { id: 'uma', name: 'Ursa Major', ra: 11.3, dec: 55.0, abbr: 'UMa', description: 'The Great Bear - contains the Big Dipper asterism, used to find Polaris (the North Star).' },
+  { 
+    id: 'ori', 
+    name: 'Orion', 
+    ra: 5.6, 
+    dec: 0.0, 
+    abbr: 'Ori', 
+    description: 'The Hunter - one of the most recognizable constellations in the night sky, featuring the famous Orion\'s Belt.',
+    stars: [
+      { name: 'Betelgeuse', raOffset: 0.32, decOffset: 7.4 },
+      { name: 'Rigel', raOffset: -0.35, decOffset: -8.2 },
+      { name: 'Bellatrix', raOffset: -0.18, decOffset: 6.3 },
+      { name: 'Saiph', raOffset: 0.19, decOffset: -9.7 },
+      { name: 'Alnitak', raOffset: 0.08, decOffset: -1.9 },
+      { name: 'Alnilam', raOffset: 0.00, decOffset: -1.2 },
+      { name: 'Mintaka', raOffset: -0.07, decOffset: -0.3 }
+    ],
+    connections: [
+      [0, 2], [2, 6], [6, 1], [1, 3], [3, 4], [4, 0],
+      [4, 5], [5, 6]
+    ]
+  },
+  { 
+    id: 'uma', 
+    name: 'Ursa Major', 
+    ra: 11.3, 
+    dec: 55.0, 
+    abbr: 'UMa', 
+    description: 'The Great Bear - contains the Big Dipper asterism, used to find Polaris (the North Star).',
+    stars: [
+      { name: 'Dubhe', raOffset: -0.24, decOffset: 6.8 },
+      { name: 'Merak', raOffset: -0.27, decOffset: 1.4 },
+      { name: 'Phecda', raOffset: 0.59, decOffset: -1.3 },
+      { name: 'Megrez', raOffset: 0.95, decOffset: 2.0 },
+      { name: 'Alioth', raOffset: 1.60, decOffset: 0.9 },
+      { name: 'Mizar', raOffset: 2.10, decOffset: -0.1 },
+      { name: 'Alkaid', raOffset: 2.49, decOffset: -5.7 }
+    ],
+    connections: [
+      [1, 0], [0, 3], [3, 2], [2, 1],
+      [3, 4], [4, 5], [5, 6]
+    ]
+  },
   { id: 'umi', name: 'Ursa Minor', ra: 15.0, dec: 75.0, abbr: 'UMi', description: 'The Little Bear - contains the Little Dipper and the North Star, Polaris, at its tail.' },
   { id: 'cas', name: 'Cassiopeia', ra: 1.0, dec: 60.0, abbr: 'Cas', description: 'The Queen - a distinct "W" or "M" shaped constellation in the northern sky.' },
   { id: 'cyg', name: 'Cygnus', ra: 20.6, dec: 42.0, abbr: 'Cyg', description: 'The Swan - also known as the Northern Cross, flying along the Milky Way.' },
@@ -12,7 +52,23 @@ export const CONSTELLATIONS = [
   { id: 'and', name: 'Andromeda', ra: 0.8, dec: 40.0, abbr: 'And', description: 'The Chained Maiden - home to the Andromeda Galaxy (M31), the closest spiral galaxy to us.' },
   { id: 'cma', name: 'Canis Major', ra: 6.8, dec: -22.0, abbr: 'CMa', description: 'The Greater Dog - contains Sirius, the brightest star in the entire night sky.' },
   { id: 'sgr', name: 'Sagittarius', ra: 19.0, dec: -25.0, abbr: 'Sgr', description: 'The Archer - contains the Teapot asterism, pointing toward the center of the Milky Way.' },
-  { id: 'cru', name: 'Crux', ra: 12.5, dec: -60.0, abbr: 'Cru', description: 'The Southern Cross - the smallest and most famous southern hemisphere constellation.' },
+  { 
+    id: 'cru', 
+    name: 'Crux', 
+    ra: 12.5, 
+    dec: -60.0, 
+    abbr: 'Cru', 
+    description: 'The Southern Cross - the smallest and most famous southern hemisphere constellation.',
+    stars: [
+      { name: 'Acrux', raOffset: -0.06, decOffset: -3.1 },
+      { name: 'Mimosa', raOffset: 0.29, decOffset: 0.3 },
+      { name: 'Gacrux', raOffset: 0.02, decOffset: 2.9 },
+      { name: 'Imai', raOffset: -0.25, decOffset: 1.3 }
+    ],
+    connections: [
+      [0, 2], [1, 3]
+    ]
+  },
   { id: 'cen', name: 'Centaurus', ra: 13.0, dec: -47.0, abbr: 'Cen', description: 'The Centaur - contains Alpha Centauri, the closest star system to our Sun.' },
   { id: 'aql', name: 'Aquila', ra: 19.8, dec: 3.0, abbr: 'Aql', description: 'The Eagle - features the bright star Altair, part of the Summer Triangle.' },
   { id: 'lyr', name: 'Lyra', ra: 18.6, dec: 38.0, abbr: 'Lyr', description: 'The Lyre - contains Vega, the fifth-brightest star in the sky.' },
@@ -80,4 +136,36 @@ export function getSubStellarPoint(ra, dec, timestampMs = Date.now()) {
   if (lon < -180) lon += 360;
   
   return { lat, lon };
+}
+
+// Returns the full shape (stars and connections mapped to sub-stellar coordinates)
+export function getConstellationShape(constell, timestampMs = Date.now()) {
+  const starsData = constell.stars || [
+    { name: 'Star Alpha', raOffset: 0.0, decOffset: 1.5 },
+    { name: 'Star Beta', raOffset: 0.15, decOffset: 0.0 },
+    { name: 'Star Gamma', raOffset: 0.0, decOffset: -1.5 },
+    { name: 'Star Delta', raOffset: -0.15, decOffset: 0.0 }
+  ];
+  
+  const connectionsData = constell.connections || [
+    [0, 1], [1, 2], [2, 3], [3, 0], [0, 2], [1, 3]
+  ];
+
+  const stars = starsData.map(s => {
+    const starRa = constell.ra + s.raOffset;
+    const starDec = constell.dec + s.decOffset;
+    const subStellar = getSubStellarPoint(starRa, starDec, timestampMs);
+    return {
+      name: s.name,
+      lat: subStellar.lat,
+      lon: subStellar.lon,
+      ra: starRa,
+      dec: starDec
+    };
+  });
+
+  return {
+    stars,
+    connections: connectionsData
+  };
 }

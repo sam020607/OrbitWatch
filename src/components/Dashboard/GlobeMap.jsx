@@ -4,7 +4,7 @@ import L from 'leaflet';
 import { useApp } from '../../context/AppContext.jsx';
 import { generateOrbitalArc, calculateConeFootprint, azimuthToCompass } from '../../utils/orbitMath.js';
 import { SAT_TYPE_CONFIG } from '../../data/mockSatellites.js';
-import { CONSTELLATIONS, getSubStellarPoint, getLocalCoordinates } from '../../data/constellations.js';
+import { CONSTELLATIONS, getSubStellarPoint, getLocalCoordinates, getConstellationShape } from '../../data/constellations.js';
 
 // Fix Leaflet default icon path issue with Vite
 delete L.Icon.Default.prototype._getIconUrl;
@@ -121,6 +121,12 @@ export default function GlobeMap({ className = '' }) {
     })
     .filter(c => c.coords.el > 0);
   }, [location]);
+
+  // Compute actual star shape coordinates for the selected constellation
+  const selectedConstellShape = useMemo(() => {
+    if (viewMode !== 'constellations' || !selectedConstellation) return null;
+    return getConstellationShape(selectedConstellation, Date.now());
+  }, [viewMode, selectedConstellation]);
 
   const issIcon = useRef(createISSIcon()).current;
   const observerIcon = useRef(createObserverIcon()).current;
@@ -334,7 +340,58 @@ export default function GlobeMap({ className = '' }) {
                 />
               )}
 
-              {/* Constellation star marker */}
+              {/* Selected constellation detailed stars and connecting outline lines */}
+              {isSelected && selectedConstellShape && (
+                <>
+                  {/* Outer connecting lines */}
+                  {selectedConstellShape.connections.map(([idx1, idx2], lineIdx) => {
+                    const star1 = selectedConstellShape.stars[idx1];
+                    const star2 = selectedConstellShape.stars[idx2];
+                    if (!star1 || !star2) return null;
+                    return (
+                      <Polyline
+                        key={`constell-line-${lineIdx}`}
+                        positions={[
+                          [star1.lat, star1.lon],
+                          [star2.lat, star2.lon],
+                        ]}
+                        pathOptions={{
+                          color: '#00d4ff',
+                          weight: 1.5,
+                          opacity: 0.8,
+                          dashArray: '3, 3',
+                        }}
+                      />
+                    );
+                  })}
+
+                  {/* Star nodes */}
+                  {selectedConstellShape.stars.map((star, starIdx) => (
+                    <Circle
+                      key={`constell-star-${starIdx}`}
+                      center={[star.lat, star.lon]}
+                      radius={15000} // ~15km radius visual indicator
+                      pathOptions={{
+                        color: '#ffffff',
+                        fillColor: '#ffffff',
+                        fillOpacity: 0.9,
+                        weight: 1,
+                      }}
+                    >
+                      <Popup>
+                        <div className="font-crimson text-xs min-w-[120px]">
+                          <p className="font-bold text-cyan text-sm">{star.name}</p>
+                          <p className="text-muted text-[10px] mt-0.5">
+                            RA: <span className="font-mono">{star.ra.toFixed(2)}h</span> · Dec: <span className="font-mono">{star.dec.toFixed(2)}°</span>
+                          </p>
+                        </div>
+                      </Popup>
+                    </Circle>
+                  ))}
+                </>
+              )}
+
+              {/* Constellation central marker */}
               <Marker
                 position={[constell.subStellar.lat, constell.subStellar.lon]}
                 icon={markerIcon}
@@ -357,9 +414,20 @@ export default function GlobeMap({ className = '' }) {
                     <p className="text-muted-light text-xs">
                       Elevation: <span className="font-mono text-white">{constell.coords.el.toFixed(0)}°</span>
                     </p>
+                    
+                    {/* NASA Science Hub Link */}
+                    <a
+                      href={`https://science.nasa.gov/?s=${constell.name}+constellation`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2.5 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-navy/60 border border-border text-xs text-text rounded-lg hover:border-amber/50 hover:text-amber transition-colors text-center w-full"
+                    >
+                      🚀 Explore on NASA Science
+                    </a>
+
                     <button
                       onClick={() => actions.selectConstellation(isSelected ? null : constell)}
-                      className="mt-2.5 w-full text-center text-xs text-amber border border-amber/30 rounded px-2 py-1 hover:bg-amber/10 transition-colors"
+                      className="mt-2 w-full text-center text-xs text-amber border border-amber/30 rounded px-2 py-1 hover:bg-amber/10 transition-colors"
                     >
                       {isSelected ? 'Deselect' : 'Track this constellation'}
                     </button>

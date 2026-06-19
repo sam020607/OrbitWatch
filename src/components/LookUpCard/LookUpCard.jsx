@@ -98,12 +98,22 @@ export default function LookUpCard() {
       </div>
 
       {/* Target name */}
-      <div className="text-center">
+      <div className="text-center flex flex-col items-center">
         <p className="text-cyan font-crimson font-bold text-base">{name}</p>
         {viewMode === 'constellations' ? (
-          <p className="text-muted text-xs font-crimson mt-0.5">
-            RA: <span className="font-mono">{displayData.ra}h</span> · Dec: <span className="font-mono">{displayData.dec}°</span> · {displayData.abbr}
-          </p>
+          <>
+            <p className="text-muted text-xs font-crimson mt-0.5">
+              RA: <span className="font-mono">{displayData.ra}h</span> · Dec: <span className="font-mono">{displayData.dec}°</span> · {displayData.abbr}
+            </p>
+            <a
+              href={`https://science.nasa.gov/?s=${name}+constellation`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 flex items-center justify-center gap-1.5 px-3 py-1 bg-navy/60 border border-border text-[11px] text-text rounded-md hover:border-amber/50 hover:text-amber transition-colors"
+            >
+              <span>🚀 Explore on NASA Science</span>
+            </a>
+          </>
         ) : displayData.alt && (
           <p className="text-muted text-xs font-crimson mt-0.5">
             <span className="font-mono">{displayData.alt?.toFixed(0)} km</span> altitude · <span className="font-mono">{displayData.velocity?.toFixed(2)} km/s</span>
