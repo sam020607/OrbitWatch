@@ -405,14 +405,14 @@ export default function GlobeMap({ className = '' }) {
                       Elevation: <span className="font-mono text-white">{constell.coords.el.toFixed(0)}°</span>
                     </p>
                     
-                    {/* NASA Science Hub Link */}
+                    {/* Wikipedia Constellation Link */}
                     <a
-                      href="https://science.nasa.gov/universe/constellations/"
+                      href={`https://en.wikipedia.org/wiki/${constell.name.replace(' ', '_')}_(constellation)`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-2.5 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-navy/60 border border-border text-xs text-text rounded-lg hover:border-amber/50 hover:text-amber transition-colors text-center w-full"
                     >
-                      🚀 Explore NASA Constellations
+                      📖 Explore on Wikipedia
                     </a>
 
                     <button

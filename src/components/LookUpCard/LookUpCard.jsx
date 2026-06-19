@@ -106,12 +106,12 @@ export default function LookUpCard() {
               RA: <span className="font-mono">{displayData.ra}h</span> · Dec: <span className="font-mono">{displayData.dec}°</span> · {displayData.abbr}
             </p>
             <a
-              href="https://science.nasa.gov/universe/constellations/"
+              href={`https://en.wikipedia.org/wiki/${name.replace(' ', '_')}_(constellation)`}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-2 flex items-center justify-center gap-1.5 px-3 py-1 bg-navy/60 border border-border text-[11px] text-text rounded-md hover:border-amber/50 hover:text-amber transition-colors"
             >
-              <span>🚀 Explore NASA Constellations</span>
+              <span>📖 Explore on Wikipedia</span>
             </a>
           </>
         ) : displayData.alt && (
