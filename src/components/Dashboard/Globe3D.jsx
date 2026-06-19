@@ -27,12 +27,12 @@ function latLonToVector3(lat, lon, radius) {
 /**
  * Textured Earth mesh component.
  */
-function EarthMesh() {
+function EarthMesh({ onClick }) {
   // Load standard photorealistic Earth texture from Three.js examples CDN
   const earthTexture = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
 
   return (
-    <mesh rotation={[0, -Math.PI / 2, 0]}>
+    <mesh rotation={[0, -Math.PI / 2, 0]} onClick={onClick}>
       <sphereGeometry args={[EARTH_RADIUS, 64, 64]} />
       <meshPhongMaterial
         map={earthTexture}
@@ -47,9 +47,9 @@ function EarthMesh() {
 /**
  * Fallback Earth mesh if texture load fails (renders a styled dark navy globe).
  */
-function FallbackEarth() {
+function FallbackEarth({ onClick }) {
   return (
-    <mesh>
+    <mesh onClick={onClick}>
       <sphereGeometry args={[EARTH_RADIUS, 32, 32]} />
       <meshPhongMaterial
         color="#0d1b2a"
@@ -136,15 +136,30 @@ function SceneContent() {
     }
   });
 
+  const handleEarthClick = (e) => {
+    e.stopPropagation();
+    if (viewMode === 'satellites') {
+      actions.selectSatellite(null);
+    } else {
+      actions.selectConstellation(null);
+    }
+  };
+
+  const isIssSelected = selectedSatellite?.satid === 25544;
+  const handleIssClick = (e) => {
+    e.stopPropagation();
+    actions.selectSatellite(isIssSelected ? null : { satname: 'ISS', satid: 25544, satalt: 408, velocity: 7.66, type: 'space-station' });
+  };
+
   return (
     <group ref={earthRef}>
       {/* ── Earth Base Globe ── */}
-      <Suspense fallback={<FallbackEarth />}>
-        <EarthMesh />
+      <Suspense fallback={<FallbackEarth onClick={handleEarthClick} />}>
+        <EarthMesh onClick={handleEarthClick} />
       </Suspense>
 
       {/* ── Glowing Atmospheric Grid Overlay ── */}
-      <mesh>
+      <mesh raycast={() => null}>
         <sphereGeometry args={[EARTH_RADIUS + 0.008, 32, 32]} />
         <meshBasicMaterial
           color="#00d4ff"
@@ -158,11 +173,11 @@ function SceneContent() {
       {observerPos && (
         <group position={observerPos}>
           {/* Glowing Beacon */}
-          <mesh>
+          <mesh raycast={() => null}>
             <sphereGeometry args={[0.035, 16, 16]} />
             <meshBasicMaterial color="#f59e0b" />
           </mesh>
-          <mesh>
+          <mesh raycast={() => null}>
             <ringGeometry args={[0.05, 0.06, 32]} />
             <meshBasicMaterial color="#f59e0b" side={THREE.DoubleSide} transparent opacity={0.6} />
           </mesh>
@@ -187,18 +202,19 @@ function SceneContent() {
               dashed
               dashSize={0.08}
               gapSize={0.04}
+              raycast={() => null}
             />
           )}
 
           {/* ISS Model Dot */}
           {issPos && (
             <group position={issPos}>
-              <mesh onClick={() => actions.selectSatellite({ satname: 'ISS', satid: 25544, satalt: 408, velocity: 7.66, type: 'space-station' })}>
+              <mesh onClick={handleIssClick}>
                 <sphereGeometry args={[0.045, 16, 16]} />
                 <meshBasicMaterial color="#00d4ff" />
               </mesh>
               {/* Pulsing halo */}
-              <mesh>
+              <mesh onClick={handleIssClick}>
                 <sphereGeometry args={[0.07, 16, 16]} />
                 <meshBasicMaterial color="#00d4ff" transparent opacity={0.2} />
               </mesh>
@@ -217,6 +233,7 @@ function SceneContent() {
               points={orbitPoints}
               color="#00d4ff"
               lineWidth={2}
+              raycast={() => null}
             />
           )}
 
@@ -227,10 +244,15 @@ function SceneContent() {
             const satPos = latLonToVector3(sat.satlat, sat.satlon, radius);
             const color = isSelected ? '#00d4ff' : (SAT_TYPE_CONFIG[sat.type]?.color || '#f59e0b');
 
+            const handleSatClick = (e) => {
+              e.stopPropagation();
+              actions.selectSatellite(isSelected ? null : sat);
+            };
+
             return (
               <group key={sat.satid} position={satPos}>
                 {/* Node */}
-                <mesh onClick={() => actions.selectSatellite(isSelected ? null : sat)}>
+                <mesh onClick={handleSatClick}>
                   <sphereGeometry args={[isSelected ? 0.035 : 0.022, 8, 8]} />
                   <meshBasicMaterial color={color} />
                 </mesh>
@@ -238,7 +260,7 @@ function SceneContent() {
                 {/* Selected Satellite HUD Halo & Label */}
                 {isSelected && (
                   <>
-                    <mesh>
+                    <mesh onClick={handleSatClick}>
                       <sphereGeometry args={[0.06, 16, 16]} />
                       <meshBasicMaterial color="#00d4ff" transparent opacity={0.25} />
                     </mesh>
@@ -266,6 +288,11 @@ function SceneContent() {
         const shape = getConstellationShape(constell, Date.now());
         const starPoints3D = shape.stars.map(s => latLonToVector3(s.lat, s.lon, constellRadius));
 
+        const handleConstellClick = (e) => {
+          e.stopPropagation();
+          actions.selectConstellation(isSelected ? null : constell);
+        };
+
         return (
           <Fragment key={constell.id}>
             {/* Outline connection lines */}
@@ -281,13 +308,14 @@ function SceneContent() {
                   lineWidth={isSelected ? 1.8 : 0.8}
                   opacity={isSelected ? 1.0 : 0.3}
                   transparent
+                  raycast={() => null}
                 />
               );
             })}
 
             {/* Individual star nodes */}
             {starPoints3D.map((pt, idx) => (
-              <mesh key={`3d-star-${constell.id}-${idx}`} position={pt}>
+              <mesh key={`3d-star-${constell.id}-${idx}`} position={pt} raycast={() => null}>
                 <sphereGeometry args={[isSelected ? 0.018 : 0.01, 8, 8]} />
                 <meshBasicMaterial color={isSelected ? '#ffffff' : '#a5f3fc'} />
               </mesh>
@@ -295,7 +323,7 @@ function SceneContent() {
 
             {/* Subtle center anchor glowing point (Not a star emoji) */}
             <group position={centerPos}>
-              <mesh onClick={() => actions.selectConstellation(isSelected ? null : constell)}>
+              <mesh onClick={handleConstellClick}>
                 <sphereGeometry args={[0.024, 8, 8]} />
                 <meshBasicMaterial color={isSelected ? '#f59e0b' : '#00d4ff'} />
               </mesh>
@@ -303,7 +331,7 @@ function SceneContent() {
               {/* Selected tooltip banner */}
               {isSelected && (
                 <>
-                  <mesh>
+                  <mesh onClick={handleConstellClick}>
                     <sphereGeometry args={[0.05, 8, 8]} />
                     <meshBasicMaterial color="#f59e0b" transparent opacity={0.3} />
                   </mesh>
@@ -326,6 +354,7 @@ function SceneContent() {
                 dashed
                 dashSize={0.06}
                 gapSize={0.03}
+                raycast={() => null}
               />
             )}
           </Fragment>
@@ -339,12 +368,18 @@ function SceneContent() {
  * Globe3D — Three.js 3D Viewport wrapper.
  */
 export default function Globe3D({ className = '' }) {
+  const { actions } = useApp();
+
   return (
     <div className={`relative bg-space ${className}`}>
       {/* 3D WebGL Canvas */}
       <Canvas
         camera={{ position: [0, 3, 5], fov: 45 }}
         style={{ width: '100%', height: '100%', outline: 'none' }}
+        onPointerMissed={() => {
+          actions.selectSatellite(null);
+          actions.selectConstellation(null);
+        }}
       >
         {/* Lights */}
         <ambientLight intensity={0.3} />
