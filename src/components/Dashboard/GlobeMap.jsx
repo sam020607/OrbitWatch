@@ -54,23 +54,6 @@ function createObserverIcon() {
   });
 }
 
-// Constellation star marker icon (glowing 5-pointed star clip-path)
-function createConstellationIcon(selected = false) {
-  const size = selected ? 18 : 12;
-  return L.divIcon({
-    className: 'constellation-marker-icon',
-    html: `<div style="
-      width: ${size}px; height: ${size}px;
-      background: ${selected ? '#00d4ff' : '#f59e0b'};
-      box-shadow: 0 0 ${selected ? 12 : 6}px ${selected ? '#00d4ff' : '#f59e0b'};
-      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-    "></div>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-    popupAnchor: [0, -size / 2],
-  });
-}
-
 /** Map auto-panner to observer location */
 function MapController({ location }) {
   const map = useMap();
@@ -121,12 +104,6 @@ export default function GlobeMap({ className = '' }) {
     })
     .filter(c => c.coords.el > 0);
   }, [location]);
-
-  // Compute actual star shape coordinates for the selected constellation
-  const selectedConstellShape = useMemo(() => {
-    if (viewMode !== 'constellations' || !selectedConstellation) return null;
-    return getConstellationShape(selectedConstellation, Date.now());
-  }, [viewMode, selectedConstellation]);
 
   const issIcon = useRef(createISSIcon()).current;
   const observerIcon = useRef(createObserverIcon()).current;
@@ -303,7 +280,25 @@ export default function GlobeMap({ className = '' }) {
         {/* Constellations Tracking View Mode Overlays */}
         {viewMode === 'constellations' && visibleConstellations.map((constell) => {
           const isSelected = selectedConstellation?.id === constell.id;
-          const markerIcon = createConstellationIcon(isSelected);
+          
+          // Calculate the full shape (stars and lines) for this constellation dynamically
+          const shape = getConstellationShape(constell, Date.now());
+
+          // Subtle center anchor icon (a tiny glowing dot instead of a star emoji/marker)
+          const centerIcon = L.divIcon({
+            className: 'constell-center-icon',
+            html: `<div style="
+              width: 8px; height: 8px;
+              border-radius: 50%;
+              background: ${isSelected ? '#f59e0b' : '#00d4ff'};
+              box-shadow: 0 0 6px ${isSelected ? '#f59e0b' : '#00d4ff'};
+              opacity: 0.8;
+            "></div>`,
+            iconSize: [8, 8],
+            iconAnchor: [4, 4],
+            popupAnchor: [0, -6],
+          });
+
           const constellCone = isSelected && showConeOverlay
             ? calculateConeFootprint(constell.subStellar.lat, constell.subStellar.lon, 4000, 10)
             : null;
@@ -340,61 +335,56 @@ export default function GlobeMap({ className = '' }) {
                 />
               )}
 
-              {/* Selected constellation detailed stars and connecting outline lines */}
-              {isSelected && selectedConstellShape && (
-                <>
-                  {/* Outer connecting lines */}
-                  {selectedConstellShape.connections.map(([idx1, idx2], lineIdx) => {
-                    const star1 = selectedConstellShape.stars[idx1];
-                    const star2 = selectedConstellShape.stars[idx2];
-                    if (!star1 || !star2) return null;
-                    return (
-                      <Polyline
-                        key={`constell-line-${lineIdx}`}
-                        positions={[
-                          [star1.lat, star1.lon],
-                          [star2.lat, star2.lon],
-                        ]}
-                        pathOptions={{
-                          color: '#00d4ff',
-                          weight: 1.5,
-                          opacity: 0.8,
-                          dashArray: '3, 3',
-                        }}
-                      />
-                    );
-                  })}
+              {/* Outlines of actual constellation shape */}
+              {shape.connections.map(([idx1, idx2], lineIdx) => {
+                const star1 = shape.stars[idx1];
+                const star2 = shape.stars[idx2];
+                if (!star1 || !star2) return null;
+                return (
+                  <Polyline
+                    key={`constell-line-${constell.id}-${lineIdx}`}
+                    positions={[
+                      [star1.lat, star1.lon],
+                      [star2.lat, star2.lon],
+                    ]}
+                    pathOptions={{
+                      color: isSelected ? '#f59e0b' : '#00d4ff',
+                      weight: isSelected ? 2.0 : 1.0,
+                      opacity: isSelected ? 0.95 : 0.35,
+                      dashArray: isSelected ? 'none' : '2, 3',
+                    }}
+                  />
+                );
+              })}
 
-                  {/* Star nodes */}
-                  {selectedConstellShape.stars.map((star, starIdx) => (
-                    <Circle
-                      key={`constell-star-${starIdx}`}
-                      center={[star.lat, star.lon]}
-                      radius={15000} // ~15km radius visual indicator
-                      pathOptions={{
-                        color: '#ffffff',
-                        fillColor: '#ffffff',
-                        fillOpacity: 0.9,
-                        weight: 1,
-                      }}
-                    >
-                      <Popup>
-                        <div className="font-crimson text-xs min-w-[120px]">
-                          <p className="font-bold text-cyan text-sm">{star.name}</p>
-                          <p className="text-muted text-[10px] mt-0.5">
-                            RA: <span className="font-mono">{star.ra.toFixed(2)}h</span> · Dec: <span className="font-mono">{star.dec.toFixed(2)}°</span>
-                          </p>
-                        </div>
-                      </Popup>
-                    </Circle>
-                  ))}
-                </>
-              )}
+              {/* Individual star nodes of actual constellation shape */}
+              {shape.stars.map((star, starIdx) => (
+                <Circle
+                  key={`constell-star-${constell.id}-${starIdx}`}
+                  center={[star.lat, star.lon]}
+                  radius={isSelected ? 14000 : 8000}
+                  pathOptions={{
+                    color: isSelected ? '#ffffff' : '#a5f3fc',
+                    fillColor: '#ffffff',
+                    fillOpacity: 0.9,
+                    weight: 1,
+                  }}
+                >
+                  <Popup>
+                    <div className="font-crimson text-xs min-w-[120px]">
+                      <p className="font-bold text-cyan text-sm">{star.name}</p>
+                      <p className="text-muted text-[10px] mt-0.5">
+                        RA: <span className="font-mono">{star.ra.toFixed(2)}h</span> · Dec: <span className="font-mono">{star.dec.toFixed(2)}°</span>
+                      </p>
+                    </div>
+                  </Popup>
+                </Circle>
+              ))}
 
-              {/* Constellation central marker */}
+              {/* Clickable central anchor marker */}
               <Marker
                 position={[constell.subStellar.lat, constell.subStellar.lon]}
-                icon={markerIcon}
+                icon={centerIcon}
                 eventHandlers={{
                   click: () => actions.selectConstellation(isSelected ? null : constell),
                 }}
@@ -417,12 +407,12 @@ export default function GlobeMap({ className = '' }) {
                     
                     {/* NASA Science Hub Link */}
                     <a
-                      href={`https://science.nasa.gov/?s=${constell.name}+constellation`}
+                      href="https://science.nasa.gov/universe/constellations/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-2.5 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-navy/60 border border-border text-xs text-text rounded-lg hover:border-amber/50 hover:text-amber transition-colors text-center w-full"
                     >
-                      🚀 Explore on NASA Science
+                      🚀 Explore NASA Constellations
                     </a>
 
                     <button
