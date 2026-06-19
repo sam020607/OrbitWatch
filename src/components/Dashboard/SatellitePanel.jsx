@@ -111,60 +111,65 @@ export default function SatellitePanel() {
             <div className="fixed inset-0 z-40 cursor-default" onClick={() => { setIsOpen(false); setIsSatellitesSubOpen(false); }} />
             
             <div className="absolute top-full left-4 right-4 mt-1 bg-panel border border-border rounded-lg shadow-xl z-50 py-1 font-crimson text-xs">
-              {/* Satellites option (Hover/click opens subcategories) */}
-              <div
-                className="relative"
-                onMouseEnter={() => setIsSatellitesSubOpen(true)}
-                onMouseLeave={() => setIsSatellitesSubOpen(false)}
-              >
-                <button
-                  onClick={() => setIsSatellitesSubOpen(!isSatellitesSubOpen)}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-left hover:bg-panel-light transition-colors
-                    ${viewMode === 'satellites' ? 'text-cyan font-bold bg-cyan/5' : 'text-text'}`}
-                >
-                  <span className="flex items-center gap-2">
-                    <Satellite className="w-3.5 h-3.5" />
-                    Satellites
-                  </span>
-                  <ChevronRight className="w-3 h-3 text-muted" />
-                </button>
+              {!isSatellitesSubOpen ? (
+                <>
+                  {/* Satellites option (Hover/click opens subcategories) */}
+                  <button
+                    onMouseEnter={() => setIsSatellitesSubOpen(true)}
+                    onClick={() => setIsSatellitesSubOpen(true)}
+                    className={`w-full flex items-center justify-between px-3 py-2 text-left hover:bg-panel-light transition-colors
+                      ${viewMode === 'satellites' ? 'text-cyan font-bold bg-cyan/5' : 'text-text'}`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Satellite className="w-3.5 h-3.5" />
+                      Satellites
+                    </span>
+                    <ChevronRight className="w-3 h-3 text-muted" />
+                  </button>
 
-                {/* Submenu of categories */}
-                {isSatellitesSubOpen && (
-                  <div className="lg:absolute lg:left-full lg:top-0 lg:ml-1 lg:w-52 lg:bg-panel lg:border lg:border-border lg:rounded-lg lg:shadow-xl relative w-full pl-4 bg-navy/30 border-t border-b border-border/30 py-1 z-50">
-                    {SATELLITE_CATEGORIES.map(cat => (
-                      <button
-                        key={cat.value}
-                        onClick={() => {
-                          actions.setViewMode('satellites');
-                          actions.setSatelliteFilter(cat.value);
-                          setIsOpen(false);
-                          setIsSatellitesSubOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-left hover:bg-panel-light transition-colors
-                          ${viewMode === 'satellites' && satelliteFilter === cat.value ? 'text-cyan font-bold bg-cyan/5' : 'text-text'}`}
-                      >
-                        <span>{cat.icon}</span>
-                        <span>{cat.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Constellations option */}
-              <button
-                onClick={() => {
-                  actions.setViewMode('constellations');
-                  setIsOpen(false);
-                  setIsSatellitesSubOpen(false);
-                }}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-panel-light transition-colors
-                  ${viewMode === 'constellations' ? 'text-amber font-bold bg-amber/5' : 'text-text'}`}
-              >
-                <Star className="w-3.5 h-3.5" />
-                Constellations
-              </button>
+                  {/* Constellations option */}
+                  <button
+                    onClick={() => {
+                      actions.setViewMode('constellations');
+                      setIsOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-panel-light transition-colors
+                      ${viewMode === 'constellations' ? 'text-amber font-bold bg-amber/5' : 'text-text'}`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Star className="w-3.5 h-3.5 text-amber" />
+                      Constellations
+                    </span>
+                  </button>
+                </>
+              ) : (
+                <div onMouseLeave={() => setIsSatellitesSubOpen(false)}>
+                  {/* Back button */}
+                  <button
+                    onClick={() => setIsSatellitesSubOpen(false)}
+                    className="w-full flex items-center gap-1.5 px-3 py-1 text-left text-muted hover:text-text border-b border-border/30 font-semibold"
+                  >
+                    <span>← Back</span>
+                  </button>
+                  {/* Categories list */}
+                  {SATELLITE_CATEGORIES.map(cat => (
+                    <button
+                      key={cat.value}
+                      onClick={() => {
+                        actions.setViewMode('satellites');
+                        actions.setSatelliteFilter(cat.value);
+                        setIsOpen(false);
+                        setIsSatellitesSubOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-left hover:bg-panel-light transition-colors
+                        ${viewMode === 'satellites' && satelliteFilter === cat.value ? 'text-cyan font-bold bg-cyan/5' : 'text-text'}`}
+                    >
+                      <span>{cat.icon}</span>
+                      <span>{cat.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </>
         )}
