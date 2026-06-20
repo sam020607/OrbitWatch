@@ -185,6 +185,53 @@ function FallbackEarth({ onClick }) {
 }
 
 /**
+ * Observer pin with custom backface culling (dot product test)
+ * to avoid Drei HTML raycasting occlusion bugs with glow layers.
+ */
+function ObserverPin({ position }) {
+  const htmlRef = useRef(null);
+  const groupRef = useRef(null);
+  
+  useFrame(({ camera }) => {
+    if (!groupRef.current || !htmlRef.current) return;
+    
+    // Get the current world position of the observer pin
+    const worldPos = new THREE.Vector3();
+    groupRef.current.getWorldPosition(worldPos);
+    
+    // Calculate the dot product between the observer normal vector and the camera direction vector
+    const camPos = camera.position;
+    const dot = worldPos.x * (camPos.x - worldPos.x) +
+                worldPos.y * (camPos.y - worldPos.y) +
+                worldPos.z * (camPos.z - worldPos.z);
+                
+    const isFacing = dot > 0;
+    
+    htmlRef.current.style.display = isFacing ? 'block' : 'none';
+  });
+
+  return (
+    <group ref={groupRef} position={position}>
+      <Html
+        ref={htmlRef}
+        center
+        distanceFactor={5.8}
+        style={{ pointerEvents: 'none' }}
+      >
+        <div style={{
+          width: '26px',
+          height: '26px',
+          borderRadius: '50%',
+          border: '2.5px solid #e0a847',
+          background: 'transparent',
+          boxShadow: '0 0 8px #e0a847, inset 0 0 4px #e0a847',
+        }} />
+      </Html>
+    </group>
+  );
+}
+
+/**
  * Interactive 3D scene elements.
  */
 function SceneContent() {
@@ -400,24 +447,7 @@ function SceneContent() {
 
       {/* ── Observer Pin — Html billboard, pixel-perfect match to flat map ring ── */}
       {observerPos && (
-        <group position={observerPos}>
-          <Html
-            center
-            distanceFactor={5.8}
-            occlude
-            zIndexRange={[100, 0]}
-            style={{ pointerEvents: 'none' }}
-          >
-            <div style={{
-              width: '26px',
-              height: '26px',
-              borderRadius: '50%',
-              border: '2.5px solid #e0a847',
-              background: 'transparent',
-              boxShadow: '0 0 8px #e0a847, inset 0 0 4px #e0a847',
-            }} />
-          </Html>
-        </group>
+        <ObserverPin position={observerPos} />
       )}
 
       {/* ── Satellites Mode Overlays ── */}
