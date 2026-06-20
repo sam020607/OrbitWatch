@@ -12,8 +12,33 @@ const MAX_RETRIES = 1;
  */
 export async function fetchCelesTrakTLE(satId = 25544) {
   const cacheKey = `orbitwatch_tle_cache_${satId}`;
+  const blockKey = 'orbitwatch_celestrak_blocked_until';
   
-  // Try loading from localStorage cache first
+  // 1. Check if Celestrak requests are currently backed off due to a 403 Forbidden block
+  try {
+    const blockedUntil = localStorage.getItem(blockKey);
+    if (blockedUntil && Date.now() < Number(blockedUntil)) {
+      const timeLeftMinutes = Math.ceil((Number(blockedUntil) - Date.now()) / 60000);
+      console.warn(`[CelesTrak API] Backing off. Celestrak requests blocked due to previous 403. Retrying in ${timeLeftMinutes}m.`);
+      
+      // Serve from cache (even if expired) to avoid sending network requests
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const { tleText } = JSON.parse(cached);
+        if (tleText) {
+          console.log(`[CelesTrak API] Serving cached TLE for ${satId} during backoff window.`);
+          recordSuccess(SOURCE, 0, { isLiveData: false, cached: true, note: 'Blocked backoff fallback' });
+          recordTLESync({ source: 'LocalStorage Cache (Failover)', count: 1 });
+          return tleText;
+        }
+      }
+      return null;
+    }
+  } catch (blockErr) {
+    console.warn('[CelesTrak API] Failed to check block status:', blockErr.message);
+  }
+
+  // 2. Try loading from localStorage cache first if it's fresh
   try {
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
@@ -62,6 +87,8 @@ export async function fetchCelesTrakTLE(satId = 25544) {
             tleText,
             timestamp: Date.now()
           }));
+          // Clear any previous block status on success
+          localStorage.removeItem(blockKey);
         } catch (saveErr) {
           console.warn('[CelesTrak API] Failed to save TLE cache:', saveErr.message);
         }
@@ -76,6 +103,16 @@ export async function fetchCelesTrakTLE(satId = 25544) {
       if (attempt > MAX_RETRIES) {
         recordFailure(SOURCE, error.message, { statusCode, fallbackUsed: true });
         console.warn('[CelesTrak API] Failed to fetch TLE:', error.message);
+        
+        // If we got a 403 (Forbidden) indicating rate limiting or IP block, set the block status for 2 hours
+        if (statusCode === 403) {
+          try {
+            console.warn('[CelesTrak API] 403 Forbidden detected. Caching block status for 2 hours to cease excessive requests.');
+            localStorage.setItem(blockKey, String(Date.now() + 2 * 60 * 60 * 1000));
+          } catch (saveBlockErr) {
+            // ignore
+          }
+        }
         
         // If we have an expired cache, use it as fallback rather than returning null!
         try {
