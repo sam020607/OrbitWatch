@@ -4,12 +4,41 @@
 
 /* ─── Base ──────────────────────────────────────────────────────────────── */
 :root {
+  --color-space: #060814; /* deep space dark background */
+  --color-navy: #0d1222;  /* space navy */
+  --color-panel: #11182c; /* dashboard dark panel */
+  --color-panel-light: #1b253b;
+  --color-border: #1e3a6f;
+  --color-border-light: #2d5aa8;
   --color-cyan: #00d4ff;
+  --color-cyan-dim: #0099bb;
   --color-amber: #f59e0b;
-  --color-space: #0a0a0f;
-  --color-navy: #0d1b2a;
-  --color-panel: #111827;
-  --color-border: #1e3a5f;
+  --color-amber-dim: #b47308;
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+  --color-text: #f1f5f9;
+  --color-muted: #64748b;
+  --color-muted-light: #94a3b8;
+  --color-pink: #ec4899;
+}
+
+html.light, .light {
+  --color-space: #f1f5f9; /* morning blue-sky pastel background */
+  --color-navy: #e2e8f0;  /* clean pastel blue/slate */
+  --color-panel: #ffffff; /* soft white panel */
+  --color-panel-light: #f8fafc;
+  --color-border: #cbd5e1; /* soft slate border */
+  --color-border-light: #94a3b8;
+  --color-cyan: #0284c7;  /* pastel blue sky highlight */
+  --color-cyan-dim: #0369a1;
+  --color-amber: #ea580c; /* warm solar amber */
+  --color-amber-dim: #c2410c;
+  --color-success: #059669;
+  --color-danger: #dc2626;
+  --color-text: #0f172a;  /* dark slate text for contrast */
+  --color-muted: #64748b;
+  --color-muted-light: #475569;
+  --color-pink: #db2777;
 }
 
 *, *::before, *::after {
@@ -20,11 +49,12 @@ html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: #0a0a0f;
-  color: #e2e8f0;
+  background-color: var(--color-space);
+  color: var(--color-text);
   font-family: 'Crimson Text', Georgia, serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -33,41 +63,41 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Scrollbars */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #0d1b2a; }
-::-webkit-scrollbar-thumb { background: #1e3a5f; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #00d4ff55; }
+::-webkit-scrollbar-track { background: var(--color-navy); }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-cyan)55; }
 
 /* ─── Leaflet Overrides ─────────────────────────────────────────────────── */
 .leaflet-container {
-  background: #0a0a0f !important;
+  background: var(--color-space) !important;
   font-family: 'Inter', sans-serif;
 }
 .leaflet-control-attribution {
-  background: rgba(10, 10, 15, 0.8) !important;
-  color: #64748b !important;
+  background: rgba(10, 10, 15, 0.3) !important;
+  color: var(--color-muted) !important;
   font-size: 10px;
   border-radius: 4px 0 0 0;
 }
-.leaflet-control-attribution a { color: #00d4ff !important; }
+.leaflet-control-attribution a { color: var(--color-cyan) !important; }
 .leaflet-control-zoom a {
-  background: #111827 !important;
-  color: #e2e8f0 !important;
-  border-color: #1e3a5f !important;
+  background: var(--color-panel) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
 }
 .leaflet-control-zoom a:hover {
-  background: #1e3a5f !important;
-  color: #00d4ff !important;
+  background: var(--color-border) !important;
+  color: var(--color-cyan) !important;
 }
 .leaflet-popup-content-wrapper {
-  background: #111827 !important;
-  border: 1px solid #1e3a5f !important;
+  background: var(--color-panel) !important;
+  border: 1px solid var(--color-border) !important;
   border-radius: 8px !important;
-  color: #e2e8f0 !important;
+  color: var(--color-text) !important;
   box-shadow: 0 0 20px rgba(0, 212, 255, 0.15) !important;
 }
-.leaflet-popup-tip { background: #111827 !important; }
-.leaflet-popup-close-button { color: #64748b !important; }
-.leaflet-popup-close-button:hover { color: #00d4ff !important; }
+.leaflet-popup-tip { background: var(--color-panel) !important; }
+.leaflet-popup-close-button { color: var(--color-muted) !important; }
+.leaflet-popup-close-button:hover { color: var(--color-cyan) !important; }
 
 /* ─── ISS Marker ────────────────────────────────────────────────────────── */
 .iss-marker-icon {
@@ -143,26 +173,26 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ─── Custom Components ─────────────────────────────────────────────────── */
 .glass-panel {
-  background: rgba(17, 24, 39, 0.85);
+  background: color-mix(in srgb, var(--color-panel) 85%, transparent);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(30, 58, 95, 0.8);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
 }
 
 .glow-cyan {
-  box-shadow: 0 0 15px rgba(0, 212, 255, 0.3), inset 0 0 15px rgba(0, 212, 255, 0.05);
+  box-shadow: 0 0 15px color-mix(in srgb, var(--color-cyan) 30%, transparent), inset 0 0 15px color-mix(in srgb, var(--color-cyan) 5%, transparent);
 }
 
 .glow-amber {
-  box-shadow: 0 0 15px rgba(245, 158, 11, 0.3), inset 0 0 15px rgba(245, 158, 11, 0.05);
+  box-shadow: 0 0 15px color-mix(in srgb, var(--color-amber) 30%, transparent), inset 0 0 15px color-mix(in srgb, var(--color-amber) 5%, transparent);
 }
 
 .text-glow-cyan {
-  text-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+  text-shadow: 0 0 10px var(--color-cyan);
 }
 
 .text-glow-amber {
-  text-shadow: 0 0 10px rgba(245, 158, 11, 0.8);
+  text-shadow: 0 0 10px var(--color-amber);
 }
 
 .mono { font-family: 'Space Mono', monospace; }
@@ -234,31 +264,31 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .badge-cyan {
-  background: rgba(0, 212, 255, 0.15);
-  color: #00d4ff;
-  border: 1px solid rgba(0, 212, 255, 0.3);
+  background: color-mix(in srgb, var(--color-cyan) 15%, transparent);
+  color: var(--color-cyan);
+  border: 1px solid color-mix(in srgb, var(--color-cyan) 30%, transparent);
 }
 
 .badge-amber {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: color-mix(in srgb, var(--color-amber) 15%, transparent);
+  color: var(--color-amber);
+  border: 1px solid color-mix(in srgb, var(--color-amber) 30%, transparent);
 }
 
 .badge-green {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+  color: var(--color-success);
+  border: 1px solid color-mix(in srgb, var(--color-success) 30%, transparent);
 }
 
 .badge-red {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
 }
 
 .badge-pink {
-  background: rgba(236, 72, 153, 0.15);
-  color: #ec4899;
-  border: 1px solid rgba(236, 72, 153, 0.3);
+  background: color-mix(in srgb, var(--color-pink) 15%, transparent);
+  color: var(--color-pink);
+  border: 1px solid color-mix(in srgb, var(--color-pink) 30%, transparent);
 }

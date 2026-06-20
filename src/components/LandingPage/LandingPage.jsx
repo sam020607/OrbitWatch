@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Satellite, MapPin, Globe } from 'lucide-react';
+import { Satellite, MapPin, Globe, Sun, Moon } from 'lucide-react';
 import StarfieldCanvas from './StarfieldCanvas.jsx';
 import LocationSearch from './LocationSearch.jsx';
 import { useApp } from '../../context/AppContext.jsx';
@@ -52,7 +52,8 @@ const FEATURE_ITEMS = [
  * Full-screen landing page with animated starfield, hero text, and location search.
  */
 export default function LandingPage({ onLocationSet }) {
-  const { actions } = useApp();
+  const { state, actions } = useApp();
+  const { theme } = state;
   const [mounted, setMounted] = useState(false);
   const [method, setMethod] = useState('search'); // 'search' | 'globe'
   const [clickedCoords, setClickedCoords] = useState(null); // { lat, lon }
@@ -94,6 +95,16 @@ export default function LandingPage({ onLocationSet }) {
 
   return (
     <div className="relative min-h-screen flex flex-col overflow-hidden">
+      {/* Theme toggle in top-right */}
+      <div className="absolute top-4 right-4 z-[100]">
+        <button
+          onClick={actions.toggleTheme}
+          className="p-2 rounded-full border border-border bg-panel/80 text-muted hover:text-text hover:border-border-light transition-all shadow-md"
+          title="Toggle space theme"
+        >
+          {theme === 'light' ? <Moon className="w-4 h-4 text-cyan" /> : <Sun className="w-4 h-4 text-amber" />}
+        </button>
+      </div>
       {/* Starfield background */}
       <StarfieldCanvas />
 
@@ -156,8 +167,8 @@ export default function LandingPage({ onLocationSet }) {
             </span>
             <div className="flex items-center gap-3">
               <Satellite className="w-7 h-7 text-cyan" style={{ filter: 'drop-shadow(0 0 8px #00d4ff)' }} />
-              <h1 className="text-4xl md:text-5xl font-bold font-playfair text-white tracking-tight"
-                style={{ textShadow: '0 0 30px rgba(0, 212, 255, 0.4)' }}>
+              <h1 className="text-4xl md:text-5xl font-bold font-playfair text-text tracking-tight"
+                style={{ textShadow: theme === 'light' ? 'none' : '0 0 30px rgba(0, 212, 255, 0.4)' }}>
                 Project <span className="text-cyan">Zenith</span>
               </h1>
               <Satellite className="w-7 h-7 text-cyan transform -scale-x-100" style={{ filter: 'drop-shadow(0 0 8px #00d4ff)' }} />
@@ -254,12 +265,16 @@ export default function LandingPage({ onLocationSet }) {
                   center={[10, 0]}
                   zoom={1}
                   className="w-full h-full"
-                  style={{ background: '#0a0a0f' }}
+                  style={{ background: 'var(--color-space)' }}
                   zoomControl={false}
                   attributionControl={false}
                 >
                   <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                    key={theme}
+                    url={theme === 'light'
+                      ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                      : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                    }
                     maxZoom={10}
                     subdomains="abcd"
                   />

@@ -134,7 +134,8 @@ export default function GlobeMap({ className = '' }) {
     selectedConstellation,
     asteroids = [],
     selectedAsteroid,
-    asteroidFilter
+    asteroidFilter,
+    theme
   } = state;
 
   // Filter based on active selection
@@ -188,13 +189,17 @@ export default function GlobeMap({ className = '' }) {
         center={location ? [location.lat, location.lon] : [20, 0]}
         zoom={location ? 4 : 2}
         className="w-full h-full"
-        style={{ background: '#0a0a0f' }}
+        style={{ background: 'var(--color-space)' }}
         zoomControl={true}
         attributionControl={true}
       >
-        {/* Dark space tile layer */}
+        {/* Dynamic theme tile layer */}
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          key={theme}
+          url={theme === 'light'
+            ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          }
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
           maxZoom={19}
           subdomains="abcd"

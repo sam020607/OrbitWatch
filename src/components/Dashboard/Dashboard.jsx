@@ -15,7 +15,7 @@ import LocationSearch from '../LandingPage/LocationSearch.jsx';
 import JournalPanel from '../JournalPanel/JournalPanel.jsx';
 import {
   Map, List, Star, Compass, Radio, RotateCcw,
-  Eye, EyeOff, Satellite, Settings, ChevronLeft, Globe, Trophy
+  Eye, EyeOff, Satellite, Settings, ChevronLeft, Globe, Trophy, Sun, Moon
 } from 'lucide-react';
 
 const MOBILE_VIEWS = [
@@ -33,7 +33,7 @@ const MOBILE_VIEWS = [
  */
 export default function Dashboard({ onReset }) {
   const { state, actions } = useApp();
-  const { location, issPosition, satellites, selectedSatellite, showConeOverlay, newUnlockedAchievements } = state;
+  const { location, issPosition, satellites, selectedSatellite, showConeOverlay, newUnlockedAchievements, theme } = state;
 
   // Activate all data hooks
   useISSTracker(!!location);
@@ -109,6 +109,15 @@ export default function Dashboard({ onReset }) {
             <Satellite className="w-3 h-3 text-amber" />
             <span className="font-mono text-xs text-amber">{satellites.length}</span>
           </div>
+
+          {/* Theme toggle */}
+          <button
+            onClick={actions.toggleTheme}
+            className="p-1.5 rounded-md border border-border text-muted hover:text-text hover:border-border-light transition-all"
+            title="Toggle space theme"
+          >
+            {theme === 'light' ? <Moon className="w-4 h-4 text-cyan" /> : <Sun className="w-4 h-4 text-amber" />}
+          </button>
 
           {/* Reset */}
           <button

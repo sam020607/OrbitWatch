@@ -133,6 +133,24 @@ export function checkNewAchievements(allLogs, newLog) {
   return unlocked;
 }
 
+// Load theme and apply to root element
+const loadTheme = () => {
+  try {
+    const saved = localStorage.getItem('orbitwatch_theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initialTheme = saved || (systemPrefersDark ? 'dark' : 'light');
+    
+    if (initialTheme === 'light') {
+      document.documentElement.classList.add('light');
+    } else {
+      document.documentElement.classList.remove('light');
+    }
+    return initialTheme;
+  } catch (e) {
+    return 'dark';
+  }
+};
+
 /** ─── Initial State ─────────────────────────────────────────────────────── */
 const initialState = {
   // Location
@@ -172,6 +190,9 @@ const initialState = {
   observedLog: loadObservedLog(),
   unlockedAchievements: loadUnlockedAchievements(),
   newUnlockedAchievements: [], // Achievements queue for modal/toast celebrations
+
+  // Theme Toggle
+  theme: loadTheme(),
 };
 
 /** ─── Reducer ───────────────────────────────────────────────────────────── */
@@ -280,6 +301,18 @@ function appReducer(state, action) {
     case 'DISMISS_ACHIEVEMENT_TOAST':
       return { ...state, newUnlockedAchievements: [] };
 
+    case 'TOGGLE_THEME': {
+      const nextTheme = state.theme === 'light' ? 'dark' : 'light';
+      localStorage.setItem('orbitwatch_theme', nextTheme);
+      
+      if (nextTheme === 'light') {
+        document.documentElement.classList.add('light');
+      } else {
+        document.documentElement.classList.remove('light');
+      }
+      return { ...state, theme: nextTheme };
+    }
+
     case 'RESET':
       return { ...initialState };
 
@@ -319,6 +352,7 @@ export function AppProvider({ children }) {
     logObservation: (obs) => dispatch({ type: 'LOG_OBSERVATION', payload: obs }),
     deleteObservation: (id) => dispatch({ type: 'DELETE_OBSERVATION', payload: id }),
     dismissAchievementToast: () => dispatch({ type: 'DISMISS_ACHIEVEMENT_TOAST' }),
+    toggleTheme: () => dispatch({ type: 'TOGGLE_THEME' }),
     reset: () => dispatch({ type: 'RESET' }),
   }), [dispatch]);
 

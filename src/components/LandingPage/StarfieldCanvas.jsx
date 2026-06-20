@@ -1,10 +1,13 @@
 import { useEffect, useRef } from 'react';
+import { useApp } from '../../context/AppContext.jsx';
 
 /**
  * Animated star field rendered on an HTML canvas.
  * Stars twinkle and slowly drift for a living universe feel.
  */
 export default function StarfieldCanvas() {
+  const { state } = useApp();
+  const theme = state?.theme || 'dark';
   const canvasRef = useRef(null);
   const animRef = useRef(null);
   const starsRef = useRef([]);
@@ -31,6 +34,12 @@ export default function StarfieldCanvas() {
     }
 
     function pickStarColor() {
+      if (theme === 'light') {
+        const palette = [
+          '#ffffff', '#bae6fd', '#cbd5e1', '#f472b6', '#38bdf8'
+        ];
+        return palette[Math.floor(Math.random() * palette.length)];
+      }
       const palette = [
         '#ffffff', '#ffffff', '#ffffff', // mostly white
         '#c9e8ff', // blue-white
@@ -56,18 +65,30 @@ export default function StarfieldCanvas() {
     function animate() {
       ctx.clearRect(0, 0, width, height);
 
-      // Deep space gradient background
+      // Deep space / pastel sky gradient background
       const grad = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, Math.max(width, height));
-      grad.addColorStop(0, '#0d1b2a');
-      grad.addColorStop(0.5, '#0a0a0f');
-      grad.addColorStop(1, '#050508');
+      if (theme === 'light') {
+        grad.addColorStop(0, '#f8fafc'); // soft slate-50
+        grad.addColorStop(0.5, '#e0f2fe'); // soft sky-100
+        grad.addColorStop(1, '#dbeafe'); // pastel blue-100
+      } else {
+        grad.addColorStop(0, '#0d1b2a');
+        grad.addColorStop(0.5, '#0a0a0f');
+        grad.addColorStop(1, '#050508');
+      }
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, width, height);
 
-      // Subtle nebula blobs
-      drawNebula(ctx, width * 0.2, height * 0.3, 180, 'rgba(0, 100, 200, 0.04)');
-      drawNebula(ctx, width * 0.8, height * 0.6, 220, 'rgba(100, 0, 150, 0.03)');
-      drawNebula(ctx, width * 0.5, height * 0.8, 150, 'rgba(0, 200, 150, 0.03)');
+      // Subtle nebula / light ambient blobs
+      if (theme === 'light') {
+        drawNebula(ctx, width * 0.2, height * 0.3, 180, 'rgba(14, 165, 233, 0.05)'); // sky blue
+        drawNebula(ctx, width * 0.8, height * 0.6, 220, 'rgba(236, 72, 153, 0.04)'); // pastel pink
+        drawNebula(ctx, width * 0.5, height * 0.8, 150, 'rgba(16, 185, 129, 0.04)'); // mint green
+      } else {
+        drawNebula(ctx, width * 0.2, height * 0.3, 180, 'rgba(0, 100, 200, 0.04)');
+        drawNebula(ctx, width * 0.8, height * 0.6, 220, 'rgba(100, 0, 150, 0.03)');
+        drawNebula(ctx, width * 0.5, height * 0.8, 150, 'rgba(0, 200, 150, 0.03)');
+      }
 
       starsRef.current.forEach(star => {
         // Twinkle
@@ -138,7 +159,7 @@ export default function StarfieldCanvas() {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [theme]);
 
   return (
     <canvas
