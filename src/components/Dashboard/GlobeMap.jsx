@@ -1,10 +1,12 @@
 import { useEffect, useRef, useCallback, Fragment, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Polyline, Polygon, Circle, useMap, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Polyline, Polygon, Circle, useMap, Popup, Pane, GeoJSON } from 'react-leaflet';
 import L from 'leaflet';
+import { Database, Globe, Radio, MapPin, X, Activity } from 'lucide-react';
 import { useApp } from '../../context/AppContext.jsx';
 import { generateOrbitalArc, calculateConeFootprint, azimuthToCompass } from '../../utils/orbitMath.js';
 import { SAT_TYPE_CONFIG } from '../../data/mockSatellites.js';
 import { CONSTELLATIONS, getSubStellarPoint, getLocalCoordinates, getConstellationShape, getGMST } from '../../data/constellations.js';
+import worldData from '../../data/world.json';
 
 // Fix Leaflet default icon path issue with Vite
 delete L.Icon.Default.prototype._getIconUrl;
@@ -13,6 +15,42 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
+
+const CITY_LIGHTS = [
+  // North America
+  [40.7128, -74.0060], [34.0522, -118.2437], [41.8781, -87.6298], [29.7604, -95.3698], [45.5017, -73.5673],
+  [19.4326, -99.1332], [25.7617, -80.1918], [37.7749, -122.4194], [47.6062, -122.3321], [43.6532, -79.3832],
+  // South America
+  [-23.5505, -46.6333], [-22.9068, -43.1729], [-34.6037, -58.3816], [-12.0464, -77.0428], [4.7110, -74.0721],
+  [-33.4489, -70.6693], [-10.9631, -61.5186], [-1.8312, -78.1834],
+  // Europe
+  [51.5074, -0.1278], [48.8566, 2.3522], [52.5200, 13.4050], [41.9028, 12.4964], [40.4168, -3.7037],
+  [55.7558, 37.6173], [52.3676, 4.9041], [50.8503, 4.3517], [48.2082, 16.3738], [59.3293, 18.0686],
+  // Africa
+  [30.0444, 31.2357], [-26.2041, 28.0473], [6.5244, 3.3792], [33.5731, -7.5898], [9.0300, 38.7400],
+  [-1.2921, 36.8219], [-4.3250, 15.3222], [14.6937, -17.4441],
+  // Asia & Middle East
+  [35.6762, 139.6503], [37.5665, 126.9780], [31.2304, 121.4737], [39.9042, 116.4074], [22.3964, 114.1095],
+  [19.0760, 72.8777], [28.6139, 77.2090], [13.7563, 100.5018], [-6.2088, 106.8456], [14.5995, 120.9842],
+  [1.3521, 103.8198], [25.2048, 55.2708], [24.7136, 46.6753], [35.6892, 51.3890], [24.8607, 67.0011],
+  [23.8103, 90.4125], [16.8409, 96.1735], [10.8231, 106.6297],
+  // Oceania
+  [-33.8688, 151.2093], [-37.8136, 144.9631], [-36.8485, 174.7633], [-27.4698, 153.0251]
+];
+
+function getObjectColor(type, name) {
+  const upperName = name?.toUpperCase() || '';
+  if (upperName.includes('ISS') || type === 'space-station' && upperName.includes('ISS')) {
+    return '#e0584f'; // ISS
+  }
+  if (upperName.includes('STARLINK') || type === 'gps') {
+    return '#a06bd6'; // Starlink/constellations
+  }
+  if (type === 'weather') {
+    return '#3fd6a0'; // Weather satellites
+  }
+  return '#4d8dff'; // General Satellites
+}
 
 // ISS custom icon
 function createISSIcon() {
@@ -26,12 +64,16 @@ function createISSIcon() {
 }
 
 // Satellite custom icon
-function createSatIcon(type, selected = false) {
-  const color = SAT_TYPE_CONFIG[type]?.color || '#4d8dff';
+function createSatIcon(type, name, selected = false) {
+  const baseColor = getObjectColor(type, name);
   const size = selected ? 10 : 7;
+  const shadowGlow = selected 
+    ? `box-shadow: 0 0 8px ${baseColor}, 0 0 16px ${baseColor}; border: 1.5px solid var(--text-primary);`
+    : `box-shadow: 0 0 6px ${baseColor}bf, 0 0 14px ${baseColor}4d;`;
+  
   return L.divIcon({
     className: 'sat-marker-icon',
-    html: `<div class="sat-dot${selected ? ' selected' : ''}" style="width:${size}px;height:${size}px;background:${selected ? 'var(--accent)' : color};border-radius:50%;"></div>`,
+    html: `<div class="sat-dot${selected ? ' selected' : ''}" style="width:${size}px;height:${size}px;background:${baseColor};border-radius:50%;${shadowGlow}"></div>`,
     iconSize: [size + 4, size + 4],
     iconAnchor: [(size + 4) / 2, (size + 4) / 2],
     popupAnchor: [0, -8],
@@ -45,13 +87,137 @@ function createObserverIcon() {
     html: `<div style="
       width: 14px; height: 14px;
       border-radius: 50%;
-      border: 2px solid var(--accent);
-      background: rgba(77, 141, 255, 0.3);
+      border: 2px solid #e0a847;
+      background: rgba(224, 168, 71, 0.3);
+      box-shadow: 0 0 8px #e0a847;
     "></div>`,
     iconSize: [18, 18],
     iconAnchor: [9, 9],
   });
 }
+
+// Radar sweep div icon
+function createRadarIcon() {
+  return L.divIcon({
+    className: 'radar-sweep-container',
+    html: '<div class="radar-sweep-line"></div>',
+    iconSize: [150, 150],
+    iconAnchor: [75, 75],
+  });
+}
+
+/**
+ * SmoothISSMarker — interpolates ISS position at ~60fps between API updates.
+ * Uses requestAnimationFrame + Leaflet's imperative marker.setLatLng()
+ * so React never re-renders per frame — pure DOM mutation.
+ */
+function SmoothISSMarker({ issPosition, issIcon, selectedSatellite, actions, children }) {
+  const markerRef = useRef(null);
+
+  // Track prev/next waypoints and animation timing
+  const animState = useRef({
+    prevLat: issPosition?.lat ?? 0,
+    prevLon: issPosition?.lon ?? 0,
+    nextLat: issPosition?.lat ?? 0,
+    nextLon: issPosition?.lon ?? 0,
+    startTime: performance.now(),
+    duration: 5000, // matches POLL_INTERVAL_MS
+    rafId: null,
+  });
+
+  // Smoothstep easing: 0→1 with ease-in-out feel
+  const smoothstep = (t) => t * t * (3 - 2 * t);
+
+  // When issPosition changes from API, start a new interpolation leg
+  useEffect(() => {
+    if (!issPosition) return;
+    const s = animState.current;
+    // Snapshot current interpolated position as the new starting point
+    const now = performance.now();
+    const elapsed = now - s.startTime;
+    const rawT = Math.min(1, elapsed / s.duration);
+    const t = smoothstep(rawT);
+    s.prevLat = s.prevLat + (s.nextLat - s.prevLat) * t;
+    s.prevLon = s.prevLon + (s.nextLon - s.prevLon) * t;
+    // Destination is the new API fix
+    s.nextLat = issPosition.lat;
+    s.nextLon = issPosition.lon;
+    s.startTime = now;
+    // duration = poll interval so we arrive just as next fix arrives
+    s.duration = 5000;
+  }, [issPosition]);
+
+  // rAF loop — runs independently of React renders
+  useEffect(() => {
+    const tick = (now) => {
+      const s = animState.current;
+      const marker = markerRef.current;
+      if (marker) {
+        const elapsed = now - s.startTime;
+        const rawT = Math.min(1, elapsed / s.duration);
+        const t = smoothstep(rawT);
+        const lat = s.prevLat + (s.nextLat - s.prevLat) * t;
+        const lon = s.prevLon + (s.nextLon - s.prevLon) * t;
+        marker.setLatLng([lat, lon]);
+      }
+      s.rafId = requestAnimationFrame(tick);
+    };
+    animState.current.rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animState.current.rafId);
+  }, []); // runs once on mount, loop is self-sustaining
+
+  if (!issPosition) return null;
+
+  // Initial position — rAF takes over immediately after mount
+  const isIssSelected = selectedSatellite?.satid === 25544;
+  const issObj = {
+    satname: 'ISS (ZARYA)',
+    satid: 25544,
+    satalt: 408,
+    velocity: 7.66,
+    satlat: issPosition.lat,
+    satlon: issPosition.lon,
+    type: 'space-station',
+  };
+
+  return (
+    <Marker
+      ref={markerRef}
+      position={[issPosition.lat, issPosition.lon]}
+      icon={issIcon}
+      zIndexOffset={1000}
+      eventHandlers={{
+        click: () => actions.selectSatellite(isIssSelected ? null : issObj),
+      }}
+    />
+  );
+}
+
+const OCEAN_STARS = [
+  [0, -140], [20, -160], [-20, -120], [-40, -140], [40, -170],
+  [25, -40], [-20, -25], [45, -30], [-40, -30],
+  [-10, 70], [-30, 80], [-20, 60],
+  [-60, 0], [-65, 90], [-60, -90], [-60, 150]
+];
+
+const GRID_LINES = (() => {
+  const lines = [];
+  // Latitudes (horizontal lines)
+  for (let lat = -80; lat <= 80; lat += 20) {
+    lines.push({
+      id: `lat-${lat}`,
+      positions: [[lat, -180], [lat, 180]],
+    });
+  }
+  // Longitudes (vertical lines)
+  for (let lon = -180; lon <= 180; lon += 20) {
+    lines.push({
+      id: `lon-${lon}`,
+      positions: [[-85, lon], [85, lon]],
+    });
+  }
+  return lines;
+})();
 
 // Asteroid custom icon
 function createAsteroidIcon(isHazardous, selected = false) {
@@ -132,7 +298,8 @@ export default function GlobeMap({ className = '' }) {
     asteroids = [],
     selectedAsteroid,
     asteroidFilter,
-    theme
+    theme,
+    issNextPasses = []
   } = state;
 
   // Filter based on active selection
@@ -171,6 +338,7 @@ export default function GlobeMap({ className = '' }) {
 
   const issIcon = useRef(createISSIcon()).current;
   const observerIcon = useRef(createObserverIcon()).current;
+  const radarIcon = useRef(createRadarIcon()).current;
 
   // Build ISS trail positions
   const trailPositions = issTrail.map(p => [p.lat, p.lon]);
@@ -202,7 +370,80 @@ export default function GlobeMap({ className = '' }) {
           subdomains="abcd"
         />
 
+        {/* Neon-glow country borders */}
+        <Pane name="border-pane" style={{ zIndex: 400 }}>
+            <GeoJSON
+              data={worldData}
+              style={() => ({
+                color: '#3a5a8a',
+                weight: 0.6,
+                opacity: 0.32,
+                fillOpacity: 0,
+              })}
+            />
+        </Pane>
+
         <MapController location={location} />
+
+        {/* Faint Lat/Long Grid Overlay */}
+        {GRID_LINES.map(line => (
+          <Polyline
+            key={line.id}
+            positions={line.positions}
+            color="rgba(255, 255, 255, 0.035)"
+            weight={1}
+            interactive={false}
+          />
+        ))}
+
+        {/* Sparse Ambient Stars in Oceans */}
+        {OCEAN_STARS.map((coords, idx) => {
+          const starIcon = L.divIcon({
+            className: 'ambient-star',
+            html: '<div class="star-sparkle"></div>',
+            iconSize: [6, 6],
+            iconAnchor: [3, 3]
+          });
+          return (
+            <Marker
+              key={`star-${idx}`}
+              position={coords}
+              icon={starIcon}
+              interactive={false}
+              zIndexOffset={-400}
+            />
+          );
+        })}
+
+        {/* Radar sweep at user location */}
+        {location && (
+          <Pane name="radar-sweep-pane" style={{ zIndex: 450 }}>
+            <Marker 
+              position={[location.lat, location.lon]} 
+              icon={radarIcon} 
+              interactive={false}
+            />
+          </Pane>
+        )}
+
+        {/* Ambient City Lights Glow Overlay */}
+        {CITY_LIGHTS.map((coords, idx) => {
+          const cityIcon = L.divIcon({
+            className: 'city-glow-dot',
+            html: '<div style="width: 2.5px; height: 2.5px; background: rgba(255, 180, 90, 0.45); border-radius: 50%; box-shadow: 0 0 3px rgba(255, 180, 90, 0.65);"></div>',
+            iconSize: [3, 3],
+            iconAnchor: [1.5, 1.5],
+          });
+          return (
+            <Marker
+              key={`city-light-${idx}`}
+              position={coords}
+              icon={cityIcon}
+              interactive={false}
+              zIndexOffset={-450}
+            />
+          );
+        })}
 
         {/* Observer location marker */}
         {location && (
@@ -221,15 +462,26 @@ export default function GlobeMap({ className = '' }) {
         {/* Satellite Tracking View Mode Overlays */}
         {viewMode === 'satellites' && (
           <>
-            {/* ISS trail */}
+            {/* ISS trail segments with fading opacity and tapered weight */}
             {trailPositions.length > 1 && (
-              <Polyline
-                positions={trailPositions}
-                color="#ff007f"
-                weight={2}
-                opacity={0.4}
-                dashArray="4, 6"
-              />
+              <>
+                {trailPositions.map((pos, idx) => {
+                  if (idx === 0) return null;
+                  const prevPos = trailPositions[idx - 1];
+                  const progress = idx / (trailPositions.length - 1);
+                  const opacity = 0.6 * progress;
+                  const weight = 1 + 2 * progress;
+                  return (
+                    <Polyline
+                      key={`iss-trail-${idx}`}
+                      positions={[prevPos, pos]}
+                      color="var(--accent)"
+                      weight={weight}
+                      opacity={opacity}
+                    />
+                  );
+                })}
+              </>
             )}
 
             {/* ISS cone of visibility */}
@@ -247,32 +499,13 @@ export default function GlobeMap({ className = '' }) {
               />
             )}
 
-            {/* ISS marker */}
-            {issPosition && (
-              <Marker
-                position={[issPosition.lat, issPosition.lon]}
-                icon={issIcon}
-                zIndexOffset={1000}
-              >
-                <Popup>
-                  <div className="font-crimson text-sm">
-                    <p className="font-bold text-cyan text-base">🛸 ISS</p>
-                    <p className="text-muted-light mt-1">
-                      Lat: <span className="font-mono text-white">{issPosition.lat.toFixed(4)}°</span>
-                    </p>
-                    <p className="text-muted-light">
-                      Lon: <span className="font-mono text-white">{issPosition.lon.toFixed(4)}°</span>
-                    </p>
-                    <p className="text-muted-light">
-                      Alt: <span className="font-mono text-white">408 km</span>
-                    </p>
-                    <p className="text-muted-light">
-                      Speed: <span className="font-mono text-white">7.66 km/s</span>
-                    </p>
-                  </div>
-                </Popup>
-              </Marker>
-            )}
+            {/* ISS marker — smooth gliding interpolation between API fixes */}
+            <SmoothISSMarker
+              issPosition={issPosition}
+              issIcon={issIcon}
+              selectedSatellite={selectedSatellite}
+              actions={actions}
+            />
 
             {/* Selected Satellite orbit & cone footprint */}
             {selectedSatellite && (
@@ -280,7 +513,9 @@ export default function GlobeMap({ className = '' }) {
                 {/* Orbital arc */}
                 <Polyline
                   positions={generateOrbitalArc(selectedSatellite.satlat, selectedSatellite.satlon)}
-                  className="orbital-path"
+                  color={getObjectColor(selectedSatellite.type, selectedSatellite.satname)}
+                  weight={1.5}
+                  opacity={0.4}
                 />
                 
                 {/* Cone overlay */}
@@ -288,8 +523,8 @@ export default function GlobeMap({ className = '' }) {
                   <Polygon
                     positions={calculateConeFootprint(selectedSatellite.satlat, selectedSatellite.satlon, selectedSatellite.satalt)}
                     pathOptions={{
-                      color: SAT_TYPE_CONFIG[selectedSatellite.type]?.color || '#ffdf00',
-                      fillColor: 'rgba(255, 223, 0, 0.05)',
+                      color: getObjectColor(selectedSatellite.type, selectedSatellite.satname),
+                      fillColor: `${getObjectColor(selectedSatellite.type, selectedSatellite.satname)}1a`,
                       fillOpacity: 1,
                       weight: 1,
                       dashArray: '4, 4',
@@ -302,7 +537,7 @@ export default function GlobeMap({ className = '' }) {
             {/* Satellite markers */}
             {filteredSatellites.map((sat) => {
               const isSelected = selectedSatellite?.satid === sat.satid;
-              const satIcon = createSatIcon(sat.type, isSelected);
+              const satIcon = createSatIcon(sat.type, sat.satname, isSelected);
 
               return (
                 <Marker
@@ -312,34 +547,7 @@ export default function GlobeMap({ className = '' }) {
                   eventHandlers={{
                     click: () => actions.selectSatellite(isSelected ? null : sat),
                   }}
-                >
-                  <Popup>
-                    <div className="font-crimson text-sm min-w-[180px]">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span>{SAT_TYPE_CONFIG[sat.type] ? '' : '🛰️'}</span>
-                        <p className="font-bold text-amber text-sm">{sat.satname}</p>
-                      </div>
-                      <p className="text-muted-light text-xs">
-                        NORAD: <span className="font-mono text-white">{sat.satid}</span>
-                      </p>
-                      <p className="text-muted-light text-xs">
-                        Alt: <span className="font-mono text-white">{sat.satalt?.toFixed(1)} km</span>
-                      </p>
-                      <p className="text-muted-light text-xs">
-                        Speed: <span className="font-mono text-white">{sat.velocity?.toFixed(2)} km/s</span>
-                      </p>
-                      <p className="text-muted-light text-xs">
-                        Type: <span className="capitalize">{sat.type?.replace('-', ' ')}</span>
-                      </p>
-                      <button
-                        onClick={() => actions.selectSatellite(isSelected ? null : sat)}
-                        className="mt-2 w-full text-center text-xs text-cyan border border-cyan/30 rounded px-2 py-1 hover:bg-cyan/10 transition-colors"
-                      >
-                        {isSelected ? 'Deselect' : 'Track this satellite'}
-                      </button>
-                    </div>
-                  </Popup>
-                </Marker>
+                />
               );
             })}
           </>
@@ -437,61 +645,18 @@ export default function GlobeMap({ className = '' }) {
                     fillOpacity: 0.9,
                     weight: 1,
                   }}
-                >
-                  <Popup>
-                    <div className="font-crimson text-xs min-w-[120px]">
-                      <p className="font-bold text-cyan text-sm">{star.name}</p>
-                      <p className="text-muted text-[10px] mt-0.5">
-                        RA: <span className="font-mono">{star.ra.toFixed(2)}h</span> · Dec: <span className="font-mono">{star.dec.toFixed(2)}°</span>
-                      </p>
-                    </div>
-                  </Popup>
-                </Circle>
+                />
               ))}
 
               {/* Clickable central anchor marker */}
               <Marker
+                key={`constell-marker-${constell.id}`}
                 position={[constell.subStellar.lat, constell.subStellar.lon]}
                 icon={centerIcon}
                 eventHandlers={{
                   click: () => actions.selectConstellation(isSelected ? null : constell),
                 }}
-              >
-                <Popup>
-                  <div className="font-sans text-xs min-w-[180px]">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span>🌌</span>
-                      <p className="font-bold text-cyan text-sm uppercase tracking-wider">{constell.name}</p>
-                    </div>
-                    <p className="text-muted text-xs mb-1">
-                      {constell.abbr} · {constell.description}
-                    </p>
-                    <p className="text-muted-light text-xs mt-1">
-                      Azimuth: <span className="font-mono text-white">{constell.coords.az.toFixed(0)}° {azimuthToCompass(constell.coords.az)}</span>
-                    </p>
-                    <p className="text-muted-light text-xs">
-                      Elevation: <span className="font-mono text-white">{constell.coords.el.toFixed(0)}°</span>
-                    </p>
-                    
-                    {/* Wikipedia Constellation Link */}
-                    <a
-                      href={`https://en.wikipedia.org/wiki/${constell.name.replace(' ', '_')}_(constellation)`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2.5 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-panel border border-border text-xs text-text rounded-lg hover:border-border-light transition-colors text-center w-full"
-                    >
-                      📖 Explore on Wikipedia
-                    </a>
-
-                    <button
-                      onClick={() => actions.selectConstellation(isSelected ? null : constell)}
-                      className="mt-2 w-full text-center text-xs text-cyan border border-border rounded px-2 py-1 hover:bg-panel transition-colors"
-                    >
-                      {isSelected ? 'Deselect' : 'Track this constellation'}
-                    </button>
-                  </div>
-                </Popup>
-              </Marker>
+              />
             </Fragment>
           );
         })}
@@ -525,70 +690,51 @@ export default function GlobeMap({ className = '' }) {
                   eventHandlers={{
                     click: () => actions.selectAsteroid(isSelected ? null : ast),
                   }}
-                >
-                  <Popup>
-                    <div className="font-crimson text-sm min-w-[200px]">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-1">
-                          <span>☄️</span>
-                          <p className="font-bold text-amber text-sm truncate max-w-[130px]">
-                            {ast.name}
-                          </p>
-                        </div>
-                        <span className={`badge ${ast.is_potentially_hazardous ? 'badge-red' : 'badge-amber'}`} style={{ fontSize: 9 }}>
-                          {ast.is_potentially_hazardous ? 'PHA' : 'NEA'}
-                        </span>
-                      </div>
-                      <p className="text-muted-light text-xs">
-                        Size: <span className="font-mono text-white">{ast.diameter_min?.toFixed(0)} - {ast.diameter_max?.toFixed(0)} m</span>
-                      </p>
-                      <p className="text-muted-light text-xs">
-                        Velocity: <span className="font-mono text-white">{ast.velocity_kms?.toFixed(2)} km/s</span>
-                      </p>
-                      <p className="text-muted-light text-xs">
-                        Miss Dist: <span className="font-mono text-white">{ast.miss_distance_ld?.toFixed(2)} LD</span>
-                      </p>
-                      <p className="text-muted-light text-xs mt-1">
-                        RA/Dec: <span className="font-mono text-white">{ast.ra?.toFixed(1)}h / {ast.dec?.toFixed(1)}°</span>
-                      </p>
-                      <button
-                        onClick={() => actions.selectAsteroid(isSelected ? null : ast)}
-                        className="mt-2 w-full text-center text-xs text-cyan border border-cyan/30 rounded px-2 py-1 hover:bg-cyan/10 transition-colors"
-                      >
-                        {isSelected ? 'Deselect' : 'Track this asteroid'}
-                      </button>
-                    </div>
-                  </Popup>
-                </Marker>
+                />
               );
             })}
           </>
         )}
       </MapContainer>
 
-      {/* Map overlay: ISS live badge */}
-      {viewMode === 'satellites' && issPosition && (
-        <div className="absolute top-3 left-3 z-[1000] flex items-center gap-2 px-3 py-1.5 rounded-lg bg-panel border border-border">
-          <div className="w-2 h-2 rounded-full bg-cyan animate-pulse" />
-          <span className="text-cyan text-xs font-sans font-bold uppercase tracking-wider">ISS LIVE</span>
+      {/* Top-Left Cluster Container */}
+      <div className="absolute top-3 left-3 z-[1000] flex flex-col gap-2 items-start pointer-events-none">
+        {/* Row 1: Location Pill & ISS LIVE status pill */}
+        <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
+          {location && (
+            <div className="glass-panel flex items-center gap-1.5 px-2 py-1 rounded-md bg-surface/90 backdrop-blur border border-surface-border text-text-primary text-[10px] font-sans font-bold uppercase tracking-wider shadow-lg">
+              <MapPin className="w-3 h-3 text-cyan" />
+              <span>{location.name}</span>
+            </div>
+          )}
+          
+          {viewMode === 'satellites' && issPosition && (
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-panel border border-border shadow-lg">
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse" />
+              <span className="text-cyan text-[10px] font-sans font-bold uppercase tracking-wider">ISS LIVE</span>
+            </div>
+          )}
         </div>
-      )}
+
+
+
+      </div>
 
       {/* Target count & Filter badge */}
-      <div className="absolute top-3 right-3 z-[1000] flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-panel border border-border shadow-lg">
+      <div className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 px-2 py-1 rounded-md bg-panel border border-border shadow-lg">
         {viewMode === 'constellations' ? (
-          <span className="text-cyan text-xs font-sans uppercase tracking-wider font-semibold shrink-0">
+          <span className="text-cyan text-[10px] font-sans uppercase tracking-wider font-bold shrink-0">
             <span className="font-mono">{visibleConstellations.length}</span> CONSTELLATIONS VISIBLE
           </span>
         ) : viewMode === 'asteroids' ? (
           <>
-            <span className="text-cyan text-xs font-sans uppercase tracking-wider font-semibold shrink-0 hidden sm:inline">
+            <span className="text-cyan text-[10px] font-sans uppercase tracking-wider font-bold shrink-0 hidden sm:inline">
               <span className="font-mono">{filteredAsteroids.length}/{asteroids.length}</span> ASTEROIDS
             </span>
             <select
               value={asteroidFilter}
               onChange={(e) => actions.setAsteroidFilter(e.target.value)}
-              className="text-xs font-sans uppercase tracking-wider font-semibold bg-panel border border-border rounded px-1.5 py-0.5 text-text focus:outline-none focus:border-cyan cursor-pointer transition-colors"
+              className="text-[10px] font-sans uppercase tracking-wider font-bold bg-panel border border-border rounded px-1 py-0.5 text-text focus:outline-none focus:border-cyan cursor-pointer transition-colors"
             >
               <option value="all">All NEAs</option>
               <option value="phas">Hazardous (PHAs)</option>
@@ -597,13 +743,13 @@ export default function GlobeMap({ className = '' }) {
           </>
         ) : (
           <>
-            <span className="text-cyan text-xs font-sans uppercase tracking-wider font-semibold shrink-0 hidden sm:inline">
+            <span className="text-cyan text-[10px] font-sans uppercase tracking-wider font-bold shrink-0 hidden sm:inline">
               <span className="font-mono">{filteredSatellites.length}/{satellites.length}</span> OVERHEAD
             </span>
             <select
               value={satelliteFilter}
               onChange={(e) => actions.setSatelliteFilter(e.target.value)}
-              className="text-xs font-sans uppercase tracking-wider font-semibold bg-panel border border-border rounded px-1.5 py-0.5 text-text focus:outline-none focus:border-cyan cursor-pointer transition-colors"
+              className="text-[10px] font-sans uppercase tracking-wider font-bold bg-panel border border-border rounded px-1 py-0.5 text-text focus:outline-none focus:border-cyan cursor-pointer transition-colors"
             >
               <option value="major">Major</option>
               <option value="space-station">Stations</option>
@@ -618,20 +764,127 @@ export default function GlobeMap({ className = '' }) {
         )}
       </div>
 
-      {/* Coordinate readout capsule (bottom of map) */}
-      {location && (
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-4 px-4 py-1.5 rounded-full bg-panel border border-border shadow-lg">
-          <div className="flex flex-col items-center">
-            <span className="text-[9px] font-sans text-cyan uppercase tracking-wider font-bold">LATITUDE</span>
-            <span className="font-mono text-xs font-bold text-text">{location.lat.toFixed(4)}°N</span>
+      {/* Category Legend pill row (now unified in top-left container) */}
+
+      {/* Selected Object Detail Card */}
+      {selectedSatellite && (
+        <div className="absolute top-[42px] right-3 w-72 z-[1000] glass-panel p-3 rounded-lg bg-surface/90 backdrop-blur border border-surface-border shadow-2xl animate-fade-in flex flex-col gap-2">
+          <div className="flex items-start justify-between">
+            <div className="min-w-0">
+              <span className="text-[8px] font-sans text-cyan uppercase tracking-wider font-bold">TARGET TRACKED</span>
+              <h4 className="font-sans uppercase text-[11px] font-bold text-text-primary tracking-wider truncate mt-0.5">
+                {selectedSatellite.satname}
+              </h4>
+              <p className="text-muted text-[9px] font-mono mt-0.5">NORAD ID #{selectedSatellite.satid}</p>
+            </div>
+            <button 
+              onClick={() => actions.selectSatellite(null)}
+              className="text-text-secondary hover:text-text-primary p-0.5 rounded hover:bg-white/5 transition-colors"
+            >
+              <X className="w-3 h-3" />
+            </button>
           </div>
-          <div className="h-6 w-px bg-border" />
-          <div className="flex flex-col items-center">
-            <span className="text-[9px] font-sans text-cyan uppercase tracking-wider font-bold">LONGITUDE</span>
-            <span className="font-mono text-xs font-bold text-text">{location.lon.toFixed(4)}°E</span>
+
+          <div className="flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse" />
+            <span className="text-[8px] font-sans text-cyan uppercase tracking-wider font-bold">TELEMETRY LOCK ACTIVE</span>
+            <span className="ml-auto text-[8px] font-sans text-text-secondary uppercase tracking-wider bg-white/5 px-1.5 py-0.5 rounded border border-surface-border">
+              {selectedSatellite.type?.replace('-', ' ')}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 border-t border-surface-border/50 pt-2">
+            <div>
+              <span className="text-muted font-sans text-[8px] uppercase tracking-wider">ALTITUDE</span>
+              <span className="font-mono text-text-primary text-[11px] font-bold mt-0.5 block">
+                {selectedSatellite.satalt?.toFixed(1)} km
+              </span>
+            </div>
+            <div>
+              <span className="text-muted font-sans text-[8px] uppercase tracking-wider">VELOCITY</span>
+              <span className="font-mono text-text-primary text-[11px] font-bold mt-0.5 block">
+                {selectedSatellite.velocity?.toFixed(2)} km/s
+              </span>
+            </div>
+            <div>
+              <span className="text-muted font-sans text-[8px] uppercase tracking-wider">LATITUDE</span>
+              <span className="font-mono text-text-primary text-[11px] font-bold mt-0.5 block">
+                {selectedSatellite.satlat?.toFixed(4)}°N
+              </span>
+            </div>
+            <div>
+              <span className="text-muted font-sans text-[8px] uppercase tracking-wider">LONGITUDE</span>
+              <span className="font-mono text-text-primary text-[11px] font-bold mt-0.5 block">
+                {selectedSatellite.satlon?.toFixed(4)}°E
+              </span>
+            </div>
           </div>
         </div>
       )}
+
+      {selectedAsteroid && (
+        <div className="absolute top-[42px] right-3 w-72 z-[1000] glass-panel p-3 rounded-lg bg-surface/90 backdrop-blur border border-surface-border shadow-2xl animate-fade-in flex flex-col gap-2">
+          <div className="flex items-start justify-between">
+            <div className="min-w-0">
+              <span className="text-[8px] font-sans text-accent-amber uppercase tracking-wider font-bold">NEA TARGET TRACKED</span>
+              <h4 className="font-sans uppercase text-[11px] font-bold text-text-primary tracking-wider truncate mt-0.5">
+                {selectedAsteroid.name}
+              </h4>
+              <p className="text-muted text-[9px] font-mono mt-0.5">EST. DIA: {selectedAsteroid.estimated_diameter_min_m?.toFixed(0)}-{selectedAsteroid.estimated_diameter_max_m?.toFixed(0)} m</p>
+            </div>
+            <button 
+              onClick={() => actions.selectAsteroid(null)}
+              className="text-text-secondary hover:text-text-primary p-0.5 rounded hover:bg-white/5 transition-colors"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <div className={`w-1.5 h-1.5 rounded-full ${selectedAsteroid.is_potentially_hazardous ? 'bg-accent-alert' : 'bg-accent-amber'} animate-pulse`} />
+            <span className={`text-[8px] font-sans ${selectedAsteroid.is_potentially_hazardous ? 'text-accent-alert' : 'text-accent-amber'} uppercase tracking-wider font-bold`}>
+              {selectedAsteroid.is_potentially_hazardous ? 'POTENTIALLY HAZARDOUS' : 'SAFE CLOSE APPROACH'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 border-t border-surface-border/50 pt-2">
+            <div>
+              <span className="text-muted font-sans text-[8px] uppercase tracking-wider">MISS DISTANCE</span>
+              <span className="font-mono text-text-primary text-[11px] font-bold mt-0.5 block">
+                {(selectedAsteroid.miss_distance_km / 1e6).toFixed(2)}M km
+              </span>
+            </div>
+            <div>
+              <span className="text-muted font-sans text-[8px] uppercase tracking-wider">VELOCITY</span>
+              <span className="font-mono text-text-primary text-[11px] font-bold mt-0.5 block">
+                {selectedAsteroid.relative_velocity_kms?.toFixed(2)} km/s
+              </span>
+            </div>
+            <div>
+              <span className="text-muted font-sans text-[8px] uppercase tracking-wider">CLOSE APPROACH</span>
+              <span className="font-mono text-text-primary text-[11px] font-bold mt-0.5 block">
+                {new Date(selectedAsteroid.close_approach_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </div>
+            <div>
+              <span className="text-muted font-sans text-[8px] uppercase tracking-wider">MAGNITUDE (H)</span>
+              <span className="font-mono text-text-primary text-[11px] font-bold mt-0.5 block">
+                {selectedAsteroid.absolute_magnitude_h}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom Telemetry Stat Strip (now unified in top-left container) */}
+
+      {/* Atmospheric Vignette Overlay */}
+      <div 
+        className="absolute inset-0 pointer-events-none z-[400]" 
+        style={{
+          background: 'radial-gradient(ellipse at center, transparent 40%, rgba(7, 10, 18, 0.45) 100%)',
+        }}
+      />
     </div>
   );
 }

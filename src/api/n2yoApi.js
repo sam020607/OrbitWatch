@@ -15,6 +15,7 @@
 import axios from 'axios';
 import { MOCK_SATELLITES, MOCK_PASSES } from '../data/mockSatellites.js';
 import { azimuthToCompass } from '../utils/orbitMath.js';
+import { recordSuccess, recordFailure, recordRetry, recordTLESync } from '../services/apiMonitor.js';
 
 // TODO: Replace with your N2YO API key
 const N2YO_API_KEY = import.meta.env.VITE_N2YO_API_KEY ?? '';
@@ -93,6 +94,8 @@ function enrichSatelliteData(sat) {
 export async function fetchAboveSatellites(lat, lon, alt = 0) {
   if (USE_MOCK) {
     console.info('[N2YO] Using mock satellite data. Set N2YO_API_KEY to use live data.');
+    recordSuccess('n2yo', 12, { isLiveData: false });
+    recordTLESync({ source: 'Mock N2YO', count: MOCK_SATELLITES.length });
     // Offset mock positions relative to observer
     return MOCK_SATELLITES.map(sat => ({
       ...sat,
@@ -101,77 +104,119 @@ export async function fetchAboveSatellites(lat, lon, alt = 0) {
     }));
   }
 
+  const t0 = Date.now();
   try {
     const radius = 70; // degrees search radius
     const category = 0; // all
     const url = `${BASE_URL}/above/${lat}/${lon}/${alt}/${radius}/${category}/&apiKey=${N2YO_API_KEY}`;
     const response = await axios.get(url, { timeout: 10000 });
     const above = response.data.above || [];
+    const durationMs = Date.now() - t0;
+    recordSuccess('n2yo', durationMs, { isLiveData: true });
+    recordTLESync({ source: 'N2YO Above API', count: above.length });
     return above.map(enrichSatelliteData);
   } catch (error) {
+    const statusCode = error.response?.status;
+    recordFailure('n2yo', error.message, { statusCode, fallbackUsed: true });
     console.error('[N2YO] fetchAboveSatellites failed:', error.message);
     return MOCK_SATELLITES;
   }
 }
 
 /**
- * Fetch pass predictions for a satellite over the next 24 hours.
- * N2YO endpoint: GET /passes/{id}/{lat}/{lon}/{alt}/{days}/{min_elevation}/&apiKey={key}
- * 
- * @param {number} satId  N2YO satellite ID (25544 = ISS)
+ * Fetch ISS pass predictions for an observer location.
+ *
+ * PRIORITY CHAIN for ISS (satId 25544):
+ *   1. Pollux Labs (PRIMARY)  — https://iss-api.polluxlabs.io
+ *      Free, CORS-enabled, uses CelesTrak TLEs refreshed every 6 h.
+ *      Returns up to 20 passes with visibility flag, rise/set/peak times,
+ *      azimuth, and elevation. No auth required.
+ *   2. Mock data (FALLBACK)   — time-adjusted relative to now.
+ *      Used only when Pollux fails or returns an empty set.
+ *
+ * NOTE: wheretheiss.at does NOT have a pass-prediction endpoint (404).
+ *       It is used exclusively for real-time ISS position (lat/lon/alt/vel)
+ *       in issApi.js, polled every 5 s.
+ *
+ * For non-ISS satellites, N2YO is used if an API key is configured,
+ * otherwise mock data.
+ *
+ * @param {number} satId  NORAD satellite ID (25544 = ISS)
  * @param {number} lat    Observer latitude
  * @param {number} lon    Observer longitude
  * @param {number} alt    Observer altitude (m)
- * @returns {Promise<Array>} Array of pass prediction objects
+ * @returns {Promise<Array>} Array of normalised pass objects
  */
 export async function fetchSatellitePasses(satId, lat, lon, alt = 0) {
-  // Use free Pollux Labs API specifically for live ISS passes
+  // ── PRIORITY 1: Pollux Labs (ISS only) ────────────────────────────────────
   if (satId === 25544) {
+    const t0 = Date.now();
     try {
       const url = `https://iss-api.polluxlabs.io/iss-pass?lat=${lat}&lon=${lon}`;
       const response = await axios.get(url, { timeout: 10000 });
       const passes = response.data.passes || [];
+      const durationMs = Date.now() - t0;
+
       if (passes.length > 0) {
+        recordSuccess('pollux-iss-passes', durationMs, { isLiveData: true });
+        console.info(`[Pollux] Got ${passes.length} ISS passes in ${durationMs} ms`);
         return passes.map(p => ({
-          startUTC: new Date(p.rise.time).getTime() / 1000,
-          maxUTC: new Date(p.culmination.time).getTime() / 1000,
-          endUTC: new Date(p.set.time).getTime() / 1000,
-          startAz: p.rise.azimuth_deg,
+          startUTC:       new Date(p.rise.time).getTime() / 1000,
+          maxUTC:         new Date(p.culmination.time).getTime() / 1000,
+          endUTC:         new Date(p.set.time).getTime() / 1000,
+          startAz:        p.rise.azimuth_deg,
           startAzCompass: p.rise.compass,
-          maxAz: 0,
-          maxAzCompass: 'Peak',
-          endAz: p.set.azimuth_deg,
-          endAzCompass: p.set.compass,
-          maxEl: p.culmination.elevation_deg,
-          duration: p.duration_sec,
-          mag: p.visible ? -2.5 : null
+          maxAz:          0,
+          maxAzCompass:   'Peak',
+          endAz:          p.set.azimuth_deg,
+          endAzCompass:   p.set.compass,
+          maxEl:          p.culmination.elevation_deg,
+          duration:       p.duration_sec,
+          mag:            p.visible ? -2.5 : null,
         }));
       }
+
+      // Pollux returned 0 passes (e.g. no passes in next window) — still a success
+      recordSuccess('pollux-iss-passes', durationMs, { isLiveData: true });
+      console.info('[Pollux] 0 passes returned — using mock for demo');
     } catch (error) {
-      console.error('[Pollux API] ISS passes failed, falling back to mock:', error.message);
+      const statusCode = error.response?.status;
+      recordFailure('pollux-iss-passes', error.message, { statusCode, fallbackUsed: true });
+      console.error('[Pollux] ISS passes failed, using mock fallback:', error.message);
     }
+
+    // ── FALLBACK: Mock data (ISS) ────────────────────────────────────────────
+    recordSuccess('pollux-iss-passes', 0, { isLiveData: false });
+    return adjustPassTimesToNow(MOCK_PASSES[25544]);
   }
 
+  // ── Non-ISS satellites: N2YO (primary) → mock (fallback) ──────────────────
   if (USE_MOCK) {
-    const passes = MOCK_PASSES[satId] || MOCK_PASSES[25544]; // fall back to ISS passes
+    const passes = MOCK_PASSES[satId] || MOCK_PASSES[25544];
+    recordSuccess('n2yo', 8, { isLiveData: false });
     return adjustPassTimesToNow(passes);
   }
 
+  const t0 = Date.now();
   try {
     const days = 10;
     const minElevation = 10;
     const url = `${BASE_URL}/radiopasses/${satId}/${lat}/${lon}/${alt}/${days}/${minElevation}/&apiKey=${N2YO_API_KEY}`;
     const response = await axios.get(url, { timeout: 10000 });
     const passes = response.data.passes || [];
+    const durationMs = Date.now() - t0;
+    recordSuccess('n2yo', durationMs, { isLiveData: true });
     return passes.map(p => ({
       ...p,
       startAzCompass: p.startAzCompass || p.startAzTxt || azimuthToCompass(p.startAz),
-      maxAzCompass: p.maxAzCompass || p.maxAzTxt || azimuthToCompass(p.maxAz),
-      endAzCompass: p.endAzCompass || p.endAzTxt || azimuthToCompass(p.endAz)
+      maxAzCompass:   p.maxAzCompass   || p.maxAzTxt   || azimuthToCompass(p.maxAz),
+      endAzCompass:   p.endAzCompass   || p.endAzTxt   || azimuthToCompass(p.endAz),
     }));
   } catch (error) {
+    const statusCode = error.response?.status;
+    recordFailure('n2yo', error.message, { statusCode, fallbackUsed: true });
     console.error('[N2YO] fetchSatellitePasses failed:', error.message);
-    return adjustPassTimesToNow(MOCK_PASSES[25544]);
+    return adjustPassTimesToNow(MOCK_PASSES[satId] || MOCK_PASSES[25544]);
   }
 }
 

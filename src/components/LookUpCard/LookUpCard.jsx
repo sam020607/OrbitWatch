@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext.jsx';
 import { azimuthToCompass } from '../../utils/orbitMath.js';
 import { getLocalCoordinates } from '../../data/constellations.js';
-import { Compass, Target, X, RefreshCw, ExternalLink } from 'lucide-react';
+import { Compass, Target, X, RefreshCw, ExternalLink, Bell, BellOff, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { fetchAstronomyPictureOfTheDay } from '../../api/nasaApodApi.js';
@@ -79,7 +79,57 @@ export default function LookUpCard() {
 
   const [showNotesForm, setShowNotesForm] = useState(false);
   const [notesText, setNotesText] = useState('');
-  const [activeModal, setActiveModal] = useState(null); // null | 'fact' | 'apod' | 'sat'
+  const [activeModal, setActiveModal] = useState(null);
+
+  // Pass alert state — keyed by pass startUTC timestamp
+  const [alertedPasses, setAlertedPasses] = useState(new Set()); // Set<startUTC>
+  const [alertTimers, setAlertTimers] = useState(new Map());    // Map<startUTC, timeoutId>
+  const [notifPermission, setNotifPermission] = useState(
+    typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'
+  );
+  const [inAppAlert, setInAppAlert] = useState(null); // { name, time } for fallback banner
+
+  const ALERT_LEAD_SECS = 5 * 60; // 5 minutes before AOS
+
+  const scheduleAlert = (pass) => {
+    const fireAt = (pass.startUTC - ALERT_LEAD_SECS) * 1000;
+    const msUntil = fireAt - Date.now();
+    if (msUntil <= 0) return null; // already past
+
+    const tid = setTimeout(() => {
+      const msg = `ISS overhead in 5 minutes! Look ${pass.startAzCompass} at ${pass.maxEl}° elevation.`;
+      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        new Notification('🚀 ISS Pass Alert — OrbitWatch', { body: msg, icon: '/favicon.ico' });
+      } else {
+        setInAppAlert({ msg, startUTC: pass.startUTC });
+        setTimeout(() => setInAppAlert(null), 12000);
+      }
+      // Remove from alerted set after firing
+      setAlertedPasses(prev => { const s = new Set(prev); s.delete(pass.startUTC); return s; });
+      setAlertTimers(prev => { const m = new Map(prev); m.delete(pass.startUTC); return m; });
+    }, msUntil);
+    return tid;
+  };
+
+  const requestAndScheduleAlert = async (pass) => {
+    let perm = notifPermission;
+    if (perm === 'default') {
+      perm = await Notification.requestPermission();
+      setNotifPermission(perm);
+    }
+    const tid = scheduleAlert(pass);
+    if (tid !== null) {
+      setAlertedPasses(prev => new Set([...prev, pass.startUTC]));
+      setAlertTimers(prev => new Map([...prev, [pass.startUTC, tid]]));
+    }
+  };
+
+  const cancelAlert = (pass) => {
+    const tid = alertTimers.get(pass.startUTC);
+    if (tid) clearTimeout(tid);
+    setAlertedPasses(prev => { const s = new Set(prev); s.delete(pass.startUTC); return s; });
+    setAlertTimers(prev => { const m = new Map(prev); m.delete(pass.startUTC); return m; });
+  };
 
   // 1. APOD state
   const [apodLoading, setApodLoading] = useState(false);
@@ -139,7 +189,7 @@ export default function LookUpCard() {
     return (
       <div className="flex flex-col gap-5 p-4">
         {/* Header */}
-        <div className="flex items-center gap-2 pb-2 border-b border-border">
+        <div className="flex items-center gap-2 pb-2 border-b border-white/[0.03]">
           <Compass className="w-5 h-5 text-cyan animate-pulse" />
           <h2 className="text-sm font-playfair font-bold text-text">Look Up Menu</h2>
         </div>
@@ -176,7 +226,7 @@ export default function LookUpCard() {
           onClick={() => setActiveModal('apod')}
           className="glass-panel overflow-hidden border border-border flex flex-col transition-all duration-300 hover:border-border-light cursor-pointer hover:scale-[1.01]"
         >
-          <div className="p-3 border-b border-border bg-panel flex items-center justify-between">
+          <div className="p-3 border-b border-white/[0.03] bg-panel flex items-center justify-between">
             <span className="text-[10px] font-sans text-cyan tracking-[0.1em] uppercase font-bold flex items-center gap-1">
               📷 NASA APOD
             </span>
@@ -225,7 +275,7 @@ export default function LookUpCard() {
               <Compass className="w-24 h-24 text-cyan" />
             </div>
 
-            <div className="flex items-center justify-between border-b border-border/40 pb-2">
+            <div className="flex items-center justify-between border-b border-white/[0.02] pb-2">
               <span className="text-[10px] font-sans text-cyan tracking-[0.1em] uppercase font-bold">
                 🛰️ Satellite of the Day
               </span>
@@ -371,14 +421,14 @@ export default function LookUpCard() {
                     🛰️ Satellite of the Day
                   </span>
 
-                  <div className="flex flex-col gap-1 text-left border-b border-border/40 pb-3 shrink-0">
+                  <div className="flex flex-col gap-1 text-left border-b border-white/[0.02] pb-3 shrink-0">
                     <h3 className="text-xl font-playfair font-bold text-text">{satelliteOfTheDay.satname}</h3>
                     <p className="text-xs font-mono text-muted">
                       NORAD ID: {satelliteOfTheDay.satid} · Launch Date: {satelliteOfTheDay.launchDate}
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 bg-panel p-4 rounded-xl border border-border text-left text-xs font-sans shrink-0">
+                  <div className="grid grid-cols-2 gap-4 bg-panel p-4 rounded-xl border border-white/[0.03] text-left text-xs font-sans shrink-0">
                     <div>
                       <span className="text-muted text-[10px] uppercase block tracking-wider font-semibold">Operational Type</span>
                       <span className="text-text font-mono font-bold capitalize">{satelliteOfTheDay.type?.replace('-', ' ')}</span>
@@ -398,7 +448,7 @@ export default function LookUpCard() {
                   </div>
 
                   <div className="text-left flex-1 overflow-hidden flex flex-col gap-2 min-h-[150px]">
-                    <h4 className="text-xs font-mono text-cyan tracking-wider uppercase font-bold border-b border-border pb-1 shrink-0">Description</h4>
+                    <h4 className="text-xs font-mono text-cyan tracking-wider uppercase font-bold border-b border-white/[0.03] pb-1 shrink-0">Description</h4>
                     <div className="overflow-y-auto pr-1 flex-1">
                       <p className="text-sm font-sans text-muted leading-relaxed">
                         {satelliteOfTheDay.description}
@@ -473,7 +523,7 @@ export default function LookUpCard() {
             <p className="text-muted text-xs font-sans uppercase tracking-wider font-semibold">
               RA: <span className="font-mono text-text font-bold">{displayData.ra?.toFixed(1)}h</span> · Dec: <span className="font-mono text-text font-bold">{displayData.dec?.toFixed(1)}°</span>
             </p>
-            <div className="w-full grid grid-cols-2 gap-2 bg-panel p-2.5 rounded-xl border border-border mt-1 text-left text-xs font-sans">
+            <div className="w-full grid grid-cols-2 gap-2 bg-panel p-2.5 rounded-xl border border-white/[0.03] mt-1 text-left text-xs font-sans">
               <div>
                 <span className="text-muted text-[10px] uppercase block tracking-wider font-semibold">Est. Diameter</span>
                 <span className="text-text font-mono text-xs">
@@ -492,7 +542,7 @@ export default function LookUpCard() {
                   ({(displayData.velocity_kms * 3600).toFixed(0)} km/h)
                 </span>
               </div>
-              <div className="col-span-2 border-t border-border/40 pt-2 mt-1">
+              <div className="col-span-2 border-t border-white/[0.02] pt-2 mt-1">
                 <span className="text-muted text-[10px] uppercase block tracking-wider font-semibold">Miss Distance</span>
                 <span className="text-text font-mono text-xs block">
                   {displayData.miss_distance_ld?.toFixed(2)} LD
@@ -506,7 +556,7 @@ export default function LookUpCard() {
               href={displayData.nasa_jpl_url || `https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=${displayData.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 flex items-center justify-center gap-1.5 px-3 py-1 bg-panel border border-border text-[11px] text-text rounded-md hover:border-border-light transition-colors w-full uppercase font-sans tracking-wider"
+              className="mt-2 flex items-center justify-center gap-1.5 px-3 py-1 bg-panel border border-white/[0.03] text-[11px] text-text rounded-md hover:border-white/[0.05] transition-colors w-full uppercase font-sans tracking-wider"
             >
               <span>☄️ View JPL Small-Body Database</span>
             </a>
@@ -520,7 +570,7 @@ export default function LookUpCard() {
               href={`https://en.wikipedia.org/wiki/${name.replace(' ', '_')}_(constellation)`}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 flex items-center justify-center gap-1.5 px-3 py-1 bg-panel border border-border text-[11px] text-text rounded-md hover:border-border-light transition-colors uppercase font-sans tracking-wider"
+              className="mt-2 flex items-center justify-center gap-1.5 px-3 py-1 bg-panel border border-white/[0.03] text-[11px] text-text rounded-md hover:border-white/[0.05] transition-colors uppercase font-sans tracking-wider"
             >
               <span>📖 Explore on Wikipedia</span>
             </a>
@@ -625,8 +675,116 @@ export default function LookUpCard() {
         </p>
       </div>
 
+      {/* ── ISS Pass Alert section (ISS only) ── */}
+      {selectedSatellite?.satid === 25544 && (() => {
+        const nowSec = Math.floor(Date.now() / 1000);
+        const upcoming = (issNextPasses || []).filter(p => p.endUTC > nowSec).slice(0, 4);
+        if (upcoming.length === 0) return null;
+
+        const formatPassTime = (utcSec) => {
+          const d = new Date(utcSec * 1000);
+          return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        };
+        const formatMinutesAway = (utcSec) => {
+          const diff = utcSec - nowSec;
+          if (diff <= 0) return 'NOW';
+          const h = Math.floor(diff / 3600);
+          const m = Math.floor((diff % 3600) / 60);
+          return h > 0 ? `${h}h ${m}m` : `${m}m`;
+        };
+
+        return (
+          <div className="glass-tile p-3 flex flex-col gap-2.5">
+            {/* In-app alert banner */}
+            {inAppAlert && (
+              <div className="flex items-start gap-2 px-3 py-2 rounded-lg border border-amber/40 bg-amber/10 text-amber text-xs font-sans font-bold animate-pulse">
+                <Bell className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                <span>{inAppAlert.msg}</span>
+              </div>
+            )}
+
+            {/* Header */}
+            <div className="flex items-center gap-2">
+              <Bell className="w-3.5 h-3.5 text-amber" />
+              <span className="text-[11px] font-sans font-bold uppercase tracking-wider text-amber">Pass Alerts</span>
+              {notifPermission === 'denied' && (
+                <span className="ml-auto text-[9px] font-sans text-red uppercase tracking-wider font-bold">Notifications blocked</span>
+              )}
+            </div>
+
+            {/* Per-pass rows */}
+            <div className="flex flex-col gap-1.5">
+              {upcoming.map((pass) => {
+                const isSet = alertedPasses.has(pass.startUTC);
+                const minsToStart = Math.floor((pass.startUTC - nowSec) / 60);
+                const isPast5Min = minsToStart <= 5; // too close to set 5-min lead
+                const isVisible = nowSec >= pass.startUTC && nowSec <= pass.endUTC;
+
+                return (
+                  <div
+                    key={pass.startUTC}
+                    className="flex items-center gap-2 px-2.5 py-2 rounded-lg"
+                    style={{
+                      background: isSet ? 'rgba(224,168,71,0.08)' : 'rgba(15,22,38,0.4)',
+                      border: isSet ? '1px solid rgba(224,168,71,0.3)' : '1px solid rgba(255,255,255,0.06)',
+                    }}
+                  >
+                    {/* Time + direction */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="font-mono text-xs font-bold text-text">{formatPassTime(pass.startUTC)}</span>
+                        {isVisible ? (
+                          <span className="text-[9px] font-sans font-bold text-cyan uppercase tracking-wider animate-pulse">LIVE</span>
+                        ) : (
+                          <span className="text-[9px] font-sans text-muted uppercase tracking-wider">in {formatMinutesAway(pass.startUTC)}</span>
+                        )}
+                      </div>
+                      <div className="text-[9px] font-sans text-muted mt-0.5">
+                        Max {pass.maxEl}° · from {pass.startAzCompass}
+                      </div>
+                    </div>
+
+                    {/* Alert toggle button */}
+                    {isVisible || isPast5Min ? (
+                      <span className="text-[9px] font-sans text-muted uppercase tracking-wider italic">
+                        {isVisible ? 'Overhead' : 'Too soon'}
+                      </span>
+                    ) : isSet ? (
+                      <button
+                        onClick={() => cancelAlert(pass)}
+                        className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-sans font-bold uppercase tracking-wider transition-all"
+                        style={{ background: 'rgba(224,168,71,0.18)', color: '#e0a847', border: '1px solid rgba(224,168,71,0.35)' }}
+                        title="Cancel alert"
+                      >
+                        <BellOff className="w-3 h-3" />
+                        <span>Cancel</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => requestAndScheduleAlert(pass)}
+                        disabled={notifPermission === 'denied'}
+                        className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-sans font-bold uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                        style={{ background: 'rgba(77,141,255,0.12)', color: '#4d8dff', border: '1px solid rgba(77,141,255,0.25)' }}
+                        title="Alert me 5 min before"
+                      >
+                        <Bell className="w-3 h-3" />
+                        <span>Alert</span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <p className="text-[9px] font-sans text-muted text-center tracking-wider">
+              Alerts fire 5 min before AOS — requires browser notification permission
+            </p>
+          </div>
+        );
+      })()}
+
       {/* Spotting Log Gamification Action */}
-      <div className="border-t border-border/40 pt-4 mt-2">
+      <div className="border-t border-white/[0.02] pt-4 mt-2">
         <div className="flex items-center justify-between mb-2">
           <div>
             <span className="text-[10px] font-sans text-muted uppercase tracking-wider font-bold block">Observed Status</span>
@@ -657,7 +815,7 @@ export default function LookUpCard() {
         </div>
 
         {showNotesForm && (
-          <div className="bg-panel p-2.5 rounded-lg border border-border flex flex-col gap-2 mt-2">
+          <div className="bg-panel p-2.5 rounded-lg border border-white/[0.03] flex flex-col gap-2 mt-2">
             <label className="text-[10px] font-sans text-muted uppercase tracking-wider block">
               Spotting Notes (Optional)
             </label>
@@ -665,7 +823,7 @@ export default function LookUpCard() {
               placeholder="e.g. Very bright overhead, clear sky, spotted with naked eye!"
               value={notesText}
               onChange={(e) => setNotesText(e.target.value)}
-              className="w-full text-xs font-sans bg-panel border border-border rounded p-1.5 text-text placeholder-muted/50 focus:outline-none focus:border-cyan h-16 resize-none"
+              className="w-full text-xs font-sans bg-panel border border-white/[0.03] rounded p-1.5 text-text placeholder-muted/50 focus:outline-none focus:border-cyan h-16 resize-none"
               maxLength={200}
             />
             <button

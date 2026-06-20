@@ -47,7 +47,17 @@ export default function JournalPanel() {
   return (
     <div className="flex flex-col h-full bg-panel/40">
       {/* ── Level & Stats HUD ── */}
-      <div className="p-4 border-b border-border bg-panel flex flex-col gap-3 shrink-0">
+      <div
+        className="mx-4 mt-4 p-4 shrink-0 flex flex-col gap-3"
+        style={{
+          background: 'rgba(15, 22, 38, 0.55)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: '16px',
+          boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+        }}
+      >
         {/* Level Info */}
         <div className="flex items-center justify-between">
           <div>
@@ -80,14 +90,34 @@ export default function JournalPanel() {
 
         {/* Micro Dashboard Stats */}
         <div className="grid grid-cols-2 gap-2 mt-1">
-          <div className="bg-panel border border-border rounded-lg p-2 flex items-center gap-2">
+          <div
+            className="p-2 flex items-center gap-2"
+            style={{
+              background: 'rgba(15, 22, 38, 0.55)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '12px',
+              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+            }}
+          >
             <BookOpen className="w-4 h-4 text-cyan" />
             <div>
               <span className="text-[9px] text-muted font-sans uppercase tracking-wider font-bold block leading-none">SPOTTINGS</span>
               <span className="font-mono text-xs font-bold text-text leading-none">{totalSpottings}</span>
             </div>
           </div>
-          <div className="bg-panel border border-border rounded-lg p-2 flex items-center gap-2">
+          <div
+            className="p-2 flex items-center gap-2"
+            style={{
+              background: 'rgba(15, 22, 38, 0.55)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '12px',
+              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+            }}
+          >
             <Award className="w-4 h-4 text-cyan" />
             <div>
               <span className="text-[9px] text-muted font-sans uppercase tracking-wider font-bold block leading-none">ACHIEVEMENTS</span>
@@ -100,7 +130,7 @@ export default function JournalPanel() {
       </div>
 
       {/* ── Sub-Tabs Selector ── */}
-      <div className="flex border-b border-border bg-panel shrink-0">
+      <div className="flex border-b border-border bg-panel shrink-0 mt-4">
         <button
           onClick={() => setActiveSubTab('logs')}
           className={`flex-1 py-2 text-[11px] font-sans uppercase tracking-wider font-bold flex items-center justify-center gap-1.5 transition-all
@@ -123,7 +153,17 @@ export default function JournalPanel() {
       <div className="flex-1 overflow-y-auto p-4">
         {activeSubTab === 'logs' ? (
           observedLog.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-6 text-center h-full opacity-60">
+            <div
+              className="flex flex-col items-center justify-center p-8 text-center my-4"
+              style={{
+                background: 'rgba(15, 22, 38, 0.55)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '16px',
+                boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+              }}
+            >
               <BookOpen className="w-10 h-10 text-muted mb-3 opacity-30" />
               <p className="text-muted text-sm font-sans uppercase tracking-wider font-semibold">Your Spotting Journal is empty</p>
               <p className="text-muted text-[11px] font-sans uppercase tracking-wider font-semibold mt-1.5 leading-relaxed max-w-[200px]">
@@ -135,7 +175,15 @@ export default function JournalPanel() {
               {observedLog.map((log) => (
                 <div
                   key={log.id}
-                  className="bg-panel border border-border rounded-xl p-3.5 flex flex-col gap-2 relative group hover:border-border-light transition-colors"
+                  className="p-3.5 flex flex-col gap-2 relative group hover:border-white/20 transition-all"
+                  style={{
+                    background: 'rgba(15, 22, 38, 0.55)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '16px',
+                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                  }}
                 >
                   {/* Delete button */}
                   <button
@@ -170,7 +218,14 @@ export default function JournalPanel() {
                   </div>
 
                   {log.notes && (
-                    <div className="mt-1 px-2.5 py-1.5 rounded bg-panel border border-border text-[11px] text-text font-sans break-words">
+                    <div
+                      className="mt-1 px-2.5 py-1.5 text-[11px] text-text font-sans break-words"
+                      style={{
+                        background: 'rgba(15, 22, 38, 0.3)',
+                        border: '1px solid rgba(255, 255, 255, 0.04)',
+                        borderRadius: '8px',
+                      }}
+                    >
                       "{log.notes}"
                     </div>
                   )}
@@ -183,14 +238,22 @@ export default function JournalPanel() {
             {ACHIEVEMENT_DEFS.map((ach) => {
               const unlockedAt = unlockedAchievements[ach.id];
               const isUnlocked = !!unlockedAt;
+              const cardBg = isUnlocked ? 'rgba(15, 22, 38, 0.55)' : 'rgba(15, 22, 38, 0.35)';
+              const cardBorder = isUnlocked ? '1.5px solid var(--color-cyan, #4d8dff)' : '1px solid rgba(255, 255, 255, 0.06)';
+              const cardShadow = isUnlocked ? 'inset 0 1px 0 rgba(255, 255, 255, 0.12)' : 'inset 0 1px 0 rgba(255, 255, 255, 0.05)';
 
               return (
                 <div
                   key={ach.id}
-                  className={`border rounded-xl p-3.5 flex gap-3.5 transition-all relative overflow-hidden
-                    ${isUnlocked 
-                      ? 'bg-panel border-cyan' 
-                      : 'bg-panel border-border/40 opacity-50'}`}
+                  className={`p-3.5 flex gap-3.5 transition-all relative overflow-hidden ${!isUnlocked ? 'opacity-55' : ''}`}
+                  style={{
+                    background: cardBg,
+                    border: cardBorder,
+                    borderRadius: '16px',
+                    boxShadow: cardShadow,
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                  }}
                 >
                   <div className={`w-11 h-11 rounded-full shrink-0 flex items-center justify-center text-xl shadow-inner
                     ${isUnlocked ? 'bg-cyan/15 border border-cyan/30' : 'bg-border/30 border border-border/20'}`}

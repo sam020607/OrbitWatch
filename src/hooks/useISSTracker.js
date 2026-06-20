@@ -7,7 +7,7 @@ const FALLBACK_INTERVAL_MS = 1000; // smooth mock updates every 1s
 
 /**
  * Custom hook: tracks the ISS in real-time.
- * - Attempts live Open-Notify API fetch every 5 seconds
+ * - Attempts live Where the ISS at? API fetch every 5 seconds
  * - Falls back to computed mock position (smooth animation) if API fails
  * - Stores trail of last 30 positions for path rendering
  */
@@ -41,6 +41,11 @@ export function useISSTracker(enabled = true) {
 
   useEffect(() => {
     if (!enabled) return;
+
+    // Load TLE once from CelesTrak to populate freshness telemetry
+    import('../api/celestrakApi.js').then(({ fetchCelesTrakTLE }) => {
+      fetchCelesTrakTLE(25544);
+    });
 
     // Immediate first fetch
     fetchPosition();

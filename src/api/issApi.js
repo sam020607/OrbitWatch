@@ -1,34 +1,50 @@
 /**
  * ISS Real-time Position API
- * Source: Open-Notify — http://api.open-notify.org/iss-now.json
- * No API key required. Returns ISS lat/lon updated every ~5 seconds.
- * 
- * CORS NOTE: This free API supports CORS natively.
+ * Source: Where the ISS at? — https://api.wheretheiss.at/v1/satellites/25544
+ * No API key required. Returns ISS lat/lon/alt/vel updated every second.
+ *
+ * CORS NOTE: Supports CORS natively.
  */
 import axios from 'axios';
+import { recordSuccess, recordFailure, recordRetry } from '../services/apiMonitor.js';
 
-const ISS_API_URL = 'http://api.open-notify.org/iss-now.json';
+const ISS_API_URL = 'https://api.wheretheiss.at/v1/satellites/25544';
+const SOURCE = 'wheretheiss';
+const MAX_RETRIES = 2;
 
 /**
  * Fetch the current ISS position.
+ * Retries up to MAX_RETRIES times before falling back to mock.
  * @returns {{ lat: number, lon: number, timestamp: number }}
  */
 export async function fetchISSPosition() {
-  try {
-    // Use a CORS proxy for the open-notify API if running in browser
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(ISS_API_URL)}`;
-    const response = await axios.get(proxyUrl, { timeout: 20000 });
-    const data = JSON.parse(response.data.contents);
-    return {
-      lat: parseFloat(data.iss_position.latitude),
-      lon: parseFloat(data.iss_position.longitude),
-      timestamp: data.timestamp,
-    };
-  } catch (error) {
-    console.warn('[ISS API] Primary fetch failed, using fallback:', error.message);
-    // Return slightly randomised position near last known ISS orbit as fallback
-    return generateMockISSPosition();
+  let lastError;
+  for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
+    const t0 = Date.now();
+    try {
+      if (attempt > 1) recordRetry(SOURCE, attempt - 1);
+      const response = await axios.get(ISS_API_URL, { timeout: 10000 });
+      const data = response.data;
+      const durationMs = Date.now() - t0;
+      recordSuccess(SOURCE, durationMs, { isLiveData: true });
+      return {
+        lat: parseFloat(data.latitude),
+        lon: parseFloat(data.longitude),
+        timestamp: data.timestamp,
+      };
+    } catch (error) {
+      lastError = error;
+      const statusCode = error.response?.status;
+      if (attempt > MAX_RETRIES) {
+        // Final failure — log and fall back
+        recordFailure(SOURCE, error.message, { statusCode, fallbackUsed: true });
+        console.warn('[ISS API] Primary fetch failed, using fallback:', error.message);
+        return generateMockISSPosition();
+      }
+    }
   }
+  // Unreachable but satisfies linter
+  return generateMockISSPosition();
 }
 
 /**

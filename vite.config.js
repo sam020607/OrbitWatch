@@ -23,6 +23,12 @@ export default defineConfig({
         target: 'https://api.astronomyapi.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/astronomy/, ''),
+      },
+      // Proxy CelesTrak TLE calls
+      '/api/celestrak': {
+        target: 'https://celestrak.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/celestrak/, ''),
       }
     }
   }

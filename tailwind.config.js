@@ -22,6 +22,8 @@ export default {
         text:   'var(--color-text)',
         muted:  'var(--color-muted)',
         'muted-light': 'var(--color-muted-light)',
+        surface: 'var(--surface)',
+        'surface-border': 'var(--surface-border)',
       },
       fontFamily: {
         mono: ['"Space Mono"', 'Courier Prime', 'monospace'],

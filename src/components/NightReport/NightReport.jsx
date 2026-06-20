@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../../context/AppContext.jsx';
 import { formatTime, formatDuration, azimuthToCompass, magnitudeToDescription, getPlanetEmoji } from '../../utils/orbitMath.js';
 import { MOCK_METEOR_SHOWERS } from '../../data/mockSatellites.js';
@@ -17,63 +18,67 @@ const TABS = [
  * NightReport — Tonight's sky visibility personalised report.
  * Tabbed: ISS/satellite passes | Visible planets | Moon phase | Meteor showers
  */
-export default function NightReport() {
+export default function NightReport({ activeSubItem = 'satellites', onSubItemChange }) {
   const { state } = useApp();
   const { issNextPasses, nightSkyData, moonPhase, location } = state;
-  const [activeTab, setActiveTab] = useState('satellites');
   const [expandedPass, setExpandedPass] = useState(null);
 
   const now = Math.floor(Date.now() / 1000);
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="px-4 py-3 border-b border-border">
-        <div className="flex items-center gap-2 mb-1">
-          <Star className="w-4 h-4 text-cyan" />
-          <h2 className="font-playfair italic text-2xl tracking-normal text-text">
-            What's Visible Tonight?
-          </h2>
-        </div>
-        {location && (
-          <p className="text-muted text-xs font-sans uppercase tracking-wider font-semibold">
-            📍 {location.name} — {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Location/Date Line */}
+      {location && (
+        <div className="px-4 pt-2 mb-[24px] shrink-0">
+          <p className="text-muted text-[10px] font-sans uppercase tracking-[0.08em] font-bold">
+            {location.name} — {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase()}
           </p>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Tabs */}
-      <div className="flex border-b border-border bg-panel">
+      {/* Tabs (Hidden on desktop, shown only on mobile where sidebar nav rail is absent) */}
+      <div className="lg:hidden flex items-center justify-center gap-[30px] border-b border-white/[0.02] bg-panel mb-5 shrink-0">
         {TABS.map(tab => {
           const Icon = tab.icon;
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-sans uppercase tracking-wider font-bold transition-all duration-200
-                ${activeTab === tab.id ? 'tab-active' : 'text-muted hover:text-muted-light'}`}
+              onClick={() => onSubItemChange && onSubItemChange(tab.id)}
+              className={`flex items-center justify-center gap-1.5 pt-[10px] pb-[14px] text-[11px] font-sans uppercase tracking-wider font-bold transition-all duration-200
+                ${activeSubItem === tab.id ? 'tab-active' : 'text-muted hover:text-muted-light'}`}
             >
               <Icon className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{tab.label}</span>
+              <span>{tab.label}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Tab content */}
-      <div className="flex-1 overflow-y-auto">
-        {activeTab === 'satellites' && (
-          <SatellitePasses passes={issNextPasses} now={now} expandedPass={expandedPass} onExpand={setExpandedPass} />
-        )}
-        {activeTab === 'planets' && (
-          <PlanetsTab data={nightSkyData} />
-        )}
-        {activeTab === 'moon' && (
-          <MoonTab data={moonPhase} />
-        )}
-        {activeTab === 'meteors' && (
-          <MeteorTab showers={MOCK_METEOR_SHOWERS} />
-        )}
+      {/* Tab content with crossfade transition */}
+      <div className="flex-1 overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeSubItem}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="h-full overflow-y-auto"
+          >
+            {activeSubItem === 'satellites' && (
+              <SatellitePasses passes={issNextPasses} now={now} expandedPass={expandedPass} onExpand={setExpandedPass} />
+            )}
+            {activeSubItem === 'planets' && (
+              <PlanetsTab data={nightSkyData} />
+            )}
+            {activeSubItem === 'moon' && (
+              <MoonTab data={moonPhase} />
+            )}
+            {activeSubItem === 'meteors' && (
+              <MeteorTab showers={MOCK_METEOR_SHOWERS} />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -95,49 +100,63 @@ function SatellitePasses({ passes, now, expandedPass, onExpand }) {
   }
 
   return (
-    <div className="divide-y divide-border/50">
+    <div className="flex flex-col gap-3 px-4 pb-4 pt-2">
       {upcoming.map((pass, i) => {
         const isExpanded = expandedPass === i;
         const isVisible = now >= pass.startUTC && now <= pass.endUTC;
         const secsAway = Math.max(0, pass.startUTC - now);
 
         return (
-          <div key={i} className={`transition-colors ${isVisible ? 'bg-success/5' : ''}`}>
+          <div 
+            key={i}
+            className="rounded-2xl overflow-hidden transition-all duration-200"
+            style={{
+              background: isVisible ? 'rgba(15, 55, 38, 0.55)' : 'rgba(15, 22, 38, 0.55)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: isVisible ? '1px solid rgba(74, 222, 128, 0.15)' : '1px solid rgba(255, 255, 255, 0.03)',
+              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.02)',
+            }}
+          >
             <button
               onClick={() => onExpand(isExpanded ? null : i)}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-panel-light text-left"
+              className="w-full flex items-center justify-between gap-6 px-4 py-5 hover:bg-panel-light/30 text-left"
             >
-              {/* Time */}
-              <div className="shrink-0 text-center w-14">
-                <p className="font-mono text-sm font-bold text-text">{formatTime(pass.startUTC)}</p>
-                <p className="font-mono text-xs text-muted">{formatDuration(pass.duration)}</p>
-              </div>
-
-              {/* Main info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">🛸</span>
-                  <span className="font-sans text-xs uppercase tracking-wider font-bold text-text">ISS</span>
-                  {isVisible && <span className="badge badge-green" style={{ fontSize: 9 }}>VISIBLE</span>}
-                  {secsAway < 900 && !isVisible && <span className="badge badge-cyan" style={{ fontSize: 9 }}>SOON</span>}
+              {/* Left side: Time + Main Info */}
+              <div className="flex items-center gap-6 min-w-0 flex-1">
+                {/* Time */}
+                <div className="shrink-0 text-center w-14" style={{ lineHeight: 1.4 }}>
+                  <p className="font-mono text-sm font-bold text-text">{formatTime(pass.startUTC)}</p>
+                  <p className="font-mono text-xs text-muted mt-0.5">{formatDuration(pass.duration)}</p>
                 </div>
-                <p className="text-muted text-xs font-sans uppercase tracking-wider font-semibold mt-0.5">
-                  {pass.startAzCompass} → {pass.maxAzCompass} → {pass.endAzCompass}
-                </p>
+
+                {/* Main info */}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base mr-2.5">🚀</span>
+                    <span className="font-sans text-xs uppercase tracking-wider font-bold text-text">ISS</span>
+                    {isVisible && <span className="badge badge-green" style={{ fontSize: 9 }}>VISIBLE</span>}
+                    {secsAway < 900 && !isVisible && <span className="badge badge-cyan" style={{ fontSize: 9 }}>SOON</span>}
+                  </div>
+                  <p className="text-muted text-xs font-sans uppercase tracking-wider font-semibold mt-0.5">
+                    {pass.startAzCompass} → {pass.maxAzCompass} → {pass.endAzCompass}
+                  </p>
+                </div>
               </div>
 
-              {/* Max elevation */}
-              <div className="shrink-0 text-right">
-                <p className="font-mono text-base font-bold text-cyan">{pass.maxEl}°</p>
-                <p className="font-sans text-[10px] uppercase tracking-wider font-semibold text-muted">max el</p>
+              {/* Right side: Max Elevation + Chevron */}
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="text-right">
+                  <p className="font-mono text-base font-bold text-cyan leading-tight">{pass.maxEl}°</p>
+                  <p className="font-sans text-[10px] uppercase tracking-wider font-semibold text-muted leading-tight mt-0.5">max el</p>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-muted shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
               </div>
-
-              <ChevronDown className={`w-4 h-4 text-muted shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Expanded details */}
             {isExpanded && (
-              <div className="px-4 pb-3 grid grid-cols-2 gap-2 bg-panel">
+              <div className="px-4 pb-4 pt-3 grid grid-cols-2 gap-2 bg-transparent border-t border-white/[0.02]">
                 <Detail label="AOS" value={<span><span className="font-mono">{formatTime(pass.startUTC)}</span> <span className="font-sans uppercase tracking-wider text-[9px] text-muted">from</span> {pass.startAzCompass} (<span className="font-mono">{pass.startAz}°</span>)</span>} />
                 <Detail label="MAX" value={<span><span className="font-mono">{formatTime(pass.maxUTC)}</span> — <span className="font-mono">{pass.maxEl}°</span> <span className="font-sans uppercase tracking-wider text-[9px] text-muted">at</span> {pass.maxAzCompass}</span>} />
                 <Detail label="LOS" value={<span><span className="font-mono">{formatTime(pass.endUTC)}</span> <span className="font-sans uppercase tracking-wider text-[9px] text-muted">to</span> {pass.endAzCompass} (<span className="font-mono">{pass.endAz}°</span>)</span>} />
@@ -161,7 +180,7 @@ function PlanetsTab({ data }) {
   }
 
   return (
-    <div className="divide-y divide-border/50">
+    <div className="flex flex-col gap-3 px-4 pb-4">
       {planets.map((row, i) => {
         const cell = row.cells?.[0];
         if (!cell) return null;
@@ -175,27 +194,38 @@ function PlanetsTab({ data }) {
         const isVisible = alt > 0;
 
         return (
-          <div key={i} className={`flex items-center gap-3 px-4 py-3 ${!isVisible ? 'opacity-50' : ''}`}>
-            <div className="text-2xl">{getPlanetEmoji(name)}</div>
+          <div 
+            key={i}
+            className={`flex items-center gap-[12px] px-4 py-[18px] rounded-2xl transition-all duration-200
+              ${!isVisible ? 'opacity-50' : ''}`}
+            style={{
+              background: 'rgba(15, 22, 38, 0.55)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.03)',
+              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.02)',
+            }}
+          >
+            <div className="text-[21px] shrink-0 leading-none select-none">{getPlanetEmoji(name)}</div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="font-sans text-xs uppercase tracking-wider font-bold text-text">{name}</p>
+              <div className="flex items-center gap-[12px] mb-1.5">
+                <p className="font-sans text-xs uppercase tracking-wider font-bold text-text leading-none">{name}</p>
                 {isVisible
-                  ? <span className="badge badge-green" style={{ fontSize: 9 }}>VISIBLE</span>
-                  : <span className="badge badge-red" style={{ fontSize: 9 }}>BELOW HORIZON</span>
+                  ? <span className="badge badge-green px-3 py-1.5" style={{ fontSize: 9 }}>VISIBLE</span>
+                  : <span className="badge badge-red px-3 py-1.5" style={{ fontSize: 9 }}>BELOW HORIZON</span>
                 }
               </div>
-              <p className="text-muted text-xs font-sans uppercase tracking-wider font-semibold mt-0.5">
+              <p className="text-muted text-xs font-sans uppercase tracking-wider font-semibold leading-normal">
                 <span className="font-mono text-text font-bold">{az.toFixed(0)}°</span> {azimuthToCompass(az)} · <span className="font-mono text-text font-bold">{Math.abs(alt).toFixed(1)}°</span> {alt >= 0 ? 'above' : 'below'} horizon
               </p>
               {(rise || set) && (
-                <p className="text-muted text-xs font-sans uppercase tracking-wider font-semibold">
+                <p className="text-muted text-xs font-sans uppercase tracking-wider font-semibold leading-normal mt-0.5">
                   {rise && <span>↑ <span className="font-mono text-text font-bold">{rise}</span></span>} {set && <span> ↓ <span className="font-mono text-text font-bold">{set}</span></span>}
                 </p>
               )}
             </div>
             {mag != null && (
-              <div className="text-right shrink-0">
+              <div className="text-right shrink-0 ml-2">
                 <p className="font-mono text-sm text-cyan">{mag > 0 ? '+' : ''}{mag.toFixed(1)}</p>
                 <p className="text-muted text-xs font-sans uppercase tracking-wider font-semibold">mag</p>
               </div>
@@ -274,7 +304,16 @@ function MoonTab({ data }) {
       </div>
 
       {/* Visibility note */}
-      <div className="px-4 py-3 rounded-lg border border-border bg-panel text-center w-full max-w-xs">
+      <div
+        className="px-4 py-3 rounded-2xl text-center w-full max-w-xs"
+        style={{
+          background: 'rgba(15, 22, 38, 0.55)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.10)',
+        }}
+      >
         <p className="text-muted text-xs font-sans uppercase tracking-wider font-semibold">
           {illumination > 50
             ? '🌙 Bright moon tonight — may reduce faint satellite visibility'
@@ -291,9 +330,19 @@ function MoonTab({ data }) {
 
 function MeteorTab({ showers }) {
   return (
-    <div className="divide-y divide-border/50">
+    <div className="flex flex-col gap-3 px-4 py-2 pb-4">
       {showers.map((shower, i) => (
-        <div key={i} className="px-4 py-4">
+        <div
+          key={i}
+          className="px-4 py-4 rounded-2xl"
+          style={{
+            background: 'rgba(15, 22, 38, 0.55)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.10)',
+          }}
+        >
           <div className="flex items-start gap-3">
             <span className="text-2xl">☄️</span>
             <div className="flex-1">

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp, ACHIEVEMENT_DEFS } from '../../context/AppContext.jsx';
 import { useISSTracker } from '../../hooks/useISSTracker.js';
@@ -13,9 +13,11 @@ import LookUpCard from '../LookUpCard/LookUpCard.jsx';
 import NightReport from '../NightReport/NightReport.jsx';
 import LocationSearch from '../LandingPage/LocationSearch.jsx';
 import JournalPanel from '../JournalPanel/JournalPanel.jsx';
+import DiagnosticsPanel from './DiagnosticsPanel.jsx';
+import { CONSTELLATIONS, getLocalCoordinates } from '../../data/constellations.js';
 import {
   Map, List, Star, Compass, Radio, RotateCcw,
-  Eye, EyeOff, Satellite, Settings, ChevronLeft, Globe, Trophy
+  Eye, EyeOff, Satellite, Settings, ChevronLeft, ChevronRight, Globe, Trophy, Activity, Flame, Moon, Zap
 } from 'lucide-react';
 
 const MOBILE_VIEWS = [
@@ -26,6 +28,35 @@ const MOBILE_VIEWS = [
   { id: 'journal', label: 'Journal', icon: Trophy },
 ];
 
+const NAV_ITEMS = [
+  { id: 'objects', label: 'Objects', icon: Satellite },
+  { id: 'countdown', label: 'Telemetry', icon: Radio },
+  { id: 'lookup', label: 'Look Up', icon: Compass },
+  { id: 'report', label: 'Tonight', icon: Star },
+  { id: 'journal', label: 'Journal', icon: Trophy },
+];
+
+const TONIGHT_SUB_ITEMS = [
+  { id: 'satellites', label: 'Satellites', icon: Satellite },
+  { id: 'planets', label: 'Planets', icon: Star },
+  { id: 'moon', label: 'Moon', icon: Moon },
+  { id: 'meteors', label: 'Meteors', icon: Zap },
+];
+
+const SECONDARY_ITEMS = [
+  { id: 'diagnostics', label: 'Diagnostics', icon: Activity },
+  { id: 'settings', label: 'Settings', icon: Settings },
+];
+
+const RIGHT_PANEL_HEADERS = {
+  objects: { label: "Overhead Objects", icon: Satellite },
+  countdown: { label: "Next ISS Pass", icon: Radio },
+  lookup: { label: "Look Up Tracker", icon: Compass },
+  report: { label: "Tonight's Sky", icon: Star },
+  journal: { label: "Observer Journal", icon: Trophy },
+  diagnostics: { label: "System Diagnostics", icon: Activity },
+};
+
 /**
  * Dashboard — Main layout after location is selected.
  * Desktop: 3-column layout (sidebar | map | right panel)
@@ -33,7 +64,31 @@ const MOBILE_VIEWS = [
  */
 export default function Dashboard({ onReset }) {
   const { state, actions } = useApp();
-  const { location, issPosition, satellites, selectedSatellite, showConeOverlay, newUnlockedAchievements } = state;
+  const {
+    location,
+    issPosition,
+    satellites,
+    selectedSatellite,
+    showConeOverlay,
+    newUnlockedAchievements,
+    viewMode,
+    satelliteFilter,
+    asteroidFilter,
+    asteroids,
+    selectedConstellation,
+    selectedAsteroid,
+    issNextPasses = []
+  } = state;
+
+  const overheadCount = useMemo(() => {
+    return satellites.filter(sat => {
+      if (satelliteFilter === 'all') return true;
+      if (satelliteFilter === 'major') {
+        return sat.type === 'space-station' || sat.type === 'weather' || sat.type === 'earth-obs' || sat.type === 'gps';
+      }
+      return sat.type === satelliteFilter;
+    }).length;
+  }, [satellites, satelliteFilter]);
 
   // Activate all data hooks
   useISSTracker(!!location);
@@ -42,9 +97,149 @@ export default function Dashboard({ onReset }) {
   useAsteroids();
 
   const [mobileView, setMobileView] = useState('map');
-  const [rightPanel, setRightPanel] = useState('countdown'); // 'countdown' | 'lookup' | 'report'
+  const [activeNav, setActiveNav] = useState(() => {
+    const saved = localStorage.getItem('orbitwatch_active_nav');
+    return saved || 'objects';
+  });
+  const [rightPanel, setRightPanel] = useState('objects');
   const [showSearch, setShowSearch] = useState(false);
   const [is3DMode, setIs3DMode] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    const saved = localStorage.getItem('orbitwatch_nav_collapsed');
+    return saved === 'true';
+  });
+
+  const [tonightSubItem, setTonightSubItem] = useState(() => {
+    const saved = localStorage.getItem('orbitwatch_tonight_sub_item');
+    return saved || 'satellites';
+  });
+
+  const [isTonightOpen, setIsTonightOpen] = useState(() => {
+    const saved = localStorage.getItem('orbitwatch_tonight_open');
+    return saved === 'true' || saved === null;
+  });
+
+  const [showTonightFlyout, setShowTonightFlyout] = useState(false);
+
+  const toggleCollapsed = () => {
+    setIsCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('orbitwatch_nav_collapsed', String(next));
+      return next;
+    });
+  };
+
+  const [rightPanelOpen, setRightPanelOpen] = useState(() => {
+    const saved = localStorage.getItem('orbitwatch_right_panel_open');
+    return saved === 'true';
+  });
+
+  const toggleRightPanel = () => {
+    setRightPanelOpen(prev => {
+      const next = !prev;
+      localStorage.setItem('orbitwatch_right_panel_open', String(next));
+      return next;
+    });
+  };
+
+  const handleNavClick = (itemId) => {
+    if (itemId === 'report') {
+      setIsTonightOpen(prev => {
+        const next = !prev;
+        localStorage.setItem('orbitwatch_tonight_open', String(next));
+        return next;
+      });
+      setActiveNav('report');
+      localStorage.setItem('orbitwatch_active_nav', 'report');
+    } else {
+      setActiveNav(itemId);
+      localStorage.setItem('orbitwatch_active_nav', itemId);
+      setIsTonightOpen(false);
+      localStorage.setItem('orbitwatch_tonight_open', 'false');
+    }
+
+    // Clear any selected items when switching categories
+    if (selectedSatellite) actions.selectSatellite(null);
+    if (selectedConstellation) actions.selectConstellation(null);
+    if (selectedAsteroid) actions.selectAsteroid(null);
+  };
+
+  const handleSubItemClick = (subId) => {
+    setActiveNav('report');
+    localStorage.setItem('orbitwatch_active_nav', 'report');
+    setTonightSubItem(subId);
+    localStorage.setItem('orbitwatch_tonight_sub_item', subId);
+    setIsTonightOpen(true);
+    localStorage.setItem('orbitwatch_tonight_open', 'true');
+
+    // Clear any selected items
+    if (selectedSatellite) actions.selectSatellite(null);
+    if (selectedConstellation) actions.selectConstellation(null);
+    if (selectedAsteroid) actions.selectAsteroid(null);
+  };
+
+  const hasSelectedObject = !!(selectedSatellite || selectedConstellation || selectedAsteroid);
+
+  // Sync rightPanel based on selection state and activeNav
+  useEffect(() => {
+    if (hasSelectedObject) {
+      setRightPanel('lookup');
+      setRightPanelOpen(true);
+    } else {
+      setRightPanel(activeNav);
+    }
+  }, [hasSelectedObject, activeNav]);
+
+  // For mobile: auto-transition view to lookup details when an object is selected
+  useEffect(() => {
+    if (hasSelectedObject) {
+      setMobileView('lookup');
+    }
+  }, [hasSelectedObject]);
+
+  // Compute active count for the objects panel header dynamically
+  const objectsCount = useMemo(() => {
+    if (viewMode === 'constellations') {
+      if (!location) return 0;
+      const now = Date.now();
+      return CONSTELLATIONS.filter(c => {
+        const coords = getLocalCoordinates(c.ra, c.dec, location.lat, location.lon, now);
+        return coords.el > 0;
+      }).length;
+    } else if (viewMode === 'asteroids') {
+      return asteroids.filter(ast => {
+        if (asteroidFilter === 'phas') return ast.is_potentially_hazardous;
+        if (asteroidFilter === 'close') {
+          const timeDiff = Math.abs(Date.now() - ast.close_approach_timestamp);
+          return timeDiff < 24 * 3600 * 1000;
+        }
+        return true;
+      }).length;
+    } else {
+      return satellites.filter(sat => {
+        if (satelliteFilter === 'all') return true;
+        if (satelliteFilter === 'major') {
+          return sat.type === 'space-station' || sat.type === 'weather' || sat.type === 'earth-obs' || sat.type === 'gps';
+        }
+        return sat.type === satelliteFilter;
+      }).length;
+    }
+  }, [viewMode, location, asteroids, asteroidFilter, satellites, satelliteFilter]);
+
+  // Dynamic header details based on viewMode
+  const getHeaderInfo = () => {
+    if (rightPanel === 'objects') {
+      if (viewMode === 'constellations') {
+        return { label: "Visible Constellations", icon: Star, badgeClass: "badge-cyan" };
+      }
+      if (viewMode === 'asteroids') {
+        return { label: "Near-Earth Asteroids", icon: Flame, badgeClass: "badge-red" };
+      }
+      return { label: "Overhead Objects", icon: Satellite, badgeClass: "badge-cyan" };
+    }
+    const info = RIGHT_PANEL_HEADERS[rightPanel] || RIGHT_PANEL_HEADERS.countdown;
+    return { ...info, badgeClass: "badge-cyan" };
+  };
 
   function handleNewLocation(loc) {
     actions.setLocation(loc);
@@ -52,248 +247,548 @@ export default function Dashboard({ onReset }) {
     setShowSearch(false);
   }
 
-  // Right panel tab
-  const rightTabs = [
-    { id: 'countdown', label: 'Countdown', icon: Radio },
-    { id: 'lookup', label: 'Look Up', icon: Compass },
-    { id: 'report', label: 'Tonight', icon: Star },
-    { id: 'journal', label: 'Journal', icon: Trophy },
-  ];
+
 
   return (
-    <div className="flex flex-col h-screen bg-space overflow-hidden">
-      {/* ── Top Navigation Bar ── */}
-      <header className="flex items-center gap-3 px-4 py-2.5 border-b border-border bg-panel shrink-0"
-        style={{ zIndex: 100 }}>
-        {/* Logo */}
-        <div className="flex items-center gap-2">
-          <Satellite className="w-5 h-5 text-cyan" />
-          <span className="font-playfair font-bold text-text text-sm hidden sm:block">
-            Project <span className="text-cyan">Zenith</span>
-          </span>
-        </div>
-
-        {/* Location display */}
-        <div className="flex items-center gap-2 px-3 py-1 rounded-lg border border-border bg-panel cursor-pointer hover:border-border-light transition-colors"
-          onClick={() => setShowSearch(s => !s)}
-        >
-          <div className="w-2 h-2 rounded-full bg-cyan animate-pulse" />
-          <span className="font-sans text-[11px] font-semibold text-text uppercase tracking-wider truncate max-w-[200px]">
-            {location?.name || 'No location'}
-          </span>
-          <span className="text-muted text-xs font-mono hidden md:block">
-            {location ? `${location.lat.toFixed(2)}°, ${location.lon.toFixed(2)}°` : ''}
-          </span>
-        </div>
-
-        {/* ISS live indicator */}
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-border bg-panel">
-          <div className={`w-1.5 h-1.5 rounded-full ${issPosition ? 'bg-cyan animate-pulse' : 'bg-muted'}`} />
-          <span className="font-sans text-[10px] font-semibold text-muted uppercase tracking-wider hidden sm:block">
-            ISS {issPosition ? 'LIVE' : 'OFFLINE'}
-          </span>
-        </div>
-
-        <div className="ml-auto flex items-center gap-2">
-          {/* Cone toggle */}
-          <button
-            onClick={actions.toggleConeOverlay}
-            className={`p-1.5 rounded-md border transition-all ${showConeOverlay ? 'border-cyan/40 text-cyan bg-cyan/5' : 'border-border text-muted'}`}
-            title="Toggle visibility cones"
+    <div className="flex h-screen w-screen bg-space overflow-hidden select-none text-text">
+      {/* ── Collapsible Left Navigation Rail (Desktop Only) ── */}
+      <aside 
+        className={`hidden lg:flex flex-col h-full bg-surface transition-all duration-200 ease-in-out shrink-0 relative
+          ${isCollapsed ? 'w-[72px]' : 'w-[240px]'}`}
+      >
+        {/* Header block at top */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.02] h-[52px] shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <Satellite className="w-5 h-5 text-cyan shrink-0 animate-pulse" />
+            {!isCollapsed && (
+              <div className="flex flex-col min-w-0 transition-opacity duration-200">
+                <span className="font-playfair italic text-[15px] font-bold text-text truncate leading-tight">Project Zenith</span>
+                <span className="text-[8px] font-sans uppercase tracking-[0.15em] text-muted truncate">Control Room</span>
+              </div>
+            )}
+          </div>
+          <button 
+            onClick={toggleCollapsed} 
+            className="p-1 rounded border border-border bg-panel/30 hover:bg-panel-light text-muted hover:text-text transition-all"
+            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
-            {showConeOverlay ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
           </button>
+        </div>
 
-          {/* Satellite count */}
-          <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-md border border-border bg-panel">
-            <Satellite className="w-3 h-3 text-cyan" />
-            <span className="font-mono text-xs text-cyan">{satellites.length}</span>
+        {/* Nav List */}
+        <nav className="flex-1 py-4 space-y-1.5 px-3">
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeNav === item.id;
+            const isTonight = item.id === 'report';
+            const Chevron = ChevronRight;
+
+            return (
+              <div key={item.id} className="space-y-1 relative">
+                <button
+                  onClick={() => {
+                    if (isCollapsed && isTonight) {
+                      setShowTonightFlyout(prev => !prev);
+                    } else {
+                      handleNavClick(item.id);
+                    }
+                  }}
+                  className={`w-full flex items-center ${isCollapsed ? 'justify-center nav-tooltip gap-0' : 'justify-between'} p-2.5 rounded-md transition-all relative group
+                    ${isActive 
+                      ? 'bg-panel-light text-text-primary border-l-2 border-accent pl-[8px]' 
+                      : 'text-text-secondary hover:text-text-primary hover:bg-panel-light/50 pl-[10px]'}`}
+                  style={{ borderLeftStyle: isActive ? 'solid' : 'none' }}
+                  data-tooltip={isCollapsed ? item.label : undefined}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-accent' : 'text-text-secondary group-hover:text-text-primary'}`} />
+                    {!isCollapsed && (
+                      <span 
+                        className={`font-sans text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-all duration-200 ease-in-out
+                          ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'}`}
+                      >
+                        {item.label}
+                      </span>
+                    )}
+                  </div>
+                  {isTonight && !isCollapsed && (
+                    <Chevron className={`w-3.5 h-3.5 text-muted transition-transform duration-200 ${isTonightOpen ? 'rotate-90' : ''}`} />
+                  )}
+                </button>
+
+                {/* Inline sub-items under TONIGHT (expanded sidebar only) */}
+                {isTonight && !isCollapsed && (
+                  <AnimatePresence initial={false}>
+                    {isTonightOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.18 }}
+                        className="overflow-hidden pl-4 space-y-1"
+                      >
+                        {TONIGHT_SUB_ITEMS.map((sub) => {
+                          const SubIcon = sub.icon;
+                          const isSubActive = activeNav === 'report' && tonightSubItem === sub.id;
+                          return (
+                            <button
+                              key={sub.id}
+                              onClick={() => handleSubItemClick(sub.id)}
+                              className={`w-full flex items-center gap-2.5 p-2 rounded transition-all text-left group
+                                ${isSubActive
+                                  ? 'bg-panel-light/60 text-accent font-bold'
+                                  : 'text-text-secondary hover:text-text-primary hover:bg-panel-light/30'}`}
+                            >
+                              <SubIcon className={`w-3.5 h-3.5 shrink-0 transition-colors ${isSubActive ? 'text-accent' : 'text-text-secondary group-hover:text-text-primary'}`} />
+                              <span className="font-sans text-[10px] uppercase tracking-wider font-semibold">
+                                {sub.label}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                )}
+
+                {/* Flyout sub-items under TONIGHT (collapsed sidebar only) */}
+                {isTonight && isCollapsed && showTonightFlyout && (
+                  <>
+                    <div className="fixed inset-0 z-[1001]" onClick={() => setShowTonightFlyout(false)} />
+                    <div 
+                      className="absolute left-[56px] top-0 bg-surface border border-surface-border rounded-lg shadow-xl py-2 px-1.5 z-[1002] w-48 font-sans flex flex-col gap-1 select-none animate-in fade-in zoom-in-95 duration-150"
+                    >
+                      <div className="px-2.5 py-1 text-[9px] font-sans font-bold uppercase tracking-wider text-muted border-b border-surface-border/50 mb-1">
+                        Tonight's Sky
+                      </div>
+                      {TONIGHT_SUB_ITEMS.map((sub) => {
+                        const SubIcon = sub.icon;
+                        const isSubActive = activeNav === 'report' && tonightSubItem === sub.id;
+                        return (
+                          <button
+                            key={sub.id}
+                            onClick={() => {
+                              handleSubItemClick(sub.id);
+                              setShowTonightFlyout(false);
+                            }}
+                            className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded text-left transition-all
+                              ${isSubActive 
+                                ? 'bg-panel-light text-accent' 
+                                : 'text-text-secondary hover:text-text-primary hover:bg-panel-light/40'}`}
+                          >
+                            <SubIcon className={`w-3.5 h-3.5 ${isSubActive ? 'text-accent' : 'text-text-secondary'}`} />
+                            <span className="text-[10px] font-sans uppercase tracking-wider font-semibold">
+                              {sub.label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </nav>
+
+        {/* Dominant white pill button */}
+        <div className="px-3 py-2 shrink-0">
+          {isCollapsed ? (
+            <button
+              onClick={onReset}
+              className="w-10 h-10 mx-auto rounded-full bg-white text-[var(--bg)] flex items-center justify-center hover:opacity-90 transition-all shadow-sm nav-tooltip gap-0"
+              data-tooltip="Reset Session"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              onClick={onReset}
+              className="w-full py-2.5 rounded-full bg-white text-[var(--bg)] text-[10px] font-sans font-bold uppercase tracking-wider hover:opacity-90 transition-all shadow-sm flex items-center justify-center gap-1.5"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset Session</span>
+            </button>
+          )}
+        </div>
+
+        {/* Separator */}
+        <div className="border-t border-white/[0.02] my-2 mx-3 shrink-0" />
+
+        {/* Bottom anchored diagnostics/settings links */}
+        <div className="space-y-1 px-3 pb-4 shrink-0">
+          {SECONDARY_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeNav === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  if (item.id === 'diagnostics') {
+                    handleNavClick('diagnostics');
+                    setRightPanelOpen(true);
+                  } else {
+                    console.log(`${item.label} action triggered`);
+                  }
+                }}
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center nav-tooltip gap-0' : 'justify-start gap-2.5'} p-2 rounded transition-all group
+                  ${isActive
+                    ? 'bg-panel-light text-text-primary border-l-2 border-accent pl-[6px]'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-panel-light/35 pl-[8px]'}`}
+                data-tooltip={isCollapsed ? item.label : undefined}
+                style={{ borderLeftStyle: isActive ? 'solid' : 'none' }}
+              >
+                <Icon className={`w-3.5 h-3.5 shrink-0 transition-colors ${isActive ? 'text-accent' : 'text-text-secondary group-hover:text-text-primary opacity-70 group-hover:opacity-100'}`} />
+                <span
+                  className={`font-sans text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap transition-all duration-200 ease-in-out
+                    ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'}`}
+                >
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </aside>
+
+      {/* ── Main Application Container (Header + Content) ── */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+        {/* ── Top Navigation Bar ── */}
+        <header className="flex items-center gap-3 px-4 py-2.5 shrink-0"
+          style={{ zIndex: 100, background: 'rgba(10,13,21,0.60)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+          {/* Logo (hidden on desktop, since rail shows it) */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <Satellite className="w-5 h-5 text-cyan animate-pulse" />
+            <span className="font-playfair font-bold text-text text-sm hidden sm:block">
+              Project <span className="text-cyan">Zenith</span>
+            </span>
           </div>
 
-          {/* Reset */}
-          <button
-            onClick={onReset}
-            className="p-1.5 rounded-md border border-border text-muted hover:text-text hover:border-border-light transition-all"
-            title="Reset to landing page"
+          {/* Location display */}
+          <div className="flex items-center gap-2 px-3 py-1 rounded-lg cursor-pointer hover:border-white/20 transition-colors glass-pill"
+            onClick={() => setShowSearch(s => !s)}
           >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-        </div>
-      </header>
+            <div className="w-2 h-2 rounded-full bg-cyan animate-pulse" />
+            <span className="font-sans text-[11px] font-semibold text-text uppercase tracking-wider truncate max-w-[200px]">
+              {location?.name || 'No location'}
+            </span>
+            <span className="text-muted text-xs font-mono hidden md:block">
+              {location ? `${location.lat.toFixed(2)}°, ${location.lon.toFixed(2)}°` : ''}
+            </span>
+          </div>
 
-      {/* Location search dropdown */}
-      <AnimatePresence>
-        {showSearch && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute top-14 left-0 right-0 z-[200] p-4 bg-navy/95 border-b border-border backdrop-blur-md"
-          >
-            <LocationSearch onLocationSelect={handleNewLocation} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+          {/* ISS live indicator */}
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md glass-pill">
+            <div className={`w-1.5 h-1.5 rounded-full ${issPosition ? 'bg-cyan animate-pulse' : 'bg-muted'}`} />
+            <span className="font-sans text-[10px] font-semibold text-muted uppercase tracking-wider hidden sm:block">
+              ISS {issPosition ? 'LIVE' : 'OFFLINE'}
+            </span>
+          </div>
 
-      {/* ── Main Content Area ── */}
-      <div className="flex-1 flex overflow-hidden">
+          {/* Centered Legend Pill */}
+          <div className="flex-1 flex justify-center items-center px-2">
+            <div className="glass-panel flex items-center gap-x-[12px] px-3 py-1 rounded-full bg-surface/90 backdrop-blur border border-surface-border shadow-md select-none shrink-0">
+              {/* Sats */}
+              <div className="flex items-center gap-1.5 group relative cursor-pointer" title="Sats">
+                <span className="w-2 h-2 rounded-full bg-[#4d8dff] shadow-[0_0_4px_#4d8dff80]" />
+                <span className="hidden lg:inline text-[11px] font-sans font-bold text-text-secondary uppercase tracking-wider">
+                  Sats
+                </span>
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-surface border border-surface-border text-[9px] font-sans font-bold uppercase text-text-primary rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 lg:hidden">
+                  Sats
+                </span>
+              </div>
+              
+              {/* ISS */}
+              <div className="flex items-center gap-1.5 group relative cursor-pointer" title="ISS">
+                <span className="w-2 h-2 rounded-full bg-[#e0584f] shadow-[0_0_4px_#e0584f80]" />
+                <span className="hidden lg:inline text-[11px] font-sans font-bold text-text-secondary uppercase tracking-wider">
+                  ISS
+                </span>
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-surface border border-surface-border text-[9px] font-sans font-bold uppercase text-text-primary rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 lg:hidden">
+                  ISS
+                </span>
+              </div>
 
-        {/* ── Left Sidebar (desktop) ── */}
-        <aside className="hidden lg:flex flex-col w-72 border-r border-border bg-panel shrink-0 overflow-hidden">
-          <SatellitePanel />
-        </aside>
+              {/* Starlink/Const */}
+              <div className="flex items-center gap-1.5 group relative cursor-pointer" title="Starlink/Const">
+                <span className="w-2 h-2 rounded-full bg-[#a06bd6] shadow-[0_0_4px_#a06bd680]" />
+                <span className="hidden lg:inline text-[11px] font-sans font-bold text-text-secondary uppercase tracking-wider">
+                  Starlink/Const
+                </span>
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-surface border border-surface-border text-[9px] font-sans font-bold uppercase text-text-primary rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 lg:hidden">
+                  Starlink/Const
+                </span>
+              </div>
 
-        {/* ── Center: Map ── */}
-        <main className="flex-1 relative overflow-hidden">
-          {is3DMode ? (
-            <Globe3D className="w-full h-full" />
-          ) : (
-            <GlobeMap className="w-full h-full" />
-          )}
+              {/* Weather */}
+              <div className="flex items-center gap-1.5 group relative cursor-pointer" title="Weather">
+                <span className="w-2 h-2 rounded-full bg-[#3fd6a0] shadow-[0_0_4px_#3fd6a080]" />
+                <span className="hidden lg:inline text-[11px] font-sans font-bold text-text-secondary uppercase tracking-wider">
+                  Weather
+                </span>
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-surface border border-surface-border text-[9px] font-sans font-bold uppercase text-text-primary rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 lg:hidden">
+                  Weather
+                </span>
+              </div>
 
-          {/* 3D Globe / 2D Map Toggle Button */}
-          <button
-            onClick={() => setIs3DMode(!is3DMode)}
-            className="absolute bottom-16 lg:bottom-5 right-5 z-[1000] flex items-center gap-2 px-3 py-2 rounded-lg bg-panel border border-border text-cyan hover:border-border-light text-[11px] font-sans uppercase tracking-wider transition-all"
-            title={is3DMode ? 'Switch to flat map' : 'Switch to 3D globe'}
-          >
-            {is3DMode ? (
-              <>
-                <Map className="w-3.5 h-3.5" />
-                <span>View Flat Map</span>
-              </>
-            ) : (
-              <>
-                <Globe className="w-3.5 h-3.5" />
-                <span>View on Globe</span>
-              </>
-            )}
-          </button>
-
-          {/* Mobile: bottom tab bar */}
-          <div className="lg:hidden absolute bottom-0 left-0 right-0 z-[1000]">
-            <div className="flex bg-panel border-t border-border">
-              {MOBILE_VIEWS.map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => setMobileView(id)}
-                  className={`flex-1 flex flex-col items-center gap-1 py-2 transition-colors
-                    ${mobileView === id ? 'text-cyan border-t-2 border-cyan -mt-0.5' : 'text-muted'}`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className="text-[10px] font-sans uppercase tracking-wider">{label}</span>
-                </button>
-              ))}
+              {/* Ground Stn */}
+              <div className="flex items-center gap-1.5 group relative cursor-pointer" title="Ground Stn">
+                <span className="w-2 h-2 rounded-full bg-[#e0a847] shadow-[0_0_4px_#e0a84780]" />
+                <span className="hidden lg:inline text-[11px] font-sans font-bold text-text-secondary uppercase tracking-wider">
+                  Ground Stn
+                </span>
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-surface border border-surface-border text-[9px] font-sans font-bold uppercase text-text-primary rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 lg:hidden">
+                  Ground Stn
+                </span>
+              </div>
             </div>
           </div>
-        </main>
 
-        {/* ── Right Panel (desktop) ── */}
-        <aside className="hidden lg:flex flex-col w-80 border-l border-border bg-panel shrink-0 overflow-hidden">
-          {/* Panel tabs */}
-          <div className="flex border-b border-border bg-panel shrink-0">
-            {rightTabs.map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                onClick={() => setRightPanel(id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-sans uppercase tracking-wider transition-all
-                  ${rightPanel === id ? 'tab-active font-semibold' : 'text-muted hover:text-muted-light'}`}
-              >
-                <Icon className="w-3 h-3" />
-                <span>{label}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Panel content */}
-          <div className="flex-1 overflow-y-auto">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={rightPanel}
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.2 }}
-                className="h-full"
-              >
-                {rightPanel === 'countdown' && <PassCountdown />}
-                {rightPanel === 'lookup' && <LookUpCard />}
-                {rightPanel === 'report' && <NightReport />}
-                {rightPanel === 'journal' && <JournalPanel />}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </aside>
-      </div>
-
-      {/* ── Mobile Overlay Panels ── */}
-      <AnimatePresence>
-        {mobileView !== 'map' && (
-          <motion.div
-            key={mobileView}
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="lg:hidden absolute inset-x-0 bottom-12 top-14 z-[500] bg-panel border-t border-border overflow-y-auto"
-          >
-            {mobileView === 'satellites' && <SatellitePanel />}
-            {mobileView === 'report' && <NightReport />}
-            {mobileView === 'journal' && <JournalPanel />}
-            {mobileView === 'lookup' && (
-              <div className="divide-y divide-border">
-                <PassCountdown />
-                <LookUpCard />
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── Achievement Unlock Toast Celebrations ── */}
-      {newUnlockedAchievements && newUnlockedAchievements.length > 0 && (() => {
-        const activeId = newUnlockedAchievements[0];
-        const ach = ACHIEVEMENT_DEFS.find(a => a.id === activeId);
-        if (!ach) return null;
-
-        return (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-navy/80 backdrop-blur-sm">
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0, y: 50 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.8, opacity: 0, y: 50 }}
-              transition={{ type: 'spring', damping: 15 }}
-              className="w-full max-w-sm bg-panel border-2 border-cyan/60 rounded-2xl p-6 flex flex-col items-center gap-4 text-center shadow-[0_0_50px_rgba(58,123,217,0.4)] relative overflow-hidden scanlines"
+          <div className="ml-auto flex items-center gap-2">
+            {/* Cone toggle */}
+            <button
+              onClick={actions.toggleConeOverlay}
+              className={`p-1.5 rounded-md border transition-all ${showConeOverlay ? 'border-cyan/40 text-cyan bg-cyan/5' : 'border-border text-muted'}`}
+              title="Toggle visibility cones"
             >
-              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan to-transparent animate-pulse" />
-              
-              <div className="w-16 h-16 rounded-full bg-cyan/20 border border-cyan/40 flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(58,123,217,0.3)] animate-bounce mt-2">
-                {ach.icon}
-              </div>
+              {showConeOverlay ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            </button>
 
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-mono text-cyan tracking-[0.25em] uppercase font-bold text-glow-cyan">
-                  Achievement Unlocked
-                </span>
-                <h3 className="text-xl font-playfair font-bold text-text mt-1">
-                  {ach.title}
-                </h3>
-              </div>
+            {/* Overhead Now */}
+            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-md glass-pill" title="Overhead Now">
+              <Globe className="w-3 h-3 text-cyan" />
+              <span className="font-mono text-xs text-cyan">{overheadCount}</span>
+            </div>
 
-              <p className="text-sm text-muted-light font-crimson px-2">
-                {ach.description}
-              </p>
+            {/* Active Passes */}
+            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-md glass-pill" title="Active Passes">
+              <Radio className="w-3 h-3 text-cyan" />
+              <span className="font-mono text-xs text-cyan">{issNextPasses?.length || 0}</span>
+            </div>
 
-              <button
-                onClick={actions.dismissAchievementToast}
-                className="mt-2 w-full py-2 bg-cyan border border-cyan text-xs font-crimson font-bold text-space rounded-lg hover:bg-transparent hover:text-cyan hover:border-cyan transition-all shadow-md uppercase tracking-wider"
-              >
-                Awesome!
-              </button>
-            </motion.div>
+            {/* Satellite count */}
+            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-md glass-pill" title="Total Tracked">
+              <Satellite className="w-3 h-3 text-cyan" />
+              <span className="font-mono text-xs text-cyan">{satellites.length}</span>
+            </div>
+
+            {/* Reset */}
+            <button
+              onClick={onReset}
+              className="p-1.5 rounded-md border border-border text-muted hover:text-text hover:border-border-light transition-all"
+              title="Reset to landing page"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
           </div>
-        );
-      })()}
+        </header>
+
+        {/* Location search dropdown */}
+        <AnimatePresence>
+          {showSearch && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="absolute top-14 left-0 right-0 z-[200] p-4 bg-navy/95 border-b border-border backdrop-blur-md"
+            >
+              <LocationSearch onLocationSelect={handleNewLocation} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Main Content Area ── */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* ── Center: Map ── */}
+          <main className="flex-1 relative overflow-hidden">
+            {is3DMode ? (
+              <Globe3D className="w-full h-full" />
+            ) : (
+              <GlobeMap className="w-full h-full" />
+            )}
+
+            {/* Right Sidebar Edge Handle Toggle */}
+            <button
+              onClick={toggleRightPanel}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-[1000] w-8 h-20 bg-surface border border-r-0 border-surface-border rounded-l-md flex items-center justify-center text-muted hover:text-text-primary transition-all shadow-md cursor-pointer group"
+              title={rightPanelOpen ? "Collapse Sidebar Info" : "Expand Sidebar Info"}
+            >
+              <Compass className="w-4 h-4 text-text-secondary group-hover:text-text-primary transition-colors" />
+            </button>
+
+            {/* 3D Globe / 2D Map Toggle Button */}
+            <button
+              onClick={() => setIs3DMode(!is3DMode)}
+              className="absolute bottom-16 lg:bottom-5 right-5 z-[1000] flex items-center gap-2 px-3 py-2 rounded-lg bg-panel border border-border text-cyan hover:border-border-light text-[11px] font-sans uppercase tracking-wider transition-all"
+              title={is3DMode ? 'Switch to flat map' : 'Switch to 3D globe'}
+            >
+              {is3DMode ? (
+                <>
+                  <Map className="w-3.5 h-3.5" />
+                  <span>View Flat Map</span>
+                </>
+              ) : (
+                <>
+                  <Globe className="w-3.5 h-3.5" />
+                  <span>View on Globe</span>
+                </>
+              )}
+            </button>
+
+            {/* Mobile: bottom tab bar */}
+            <div className="lg:hidden absolute bottom-0 left-0 right-0 z-[1000]">
+              <div className="flex bg-panel border-t border-border">
+                {MOBILE_VIEWS.map(({ id, label, icon: Icon }) => (
+                  <button
+                    key={id}
+                    onClick={() => setMobileView(id)}
+                    className={`flex-1 flex flex-col items-center gap-1 py-2 transition-colors
+                      ${mobileView === id ? 'text-cyan border-t-2 border-cyan -mt-0.5' : 'text-muted'}`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="text-[10px] font-sans uppercase tracking-wider">{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </main>
+
+          {/* ── Right Panel (desktop) ── */}
+          <aside 
+            className={`hidden lg:flex flex-col shrink-0 overflow-hidden transition-all duration-200 ease-in-out bg-surface
+              ${rightPanelOpen ? 'w-80' : 'w-0'}`}
+          >
+            <div className="w-80 h-full flex flex-col overflow-hidden">
+               {/* Static Panel Header */}
+               {(() => {
+                 const headerInfo = getHeaderInfo();
+                 const Icon = headerInfo.icon;
+                 return (
+                   <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.02] h-[52px] shrink-0 select-none">
+                     <Icon className="w-3.5 h-3.5 text-cyan" />
+                     <h3 className="font-playfair italic text-base font-bold text-text-primary">
+                      {headerInfo.label}
+                    </h3>
+                    {rightPanel === 'objects' && (
+                      <span className={`ml-2 badge ${headerInfo.badgeClass} text-xs`}>
+                        {objectsCount}
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Panel content */}
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={rightPanel}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.18 }}
+                    className="flex-1 flex flex-col overflow-hidden"
+                  >
+                    {rightPanel === 'objects' && <SatellitePanel hideHeader={true} />}
+                    {rightPanel === 'countdown' && <div className="flex-1 overflow-y-auto"><PassCountdown /></div>}
+                    {rightPanel === 'lookup' && <div className="flex-1 overflow-y-auto"><LookUpCard /></div>}
+                    {rightPanel === 'report' && (
+                      <NightReport 
+                        activeSubItem={tonightSubItem} 
+                        onSubItemChange={(subId) => {
+                          setTonightSubItem(subId);
+                          localStorage.setItem('orbitwatch_tonight_sub_item', subId);
+                        }} 
+                      />
+                    )}
+                    {rightPanel === 'journal' && <JournalPanel />}
+                    {rightPanel === 'diagnostics' && <DiagnosticsPanel />}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        {/* ── Mobile Overlay Panels ── */}
+        <AnimatePresence>
+          {mobileView !== 'map' && (
+            <motion.div
+              key={mobileView}
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="lg:hidden absolute inset-x-0 bottom-12 top-14 z-[500] bg-panel border-t border-border overflow-y-auto"
+            >
+              {mobileView === 'satellites' && <SatellitePanel />}
+              {mobileView === 'report' && (
+                <NightReport 
+                  activeSubItem={tonightSubItem} 
+                  onSubItemChange={(subId) => {
+                    setTonightSubItem(subId);
+                    localStorage.setItem('orbitwatch_tonight_sub_item', subId);
+                  }} 
+                />
+              )}
+              {mobileView === 'journal' && <JournalPanel />}
+              {mobileView === 'lookup' && (
+                <div className="divide-y divide-border">
+                  <PassCountdown />
+                  <LookUpCard />
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Achievement Unlock Toast Celebrations ── */}
+        {newUnlockedAchievements && newUnlockedAchievements.length > 0 && (() => {
+          const activeId = newUnlockedAchievements[0];
+          const ach = ACHIEVEMENT_DEFS.find(a => a.id === activeId);
+          if (!ach) return null;
+
+          return (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-navy/80 backdrop-blur-sm">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0, y: 50 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.8, opacity: 0, y: 50 }}
+                transition={{ type: 'spring', damping: 15 }}
+                className="w-full max-w-sm bg-panel border-2 border-cyan/60 rounded-2xl p-6 flex flex-col items-center gap-4 text-center shadow-[0_0_50px_rgba(58,123,217,0.4)] relative overflow-hidden scanlines"
+              >
+                <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan to-transparent animate-pulse" />
+                
+                <div className="w-16 h-16 rounded-full bg-cyan/20 border border-cyan/40 flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(58,123,217,0.3)] animate-bounce mt-2">
+                  {ach.icon}
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] font-mono text-cyan tracking-[0.25em] uppercase font-bold text-glow-cyan">
+                    Achievement Unlocked
+                  </span>
+                  <h3 className="text-xl font-playfair font-bold text-text mt-1">
+                    {ach.title}
+                  </h3>
+                </div>
+
+                <p className="text-sm text-muted-light font-crimson px-2">
+                  {ach.description}
+                </p>
+
+                <button
+                  onClick={actions.dismissAchievementToast}
+                  className="mt-2 w-full py-2 bg-cyan border border-cyan text-xs font-crimson font-bold text-space rounded-lg hover:bg-transparent hover:text-cyan hover:border-cyan transition-all shadow-md uppercase tracking-wider"
+                >
+                  Awesome!
+                </button>
+              </motion.div>
+            </div>
+          );
+        })()}
+      </div>
     </div>
   );
 }

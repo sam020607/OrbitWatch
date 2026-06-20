@@ -8,6 +8,66 @@ import { SAT_TYPE_CONFIG } from '../../data/mockSatellites.js';
 import { CONSTELLATIONS, getSubStellarPoint, getLocalCoordinates, getConstellationShape, getGMST } from '../../data/constellations.js';
 import worldData from '../../data/world.json';
 
+/**
+ * Animated ISS marker — pulses its outer halo scale 1→1.15→1 every 2s.
+ */
+function AnimatedISSMarker({ position, onClick }) {
+  const haloRef = useRef();
+  useFrame(({ clock }) => {
+    if (haloRef.current) {
+      const t = (Math.sin(clock.getElapsedTime() * Math.PI) * 0.5 + 0.5); // 0→1→0
+      const s = 1 + t * 0.15;
+      haloRef.current.scale.setScalar(s);
+    }
+  });
+  return (
+    <group position={position}>
+      {/* Core dot */}
+      <mesh onClick={onClick}>
+        <sphereGeometry args={[0.045, 16, 16]} />
+        <meshBasicMaterial color="#e0584f" />
+      </mesh>
+      {/* Inner glow halo */}
+      <mesh onClick={onClick}>
+        <sphereGeometry args={[0.07, 16, 16]} />
+        <meshBasicMaterial color="#e0584f" transparent opacity={0.7} />
+      </mesh>
+      {/* Pulsing outer halo */}
+      <mesh ref={haloRef} onClick={onClick}>
+        <sphereGeometry args={[0.095, 16, 16]} />
+        <meshBasicMaterial color="#e0584f" transparent opacity={0.3} />
+      </mesh>
+    </group>
+  );
+}
+
+/**
+ * Satellite dot with a two-layer glow halo matching flat-map style.
+ */
+function GlowDot({ position, color, glowColor, size, outerSize, innerOpacity, outerOpacity, onClick, children }) {
+  const finalGlowColor = glowColor || color;
+  return (
+    <group position={position}>
+      {/* Core */}
+      <mesh onClick={onClick}>
+        <sphereGeometry args={[size, 8, 8]} />
+        <meshBasicMaterial color={color} />
+      </mesh>
+      {/* Inner glow */}
+      <mesh>
+        <sphereGeometry args={[outerSize * 0.65, 8, 8]} />
+        <meshBasicMaterial color={finalGlowColor} transparent opacity={innerOpacity} />
+      </mesh>
+      {/* Outer bloom */}
+      <mesh>
+        <sphereGeometry args={[outerSize, 8, 8]} />
+        <meshBasicMaterial color={finalGlowColor} transparent opacity={outerOpacity} />
+      </mesh>
+      {children}
+    </group>
+  );
+}
+
 // Constants for Globe scaling
 const EARTH_RADIUS = 2.0;
 
@@ -26,17 +86,79 @@ function latLonToVector3(lat, lon, radius) {
 }
 
 /**
+ * Calculates the Sun's latitude and longitude based on current UTC time and day of year.
+ */
+function getSunPosition() {
+  const now = new Date();
+  
+  // Calculate day of the year
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now - start;
+  const oneDay = 1000 * 60 * 60 * 24;
+  const dayOfYear = Math.floor(diff / oneDay);
+  
+  // Solar declination (latitude of the sun)
+  const declination = 23.44 * Math.sin((2 * Math.PI / 365) * (dayOfYear - 80));
+  
+  // GMT hours
+  const utcHours = now.getUTCHours() + now.getUTCMinutes() / 60 + now.getUTCSeconds() / 3600;
+  
+  // Longitude of the sun: 12:00 UTC is 0 degrees, 1 hour is 15 degrees westward
+  const longitude = - (utcHours - 12) * 15;
+  
+  return { lat: declination, lon: longitude };
+}
+
+/**
+ * Returns consistent accent color based on satellite type/name.
+ */
+function getObjectColor(type, name) {
+  const upperName = name?.toUpperCase() || '';
+  if (upperName.includes('ISS') || type === 'space-station' && upperName.includes('ISS')) {
+    return '#e0584f'; // ISS
+  }
+  if (upperName.includes('STARLINK') || type === 'gps') {
+    return '#a06bd6'; // Starlink/constellations
+  }
+  if (type === 'weather') {
+    return '#3fd6a0'; // Weather satellites
+  }
+  return '#4d8dff'; // General Satellites
+}
+
+// Atmosphere Shader configuration
+const AtmosphereShader = {
+  vertexShader: `
+    varying vec3 vNormal;
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    varying vec3 vNormal;
+    void main() {
+      float intensity = pow(0.7 - dot(vNormal, vec3(0, 0, 1.0)), 2.0);
+      gl_FragColor = vec4(0.3, 0.55, 1.0, 1.0) * intensity * 0.7;
+    }
+  `
+};
+
+/**
  * Textured Earth mesh component.
  */
 function EarthMesh({ onClick }) {
-  // Load standard photorealistic Earth texture from Three.js examples CDN
+  // Load standard photorealistic Earth texture and night lights map
   const earthTexture = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
+  const nightTexture = useTexture('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-night.jpg');
 
   return (
-    <mesh rotation={[0, Math.PI, 0]} onClick={onClick}>
+    <mesh rotation={[0, -Math.PI / 2, 0]} onClick={onClick}>
       <sphereGeometry args={[EARTH_RADIUS, 64, 64]} />
       <meshPhongMaterial
         map={earthTexture}
+        emissiveMap={nightTexture}
+        emissive="#ffffff"
         shininess={15}
         roughness={0.7}
         metalness={0.1}
@@ -50,7 +172,7 @@ function EarthMesh({ onClick }) {
  */
 function FallbackEarth({ onClick }) {
   return (
-    <mesh rotation={[0, Math.PI, 0]} onClick={onClick}>
+    <mesh rotation={[0, -Math.PI / 2, 0]} onClick={onClick}>
       <sphereGeometry args={[EARTH_RADIUS, 32, 32]} />
       <meshPhongMaterial
         color="#130924"
@@ -83,6 +205,16 @@ function SceneContent() {
   } = state;
 
   const earthRef = useRef();
+
+  const glowMaterial = useMemo(() => {
+    return new THREE.ShaderMaterial({
+      vertexShader: AtmosphereShader.vertexShader,
+      fragmentShader: AtmosphereShader.fragmentShader,
+      blending: THREE.AdditiveBlending,
+      side: THREE.BackSide,
+      transparent: true
+    });
+  }, []);
 
   // Filter based on active selection
   const filteredSatellites = useMemo(() => {
@@ -206,7 +338,14 @@ function SceneContent() {
     return arcPoints.map(p => latLonToVector3(p[0], p[1], radius));
   }, [viewMode, selectedSatellite]);
 
-  // Slow orbital rotation effect for background stars and earth grids
+  // Calculate ISS Orbit to 3D
+  const issOrbitPoints = useMemo(() => {
+    if (viewMode !== 'satellites' || !issPosition) return [];
+    const arcPoints = generateOrbitalArc(issPosition.lat, issPosition.lon);
+    return arcPoints.map(p => latLonToVector3(p[0], p[1], EARTH_RADIUS + 0.15));
+  }, [viewMode, issPosition]);
+
+  // Slow orbital rotation effect for background stars and earth grids (idle rotation)
   useFrame(({ clock }) => {
     if (earthRef.current) {
       earthRef.current.rotation.y = clock.getElapsedTime() * 0.005;
@@ -227,11 +366,17 @@ function SceneContent() {
   const isIssSelected = selectedSatellite?.satid === 25544;
   const handleIssClick = (e) => {
     e.stopPropagation();
-    actions.selectSatellite(isIssSelected ? null : { satname: 'ISS', satid: 25544, satalt: 408, velocity: 7.66, type: 'space-station' });
+    actions.selectSatellite(isIssSelected ? null : { satname: 'ISS (ZARYA)', satid: 25544, satalt: 408, velocity: 7.66, type: 'space-station' });
   };
 
   return (
     <group ref={earthRef}>
+      {/* ── Atmosphere Rim Glow ── */}
+      <mesh raycast={() => null}>
+        <sphereGeometry args={[EARTH_RADIUS + 0.08, 64, 64]} />
+        <primitive object={glowMaterial} attach="material" />
+      </mesh>
+
       {/* ── Earth Base Globe ── */}
       <Suspense fallback={<FallbackEarth onClick={handleEarthClick} />}>
         <EarthMesh onClick={handleEarthClick} />
@@ -239,37 +384,38 @@ function SceneContent() {
 
       {/* ── Country Borders ── */}
       <lineSegments geometry={borderGeometry} raycast={() => null}>
-        <lineBasicMaterial color="#b57edc" opacity={0.3} transparent={true} />
+        <lineBasicMaterial color="#4d8dff" opacity={0.25} transparent={true} />
       </lineSegments>
 
       {/* ── Glowing Atmospheric Grid Overlay ── */}
       <mesh raycast={() => null}>
         <sphereGeometry args={[EARTH_RADIUS + 0.008, 32, 32]} />
         <meshBasicMaterial
-          color="#b57edc"
+          color="#4d8dff"
           wireframe
           transparent
-          opacity={0.08}
+          opacity={0.04}
         />
       </mesh>
 
-      {/* ── Observer Pin ── */}
+      {/* ── Observer Pin — Html billboard, pixel-perfect match to flat map ring ── */}
       {observerPos && (
         <group position={observerPos}>
-          {/* Glowing Beacon */}
-          <mesh raycast={() => null}>
-            <sphereGeometry args={[0.035, 16, 16]} />
-            <meshBasicMaterial color="#ffdf00" />
-          </mesh>
-          <mesh raycast={() => null}>
-            <ringGeometry args={[0.05, 0.06, 32]} />
-            <meshBasicMaterial color="#ffdf00" side={THREE.DoubleSide} transparent opacity={0.6} />
-          </mesh>
-          {/* Label */}
-          <Html distanceFactor={6}>
-            <div className="bg-navy/95 border border-amber/40 rounded px-1.5 py-0.5 text-[8px] text-amber font-crimson font-bold select-none whitespace-nowrap -translate-x-1/2 -translate-y-6 pointer-events-none shadow-md">
-              📍 Observer: {location.name}
-            </div>
+          <Html
+            center
+            distanceFactor={5.8}
+            occlude
+            zIndexRange={[100, 0]}
+            style={{ pointerEvents: 'none' }}
+          >
+            <div style={{
+              width: '26px',
+              height: '26px',
+              borderRadius: '50%',
+              border: '2.5px solid #e0a847',
+              background: 'transparent',
+              boxShadow: '0 0 8px #e0a847, inset 0 0 4px #e0a847',
+            }} />
           </Html>
         </group>
       )}
@@ -277,11 +423,23 @@ function SceneContent() {
       {/* ── Satellites Mode Overlays ── */}
       {viewMode === 'satellites' && (
         <>
+          {/* ISS Orbit line (always visible) */}
+          {issOrbitPoints.length > 1 && (
+            <Line
+              points={issOrbitPoints}
+              color="#e0584f"
+              lineWidth={1}
+              opacity={0.35}
+              transparent
+              raycast={() => null}
+            />
+          )}
+
           {/* ISS Trail */}
           {trailPoints.length > 1 && (
             <Line
               points={trailPoints}
-              color="#ff007f"
+              color="#e0584f"
               lineWidth={1.5}
               dashed
               dashSize={0.08}
@@ -290,43 +448,39 @@ function SceneContent() {
             />
           )}
 
-          {/* ISS Model Dot */}
+          {/* ISS Model Dot — animated pulse */}
           {issPos && (
-            <group position={issPos}>
-              <mesh onClick={handleIssClick}>
-                <sphereGeometry args={[0.045, 16, 16]} />
-                <meshBasicMaterial color="#ff007f" />
-              </mesh>
-              {/* Pulsing halo */}
-              <mesh onClick={handleIssClick}>
-                <sphereGeometry args={[0.07, 16, 16]} />
-                <meshBasicMaterial color="#ff007f" transparent opacity={0.2} />
-              </mesh>
-              {/* HTML Hover Label */}
-              <Html distanceFactor={6}>
-                <div className="bg-panel/90 border border-cyan/40 rounded px-1.5 py-0.5 text-[9px] text-cyan font-crimson font-bold select-none whitespace-nowrap -translate-x-1/2 -translate-y-6 pointer-events-none shadow-md">
-                  🛸 ISS
-                </div>
-              </Html>
-            </group>
+            <>
+              <AnimatedISSMarker position={issPos} onClick={handleIssClick} />
+              {/* HTML Hover Label positioned via a plain group */}
+              <group position={issPos}>
+                <Html distanceFactor={6}>
+                  <div className="bg-surface/90 border border-[#e0584f]/40 rounded px-2 py-1 text-[9px] text-[#e0584f] font-sans font-bold uppercase tracking-wider select-none whitespace-nowrap -translate-x-1/2 -translate-y-6 pointer-events-none shadow-[0_0_10px_rgba(224,88,79,0.4)] backdrop-blur">
+                    🚀 ISS
+                  </div>
+                </Html>
+              </group>
+            </>
           )}
 
           {/* Selected Satellite Orbit plane line */}
-          {orbitPoints.length > 1 && (
+          {orbitPoints.length > 1 && selectedSatellite && (
             <Line
               points={orbitPoints}
-              color="#ff007f"
+              color={getObjectColor(selectedSatellite.type, selectedSatellite.satname)}
               lineWidth={2}
               raycast={() => null}
             />
           )}
 
-          {/* Satellite markers */}
+          {/* Satellite markers — with layered glow matching flat map */}
           {filteredSatellites.map(sat => {
             const isSelected = selectedSatellite?.satid === sat.satid;
             const radius = EARTH_RADIUS + (sat.satalt / 40000) * 0.4 + 0.05;
             const satPos = latLonToVector3(sat.satlat, sat.satlon, radius);
-            const color = isSelected ? '#ff007f' : (SAT_TYPE_CONFIG[sat.type]?.color || '#ffdf00');
+            const color = getObjectColor(sat.type, sat.satname);
+            const coreSize = isSelected ? 0.035 : 0.022;
+            const outerSize = isSelected ? 0.075 : 0.048;
 
             const handleSatClick = (e) => {
               e.stopPropagation();
@@ -334,29 +488,27 @@ function SceneContent() {
             };
 
             return (
-              <group key={sat.satid} position={satPos}>
-                {/* Node */}
-                <mesh onClick={handleSatClick}>
-                  <sphereGeometry args={[isSelected ? 0.035 : 0.022, 8, 8]} />
-                  <meshBasicMaterial color={color} />
-                </mesh>
-
-                {/* Selected Satellite HUD Halo & Label */}
+              <GlowDot
+                key={sat.satid}
+                position={satPos}
+                color={isSelected ? '#ffffff' : color}
+                glowColor={color}
+                size={coreSize}
+                outerSize={outerSize}
+                innerOpacity={0.7}
+                outerOpacity={0.3}
+                onClick={handleSatClick}
+              >
+                {/* Selected Satellite HUD Label */}
                 {isSelected && (
-                  <>
-                    <mesh onClick={handleSatClick}>
-                      <sphereGeometry args={[0.06, 16, 16]} />
-                      <meshBasicMaterial color="#ff007f" transparent opacity={0.25} />
-                    </mesh>
-                    <Html distanceFactor={6}>
-                      <div className="bg-panel/95 border border-cyan rounded px-2 py-1 text-[9px] text-text font-crimson font-bold select-none shadow-xl -translate-x-1/2 -translate-y-8 select-none">
-                        <p className="text-cyan">{sat.satname}</p>
-                        <p className="text-muted-light font-mono text-[7px] mt-0.5">{sat.satalt.toFixed(0)} km · {sat.velocity.toFixed(2)} km/s</p>
-                      </div>
-                    </Html>
-                  </>
+                  <Html distanceFactor={6}>
+                    <div className="bg-surface/95 border rounded px-2 py-1 text-[9px] text-text-primary font-sans font-bold uppercase tracking-wider select-none shadow-xl -translate-x-1/2 -translate-y-8 backdrop-blur" style={{ borderColor: `${color}60`, boxShadow: `0 0 10px ${color}40` }}>
+                      <p style={{ color }}>{sat.satname}</p>
+                      <p className="text-text-secondary font-mono text-[7px] mt-0.5">{sat.satalt.toFixed(0)} km · {sat.velocity.toFixed(2)} km/s</p>
+                    </div>
+                  </Html>
                 )}
-              </group>
+              </GlowDot>
             );
           })}
         </>
@@ -366,10 +518,10 @@ function SceneContent() {
       {viewMode === 'asteroids' && (
         <>
           {/* Selected Asteroid's 3D Trajectory Path */}
-          {asteroid3DPath.length > 1 && (
+          {asteroid3DPath.length > 1 && selectedAsteroid && (
             <Line
               points={asteroid3DPath}
-              color={selectedAsteroid.is_potentially_hazardous ? '#ff6b6b' : '#ffdf00'}
+              color={selectedAsteroid.is_potentially_hazardous ? '#e0584f' : '#e0a847'}
               lineWidth={1.5}
               dashed
               dashSize={0.08}
@@ -383,7 +535,7 @@ function SceneContent() {
             const isSelected = selectedAsteroid?.id === ast.id;
             const radius = EARTH_RADIUS + 0.3 + Math.min(2.5, ast.miss_distance_ld * 0.1);
             const astPos = latLonToVector3(ast.lat, ast.lon, radius);
-            const color = isSelected ? '#ff007f' : (ast.is_potentially_hazardous ? '#ff6b6b' : '#ffdf00');
+            const color = isSelected ? '#4d8dff' : (ast.is_potentially_hazardous ? '#e0584f' : '#e0a847');
 
             const handleAsteroidClick = (e) => {
               e.stopPropagation();
@@ -407,13 +559,13 @@ function SceneContent() {
                 {/* HTML Hover/Select Tooltip */}
                 {isSelected && (
                   <Html distanceFactor={6}>
-                    <div className="bg-panel/95 border border-cyan rounded px-2 py-1 text-[9px] text-text font-crimson font-bold select-none shadow-xl -translate-x-1/2 -translate-y-8 select-none whitespace-nowrap">
-                      <p className="text-cyan">☄️ {ast.name}</p>
-                      <p className="text-muted-light font-mono text-[7px] mt-0.5">
-                        {ast.velocity_kms?.toFixed(1)} km/s · {ast.miss_distance_ld?.toFixed(1)} LD
+                    <div className="bg-surface/95 border rounded px-2 py-1 text-[9px] text-text-primary font-sans font-bold uppercase tracking-wider select-none shadow-xl -translate-x-1/2 -translate-y-8 select-none whitespace-nowrap backdrop-blur" style={{ borderColor: `${color}60`, boxShadow: `0 0 10px ${color}40` }}>
+                      <p style={{ color }}>☄️ {ast.name}</p>
+                      <p className="text-text-secondary font-mono text-[7px] mt-0.5">
+                        {ast.relative_velocity_kms?.toFixed(1) || ast.velocity_kms?.toFixed(1)} km/s · {ast.miss_distance_ld?.toFixed(1)} LD
                       </p>
                       {ast.is_potentially_hazardous && (
-                        <p className="text-red-500 font-bold text-[7px] mt-0.5 animate-pulse">⚠️ HAZARDOUS (PHA)</p>
+                        <p className="text-[#e0584f] font-bold text-[7px] mt-0.5 animate-pulse">⚠️ HAZARDOUS (PHA)</p>
                       )}
                     </div>
                   </Html>
@@ -429,7 +581,7 @@ function SceneContent() {
             return (
               <Line
                 points={[observerPos, astPos]}
-                color="#ff007f"
+                color="#4d8dff"
                 lineWidth={1}
                 dashed
                 dashSize={0.06}
@@ -467,7 +619,7 @@ function SceneContent() {
                 <Line
                   key={`3d-line-${constell.id}-${lineIdx}`}
                   points={[p1, p2]}
-                  color={isSelected ? '#ffdf00' : '#ff007f'}
+                  color={isSelected ? '#e0a847' : '#4d8dff'}
                   lineWidth={isSelected ? 1.8 : 0.8}
                   opacity={isSelected ? 1.0 : 0.3}
                   transparent
@@ -488,7 +640,7 @@ function SceneContent() {
             <group position={centerPos}>
               <mesh onClick={handleConstellClick}>
                 <sphereGeometry args={[0.024, 8, 8]} />
-                <meshBasicMaterial color={isSelected ? '#ffdf00' : '#ff007f'} />
+                <meshBasicMaterial color={isSelected ? '#e0a847' : '#4d8dff'} />
               </mesh>
               
               {/* Selected tooltip banner */}
@@ -496,12 +648,12 @@ function SceneContent() {
                 <>
                   <mesh onClick={handleConstellClick}>
                     <sphereGeometry args={[0.05, 8, 8]} />
-                    <meshBasicMaterial color="#ffdf00" transparent opacity={0.3} />
+                    <meshBasicMaterial color="#e0a847" transparent opacity={0.3} />
                   </mesh>
                   <Html distanceFactor={6}>
-                    <div className="bg-panel/95 border border-amber/60 rounded px-2 py-1 text-[9px] text-text font-crimson font-bold select-none shadow-xl -translate-x-1/2 -translate-y-8 select-none">
-                      <p className="text-amber">🌌 {constell.name}</p>
-                      <p className="text-muted-light text-[7px] mt-0.5">RA: {constell.ra}h · Dec: {constell.dec}°</p>
+                    <div className="bg-surface/95 border border-[#e0a847]/60 rounded px-2 py-1 text-[9px] text-text-primary font-sans font-bold uppercase tracking-wider select-none shadow-xl -translate-x-1/2 -translate-y-8 select-none backdrop-blur shadow-[0_0_10px_rgba(224,168,71,0.3)]">
+                      <p className="text-[#e0a847]">🌌 {constell.name}</p>
+                      <p className="text-text-secondary font-mono text-[7px] mt-0.5">RA: {constell.ra}h · Dec: {constell.dec}°</p>
                     </div>
                   </Html>
                 </>
@@ -512,7 +664,7 @@ function SceneContent() {
             {isSelected && observerPos && (
               <Line
                 points={[observerPos, centerPos]}
-                color="#ffdf00"
+                color="#e0a847"
                 lineWidth={1}
                 dashed
                 dashSize={0.06}
@@ -531,7 +683,19 @@ function SceneContent() {
  * Globe3D — Three.js 3D Viewport wrapper.
  */
 export default function Globe3D({ className = '' }) {
-  const { actions } = useApp();
+  const { state, actions } = useApp();
+  const {
+    selectedSatellite,
+    selectedAsteroid,
+    selectedConstellation
+  } = state;
+
+  const sunPos = useMemo(() => {
+    const pos = getSunPosition();
+    return latLonToVector3(pos.lat, pos.lon, 15);
+  }, []);
+
+  const shouldAutoRotate = !selectedSatellite && !selectedAsteroid && !selectedConstellation;
 
   return (
     <div className={`relative bg-space ${className}`}>
@@ -546,19 +710,18 @@ export default function Globe3D({ className = '' }) {
         }}
       >
         {/* Lights */}
-        <ambientLight intensity={0.3} />
-        <pointLight position={[10, 10, 10]} intensity={1.5} />
-        <directionalLight position={[-5, 5, -5]} intensity={0.4} />
+        <ambientLight intensity={0.25} />
+        <directionalLight position={sunPos} intensity={2.0} />
 
         {/* Space Starfield Background */}
         <Stars
-          radius={80}
-          depth={40}
-          count={2500}
-          factor={4}
-          saturation={0.5}
+          radius={120}
+          depth={60}
+          count={3500}
+          factor={6}
+          saturation={0.8}
           fade
-          speed={0.5}
+          speed={1.0}
         />
 
         {/* 3D Scene */}
@@ -570,15 +733,16 @@ export default function Globe3D({ className = '' }) {
           enablePan={true}
           minDistance={2.5}
           maxDistance={12}
-          autoRotate={false}
+          autoRotate={shouldAutoRotate}
+          autoRotateSpeed={0.3}
         />
       </Canvas>
 
       {/* Decorative HUD corners */}
-      <div className="absolute top-4 left-4 border-t-2 border-l-2 border-cyan/40 w-4 h-4 pointer-events-none" />
-      <div className="absolute top-4 right-4 border-t-2 border-r-2 border-cyan/40 w-4 h-4 pointer-events-none" />
-      <div className="absolute bottom-4 left-4 border-b-2 border-l-2 border-cyan/40 w-4 h-4 pointer-events-none" />
-      <div className="absolute bottom-4 right-4 border-b-2 border-r-2 border-cyan/40 w-4 h-4 pointer-events-none" />
+      <div className="absolute top-4 left-4 border-t-2 border-l-2 border-[#4d8dff]/40 w-4 h-4 pointer-events-none filter drop-shadow-[0_0_3px_rgba(77,141,255,0.4)]" />
+      <div className="absolute top-4 right-4 border-t-2 border-r-2 border-[#4d8dff]/40 w-4 h-4 pointer-events-none filter drop-shadow-[0_0_3px_rgba(77,141,255,0.4)]" />
+      <div className="absolute bottom-4 left-4 border-b-2 border-l-2 border-[#4d8dff]/40 w-4 h-4 pointer-events-none filter drop-shadow-[0_0_3px_rgba(77,141,255,0.4)]" />
+      <div className="absolute bottom-4 right-4 border-b-2 border-r-2 border-[#4d8dff]/40 w-4 h-4 pointer-events-none filter drop-shadow-[0_0_3px_rgba(77,141,255,0.4)]" />
     </div>
   );
 }

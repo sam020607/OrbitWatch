@@ -31,7 +31,7 @@ function getFilterLabel(value) {
  * SatellitePanel — Sidebar list of tracked overhead satellites or constellations.
  * Clicking an item centres the map and opens the LookUpCard.
  */
-export default function SatellitePanel() {
+export default function SatellitePanel({ hideHeader = false }) {
   const { state, actions } = useApp();
   const {
     satellites,
@@ -123,32 +123,34 @@ export default function SatellitePanel() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-        {viewMode === 'constellations' ? (
-          <Star className="w-4 h-4 text-cyan" />
-        ) : viewMode === 'asteroids' ? (
-          <Flame className="w-4 h-4 text-red" />
-        ) : (
-          <Satellite className="w-4 h-4 text-cyan" />
-        )}
-        <h2 className="font-playfair italic text-2xl tracking-normal text-text">
-          {viewMode === 'constellations' 
-            ? 'Visible Constellations' 
-            : viewMode === 'asteroids' 
-              ? 'Near-Earth Asteroids' 
-              : 'Overhead Objects'}
-        </h2>
-        <span className={`ml-auto badge ${viewMode === 'constellations' ? 'badge-cyan' : viewMode === 'asteroids' ? 'badge-red' : 'badge-cyan'} text-xs`}>
-          {viewMode === 'constellations' 
-            ? visibleConstellations.length 
-            : viewMode === 'asteroids' 
-              ? filteredAsteroids.length 
-              : sortedSats.length}
-        </span>
-      </div>
+      {!hideHeader && (
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-border shrink-0">
+          {viewMode === 'constellations' ? (
+            <Star className="w-4 h-4 text-cyan" />
+          ) : viewMode === 'asteroids' ? (
+            <Flame className="w-4 h-4 text-red" />
+          ) : (
+            <Satellite className="w-4 h-4 text-cyan" />
+          )}
+          <h2 className="font-playfair italic text-2xl tracking-normal text-text">
+            {viewMode === 'constellations' 
+              ? 'Visible Constellations' 
+              : viewMode === 'asteroids' 
+                ? 'Near-Earth Asteroids' 
+                : 'Overhead Objects'}
+          </h2>
+          <span className={`ml-auto badge ${viewMode === 'constellations' ? 'badge-cyan' : viewMode === 'asteroids' ? 'badge-red' : 'badge-cyan'} text-xs`}>
+            {viewMode === 'constellations' 
+              ? visibleConstellations.length 
+              : viewMode === 'asteroids' 
+                ? filteredAsteroids.length 
+                : sortedSats.length}
+          </span>
+        </div>
+      )}
 
       {/* Filter / Mode Dropdown Selector */}
-      <div className="px-4 py-2 border-b border-border bg-panel flex flex-col gap-1 shrink-0 relative z-[200]">
+      <div className="px-4 py-2 border-b border-white/[0.02] flex flex-col gap-1 shrink-0 relative z-[200]" style={{ background: 'rgba(15,22,38,0.4)' }}>
         <label className="text-[11px] font-sans text-muted uppercase tracking-wider font-semibold">
           Tracking Target
         </label>
@@ -156,7 +158,7 @@ export default function SatellitePanel() {
         {/* Custom Dropdown Trigger */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between text-[11px] font-sans uppercase tracking-wider bg-panel border border-border rounded px-2.5 py-1.5 text-text hover:border-border-light transition-all focus:outline-none"
+          className="w-full flex items-center justify-between text-[11px] font-sans uppercase tracking-wider glass-input px-2.5 py-1.5 text-text hover:border-white/20 transition-all focus:outline-none"
         >
           <span className="flex items-center gap-1.5">
             {viewMode === 'satellites' ? (
@@ -185,7 +187,7 @@ export default function SatellitePanel() {
             {/* Click-away backdrop */}
             <div className="fixed inset-0 z-40 cursor-default" onClick={() => { setIsOpen(false); setIsSatellitesSubOpen(false); setIsAsteroidsSubOpen(false); }} />
             
-            <div className="absolute top-full left-4 right-4 mt-1 bg-panel border border-border rounded-lg shadow-xl z-50 py-1 font-crimson text-xs">
+            <div className="absolute top-full left-4 right-4 mt-1 glass-card border-0 shadow-2xl z-50 py-1 font-crimson text-xs" style={{ borderRadius: '12px' }}>
               {!isSatellitesSubOpen && !isAsteroidsSubOpen ? (
                 <>
                   {/* Satellites option (Hover/click opens subcategories) */}
@@ -295,7 +297,7 @@ export default function SatellitePanel() {
       </div>
 
       {/* Search Bar */}
-      <div className="px-4 py-2 border-b border-border bg-navy/10 shrink-0">
+      <div className="px-4 py-2 border-b border-white/[0.02] shrink-0" style={{ background: 'rgba(15,22,38,0.4)' }}>
         <div className="relative">
           <input
             type="text"
@@ -308,7 +310,7 @@ export default function SatellitePanel() {
             }
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-xs font-crimson bg-panel border border-border rounded pl-8 pr-7 py-1.5 text-text placeholder-muted/50 focus:outline-none focus:border-cyan focus:ring-1 focus:ring-cyan/30 transition-all"
+            className="w-full text-xs font-crimson glass-input pl-8 pr-7 py-1.5 text-text placeholder-muted/50 focus:outline-none focus:border-accent/40 focus:ring-1 focus:ring-accent/20 transition-all"
           />
           <Search className="w-3.5 h-3.5 text-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
           {searchQuery && (
@@ -324,7 +326,7 @@ export default function SatellitePanel() {
       </div>
 
       {/* List content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto py-2">
         {viewMode === 'constellations' ? (
           visibleConstellations.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-32 text-muted text-center px-4">
@@ -343,11 +345,20 @@ export default function SatellitePanel() {
                 <button
                   key={constell.id}
                   onClick={() => actions.selectConstellation(isSelected ? null : constell)}
-                  className={`w-full text-left px-4 py-3 border-b border-border/50 transition-all duration-200 group
+                  className={`w-full text-left mx-3 my-1.5 rounded-2xl transition-all duration-200 group px-4 py-3
                     ${isSelected
-                      ? 'bg-[rgba(255,255,255,0.03)] border-l-[3px] border-l-cyan'
-                      : 'hover:bg-panel-light'
+                      ? 'border-l-[3px] border-l-cyan'
+                      : ''
                     }`}
+                  style={{
+                    background: 'rgba(15, 22, 38, 0.55)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: isSelected ? undefined : '1px solid rgba(255, 255, 255, 0.03)',
+                    borderLeft: isSelected ? '3px solid var(--accent)' : '1px solid rgba(255, 255, 255, 0.03)',
+                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.02)',
+                    width: 'calc(100% - 1.5rem)',
+                  }}
                 >
                   <div className="flex items-start justify-between mb-1.5">
                     <div className="flex items-center gap-2 min-w-0">
@@ -436,11 +447,17 @@ export default function SatellitePanel() {
                 <button
                   key={ast.id}
                   onClick={() => actions.selectAsteroid(isSelected ? null : ast)}
-                  className={`w-full text-left px-4 py-3 border-b border-border/50 transition-all duration-200 group
-                    ${isSelected
-                      ? 'bg-[rgba(255,255,255,0.03)] border-l-[3px] border-l-cyan'
-                      : 'hover:bg-panel-light'
-                    }`}
+                  className={`w-full text-left mx-3 my-1.5 rounded-2xl transition-all duration-200 group px-4 py-3
+                    ${isSelected ? 'border-l-[3px] border-l-cyan' : ''}`}
+                  style={{
+                    background: 'rgba(15, 22, 38, 0.55)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: isSelected ? undefined : '1px solid rgba(255, 255, 255, 0.03)',
+                    borderLeft: isSelected ? '3px solid var(--accent)' : '1px solid rgba(255, 255, 255, 0.03)',
+                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.02)',
+                    width: 'calc(100% - 1.5rem)',
+                  }}
                 >
                   <div className="flex items-start justify-between mb-1.5">
                     <div className="flex items-center gap-2 min-w-0">
@@ -519,11 +536,17 @@ export default function SatellitePanel() {
                 <button
                   key={sat.satid}
                   onClick={() => actions.selectSatellite(isSelected ? null : sat)}
-                  className={`w-full text-left px-4 py-3 border-b border-border/50 transition-all duration-200 group
-                    ${isSelected
-                      ? 'bg-[rgba(255,255,255,0.03)] border-l-[3px] border-l-cyan'
-                      : 'hover:bg-panel-light'
-                    }`}
+                  className={`w-full text-left mx-3 my-1.5 rounded-2xl transition-all duration-200 group px-4 py-3
+                    ${isSelected ? '' : 'hover:brightness-110'}`}
+                  style={{
+                    background: 'rgba(15, 22, 38, 0.55)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: isSelected ? undefined : '1px solid rgba(255, 255, 255, 0.03)',
+                    borderLeft: isSelected ? '3px solid var(--accent)' : '1px solid rgba(255, 255, 255, 0.03)',
+                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.02)',
+                    width: 'calc(100% - 1.5rem)',
+                  }}
                 >
                   <div className="flex items-start justify-between mb-1.5">
                     <div className="flex items-center gap-2 min-w-0">
@@ -588,21 +611,21 @@ export default function SatellitePanel() {
 
       {/* Footer: selected object info */}
       {viewMode === 'constellations' && selectedConstellation && (
-        <div className="p-3 border-t border-border bg-panel">
+        <div className="p-3 border-t border-white/[0.02] glass-tile" style={{ borderRadius: 0 }}>
           <p className="text-cyan text-[11px] font-sans uppercase tracking-wider font-bold text-center">
             🌌 Tracking: {selectedConstellation.name}
           </p>
         </div>
       )}
       {viewMode === 'asteroids' && selectedAsteroid && (
-        <div className="p-3 border-t border-border bg-panel">
+        <div className="p-3 border-t border-white/[0.02] glass-tile" style={{ borderRadius: 0 }}>
           <p className="text-cyan text-[11px] font-sans uppercase tracking-wider font-bold text-center">
             ☄️ Tracking: {selectedAsteroid.name}
           </p>
         </div>
       )}
       {viewMode === 'satellites' && selectedSatellite && (
-        <div className="p-3 border-t border-border bg-panel">
+        <div className="p-3 border-t border-white/[0.02] glass-tile" style={{ borderRadius: 0 }}>
           <p className="text-cyan text-[11px] font-sans uppercase tracking-wider font-bold text-center">
             📡 Tracking: {selectedSatellite.satname}
           </p>

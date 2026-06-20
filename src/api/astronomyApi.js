@@ -11,6 +11,7 @@
  * Without credentials, this module returns realistic mock astronomy data.
  */
 import axios from 'axios';
+import { recordSuccess, recordFailure } from '../services/apiMonitor.js';
 
 // TODO: Add your AstronomyAPI credentials
 const APP_ID = import.meta.env.VITE_ASTRONOMY_APP_ID ?? '';
@@ -67,13 +68,16 @@ export async function fetchNightSkyData(lat, lon, alt = 0, date = null) {
  * @returns {Promise<Object>}
  */
 export async function fetchMoonPhase(lat, lon, date = null) {
+  const t0 = Date.now();
   try {
     const url = `https://wttr.in/${lat},${lon}?format=j1`;
     const response = await axios.get(url, { timeout: 10000 });
+    const durationMs = Date.now() - t0;
     
     const astronomy = response.data?.weather?.[0]?.astronomy?.[0];
     
     if (astronomy) {
+      recordSuccess('wttr-moon', durationMs, { isLiveData: true });
       return {
         phase: astronomy.moon_phase,           
         illumination: parseInt(astronomy.moon_illumination, 10) || 0, 
@@ -81,12 +85,10 @@ export async function fetchMoonPhase(lat, lon, date = null) {
       };
     }
     
-    return {
-        phase: 'Data Unavailable',
-        illumination: 0,
-        date: date ? new Date(date).toISOString() : new Date().toISOString()
-      };
+    throw new Error('wttr.in response missing astronomy payload');
   } catch (error) {
+    const statusCode = error.response?.status;
+    recordFailure('wttr-moon', error.message, { statusCode, fallbackUsed: true });
     console.error('[AstronomyAPI] fetchMoonPhase failed:', error.message);
     return {
       phase: 'Data Unavailable',

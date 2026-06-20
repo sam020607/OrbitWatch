@@ -6,8 +6,8 @@
 :root {
   /* Color Tokens */
   --bg: #0a0d15;
-  --surface: #11151f;
-  --surface-border: rgba(255, 255, 255, 0.08);
+  --surface: rgba(15, 22, 30, 0.55);
+  --surface-border: rgba(255, 255, 255, 0.02);
   --accent: #4d8dff;
   --accent-amber: #e0a847;
   --accent-alert: #e0584f;
@@ -17,12 +17,13 @@
   --button-primary-text: #0a0d15;
 
   /* Theme Mapping */
-  --color-space: var(--bg);
-  --color-navy: var(--bg);
-  --color-panel: var(--surface);
-  --color-panel-light: rgba(255, 255, 255, 0.04);
+  /* bg-space is now transparent — the Earth image underneath shows through */
+  --color-space: transparent;
+  --color-navy: rgba(7, 10, 18, 0.85);
+  --color-panel: rgba(15, 19, 30, 0.70); /* slightly more transparent for glass effect */
+  --color-panel-light: rgba(255, 255, 255, 0.05);
   --color-border: var(--surface-border);
-  --color-border-light: rgba(255, 255, 255, 0.12);
+  --color-border-light: rgba(255, 255, 255, 0.03);
   --color-cyan: var(--accent);
   --color-cyan-dim: #3575d9;
   --color-violet: #6b6fd6;
@@ -45,11 +46,40 @@ html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
-  background: var(--bg);
+  /* Transparent — the fixed Earth image behind shows through */
+  background: transparent;
   color: var(--color-text);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Fixed Earth-from-space background ──────────────────────────────────── */
+/* Layer 1: the image itself */
+body::before {
+  content: '';
+  position: fixed;
+  inset: -40px; /* extends beyond screen to prevent white edge bleed from blur */
+  z-index: -2;
+  background-image: url('/earth-bg.png');
+  background-size: cover;
+  background-position: center 60%; /* curvature horizon in lower-third */
+  background-repeat: no-repeat;
+  filter: blur(80px); /* completely blurred, like barely visible */
+}
+
+/* Layer 2: dark scrim — preserves image without killing text contrast */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    160deg,
+    rgba(7, 10, 18, 0.72) 0%,
+    rgba(7, 10, 18, 0.58) 50%,
+    rgba(7, 10, 18, 0.78) 100%
+  );
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -95,20 +125,40 @@ h1, h2, h3, h4, h5, h6 {
 .leaflet-popup-close-button:hover { color: var(--color-cyan) !important; }
 
 /* ─── ISS Marker ────────────────────────────────────────────────────────── */
+/* ─── Leaflet Base Map Filter ─── */
+.leaflet-tile-pane {
+  filter: brightness(0.85) contrast(1.15) saturate(1.3) hue-rotate(-5deg);
+}
+
 .iss-marker-icon {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+@keyframes issPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(224, 88, 79, 0.6), 0 0 20px rgba(224, 88, 79, 0.4);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 18px rgba(224, 88, 79, 0.9), 0 0 35px rgba(224, 88, 79, 0.6);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(224, 88, 79, 0.6), 0 0 20px rgba(224, 88, 79, 0.4);
+  }
+}
+
 .iss-dot {
   width: 18px;
   height: 18px;
-  background: var(--accent);
+  background: #e0584f;
   border-radius: 50%;
   border: 2px solid var(--text-primary);
-  box-shadow: none;
   position: relative;
+  animation: issPulse 2s infinite ease-in-out;
 }
 
 .iss-dot::after {
@@ -116,25 +166,74 @@ h1, h2, h3, h4, h5, h6 {
   position: absolute;
   inset: -6px;
   border-radius: 50%;
-  border: 1px solid var(--accent);
+  border: 1px dashed #e0584f;
 }
 
 /* ─── Satellite Marker ──────────────────────────────────────────────────── */
-.sat-marker-icon { cursor: pointer; }
+.sat-marker-icon { 
+  cursor: pointer; 
+  transition: opacity 0.25s ease-out;
+}
 
 .sat-dot {
-  width: 8px;
-  height: 8px;
-  background: var(--accent);
   border-radius: 50%;
-  box-shadow: none;
-  transition: all 0.2s;
+  transition: transform 0.2s ease-out, filter 0.2s ease-out;
 }
 
 .sat-dot:hover {
-  width: 10px;
-  height: 10px;
-  box-shadow: none;
+  transform: scale(1.3);
+  filter: brightness(1.2);
+  cursor: pointer;
+}
+
+.sat-dot.selected {
+  /* Selected styles are handled dynamically via inline styles on the marker */
+}
+
+/* ─── Radar Sweep Animation ─────────────────────────────────────────────── */
+.radar-sweep-container {
+  pointer-events: none;
+  transition: opacity 0.25s ease-out;
+}
+
+.radar-sweep-line {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(77, 141, 255, 0.12) 0deg, rgba(77, 141, 255, 0) 90deg, transparent 90deg, transparent 360deg);
+  border: 1px solid rgba(77, 141, 255, 0.05);
+  animation: radarRotate 6s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes radarRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ─── Ambient Oceans Star twinkling ──────────────────────────────────────── */
+.ambient-star {
+  pointer-events: none;
+  opacity: 0.12;
+  transition: opacity 0.25s ease-out;
+}
+
+.star-sparkle {
+  width: 3px;
+  height: 3px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 4px #ffffff, 0 0 8px #ffffff;
+  animation: starTwinkle 4s infinite ease-in-out;
+}
+
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1.0; }
 }
 
 .sat-dot.selected {
@@ -156,12 +255,65 @@ h1, h2, h3, h4, h5, h6 {
   to { stroke-dashoffset: -24; }
 }
 
-/* ─── Custom Components ─────────────────────────────────────────────────── */
-.glass-panel {
-  background: var(--surface);
-  border: 1px solid var(--surface-border);
+/* ─── Glass Design System ─────────────────────────────────────────────────── */
+
+/* Base glass surface — large cards, panels, right-rail surface */
+.glass-card {
+  background: rgba(15, 22, 38, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.02),
+    0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Smaller nested elements — stat tiles, sub-cards */
+.glass-tile {
+  background: rgba(15, 22, 38, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
   border-radius: 12px;
-  box-shadow: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+/* Header pills and floating map pills */
+.glass-pill {
+  background: rgba(15, 22, 38, 0.60);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+/* Form controls — search bar, dropdown trigger */
+.glass-input {
+  background: rgba(15, 22, 38, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+/* Panel surface — the right panel column itself */
+.glass-panel {
+  background: rgba(15, 22, 38, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+/* Hero countdown number glow */
+.hero-number-glow {
+  text-shadow:
+    0 0 20px rgba(77, 141, 255, 0.5),
+    0 0 40px rgba(77, 141, 255, 0.25);
 }
 
 .glow-cyan {}
@@ -358,4 +510,65 @@ h1, h2, h3, h4, h5, h6 {
 }
 .focus\:ring-cyan\/30:focus {
   --tw-ring-color: rgba(58, 123, 217, 0.3) !important;
+}
+
+/* --- Tooltips for Collapsed Left Rail --- */
+.nav-tooltip {
+  position: relative;
+}
+.nav-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%) translateX(10px);
+  background-color: var(--surface);
+  border: 1px solid var(--surface-border);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 5px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out;
+  transition-delay: 150ms;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+.nav-tooltip:hover::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(14px);
+}
+
+/* --- Fade In Animation --- */
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.border-glow {
+  filter: drop-shadow(0 0 2px rgba(77, 141, 255, 0.3));
+}
+
+/* ─── Glassmorphic Surface Classes ──────────────────────────────────────── */
+.bg-surface {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.bg-surface\/90 {
+  background-color: rgba(15, 22, 30, 0.90) !important;
+}
+
+.bg-surface\/95 {
+  background-color: rgba(15, 22, 30, 0.95) !important;
 }

@@ -77,11 +77,11 @@ export default function PassCountdown() {
       </div>
 
       {/* Countdown timer */}
-      <div className="relative flex flex-col items-center justify-center py-5 rounded-xl border border-border bg-panel">
+      <div className="relative flex flex-col items-center justify-center py-5 rounded-xl glass-tile">
         <p className="text-muted text-[11px] font-sans uppercase tracking-wider mb-2 text-center px-4">{countdownLabel}</p>
 
         <div
-          className="font-mono text-4xl font-bold tracking-wider"
+          className="font-mono text-4xl font-bold tracking-wider hero-number-glow"
           style={{
             color: 'var(--text-primary)',
             fontVariantNumeric: 'tabular-nums',
@@ -135,7 +135,7 @@ export default function PassCountdown() {
       </div>
 
       {/* Look up instruction */}
-      <div className="px-3 py-2 rounded-lg bg-panel border border-border text-center">
+      <div className="px-3 py-2 rounded-lg glass-tile text-center">
         <p className="text-[12px] text-muted font-sans leading-relaxed">
           {isVisible
             ? `🌟 Look ${currentPass.maxAzCompass} — ${currentPass.maxEl}° above the horizon`
@@ -156,7 +156,7 @@ export default function PassCountdown() {
                 className={`text-xs font-mono px-2 py-0.5 rounded border transition-all
                   ${i === passIdx
                     ? 'border-cyan text-cyan bg-panel font-semibold'
-                    : 'border-border text-muted hover:border-border-light hover:text-muted-light'
+                    : 'border-white/[0.03] text-muted hover:border-white/[0.05] hover:text-muted-light'
                   }`}
               >
                 {formatTime(p.startUTC)}
@@ -171,7 +171,7 @@ export default function PassCountdown() {
 
 function StatCard({ icon, label, sub, children }) {
   return (
-    <div className="flex flex-col gap-1 px-3 py-2 rounded-lg bg-panel border border-border">
+    <div className="flex flex-col gap-1 px-3 py-2 rounded-lg glass-tile">
       <div className="flex items-center gap-1 text-muted" style={{ fontSize: 10 }}>
         {icon}
         <span className="font-sans tracking-wider uppercase font-semibold text-[10px]">{label}</span>
