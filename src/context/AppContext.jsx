@@ -1,5 +1,138 @@
 import { createContext, useContext, useReducer, useMemo } from 'react';
 
+export const ACHIEVEMENT_DEFS = [
+  {
+    id: 'first-contact',
+    title: 'First Contact',
+    description: 'Log your first satellite, constellation, or asteroid observation.',
+    icon: '🔭',
+    requirement: 'Log any overhead object'
+  },
+  {
+    id: 'space-explorer',
+    title: 'Space Explorer',
+    description: 'Observe a habitable space station (ISS or Tiangong) in orbit.',
+    icon: '🛸',
+    requirement: 'Observe ISS or Tiangong'
+  },
+  {
+    id: 'constellation-guide',
+    title: 'Constellation Guide',
+    description: 'Map out the stars of a visible constellation.',
+    icon: '🌌',
+    requirement: 'Log any constellation'
+  },
+  {
+    id: 'asteroid-hazard',
+    title: 'Asteroid Hazard',
+    description: 'Spot a Near-Earth Asteroid passing near Earth.',
+    icon: '☄️',
+    requirement: 'Log any asteroid'
+  },
+  {
+    id: 'deflector',
+    title: 'Deflector',
+    description: 'Spot a Potentially Hazardous Asteroid (PHA).',
+    icon: '⚠️',
+    requirement: 'Log a hazardous asteroid'
+  },
+  {
+    id: 'midnight-watch',
+    title: 'Midnight Watch',
+    description: 'Track an object during the quiet hours of midnight (12:00 AM - 4:00 AM).',
+    icon: '🦉',
+    requirement: 'Log between 00:00 and 04:00 local time'
+  },
+  {
+    id: 'globe-trotter',
+    title: 'Globe Trotter',
+    description: 'Observe the skies from two or more distinct locations.',
+    icon: '🌎',
+    requirement: 'Log from 2+ observer locations'
+  },
+  {
+    id: 'veteran-spotter',
+    title: 'Veteran Spotter',
+    description: 'Build your observation journal with 5 or more logs.',
+    icon: '🚀',
+    requirement: 'Log 5+ total observations'
+  }
+];
+
+// Load observed log from localStorage
+const loadObservedLog = () => {
+  try {
+    const saved = localStorage.getItem('orbitwatch_observed_log');
+    return saved ? JSON.parse(saved) : [];
+  } catch (e) {
+    console.error('Failed to load observed log:', e);
+    return [];
+  }
+};
+
+// Load unlocked achievements from localStorage
+const loadUnlockedAchievements = () => {
+  try {
+    const saved = localStorage.getItem('orbitwatch_unlocked_achievements');
+    return saved ? JSON.parse(saved) : {};
+  } catch (e) {
+    console.error('Failed to load unlocked achievements:', e);
+    return {};
+  }
+};
+
+export function checkNewAchievements(allLogs, newLog) {
+  const unlocked = {};
+  const hasLog = (filterFn) => allLogs.some(filterFn);
+
+  // 1. First Contact
+  if (allLogs.length > 0) {
+    unlocked['first-contact'] = true;
+  }
+
+  // 2. Space Explorer
+  if (hasLog(l => l.type === 'satellite' && (l.targetId === '25544' || l.targetId === '48274' || l.name.toLowerCase().includes('iss') || l.name.toLowerCase().includes('tiangong')))) {
+    unlocked['space-explorer'] = true;
+  }
+
+  // 3. Constellation Guide
+  if (hasLog(l => l.type === 'constellation')) {
+    unlocked['constellation-guide'] = true;
+  }
+
+  // 4. Asteroid Hazard
+  if (hasLog(l => l.type === 'asteroid')) {
+    unlocked['asteroid-hazard'] = true;
+  }
+
+  // 5. Deflector
+  if (hasLog(l => l.type === 'asteroid' && l.isHazardous)) {
+    unlocked['deflector'] = true;
+  }
+
+  // 6. Midnight Watch
+  if (hasLog(l => {
+    const date = new Date(l.timestamp);
+    const hours = date.getHours();
+    return hours >= 0 && hours < 4;
+  })) {
+    unlocked['midnight-watch'] = true;
+  }
+
+  // 7. Globe Trotter
+  const uniqueLocations = new Set(allLogs.map(l => l.locationName?.trim()).filter(Boolean));
+  if (uniqueLocations.size >= 2) {
+    unlocked['globe-trotter'] = true;
+  }
+
+  // 8. Veteran Spotter
+  if (allLogs.length >= 5) {
+    unlocked['veteran-spotter'] = true;
+  }
+
+  return unlocked;
+}
+
 /** ─── Initial State ─────────────────────────────────────────────────────── */
 const initialState = {
   // Location
@@ -26,7 +159,7 @@ const initialState = {
   isLoading: false,
   loadingMessage: '',
   error: null,
-  activeView: 'map',       // 'map' | 'report' | 'lookup'
+  activeView: 'map',       // 'map' | 'report' | 'lookup' | 'journal'
   showConeOverlay: true,
   satelliteFilter: 'major', // 'major' | 'all' | 'tv' | 'gps' | 'comms' | 'weather' | 'space-station' | 'debris' | 'earth-obs'
   viewMode: 'satellites',   // 'satellites' | 'constellations' | 'asteroids'
@@ -34,6 +167,11 @@ const initialState = {
   asteroids: [],            // Array of asteroid objects
   selectedAsteroid: null,   // Currently selected asteroid
   asteroidFilter: 'all',    // 'all' | 'phas' | 'close'
+
+  // Spotting Log & Achievements Gamification
+  observedLog: loadObservedLog(),
+  unlockedAchievements: loadUnlockedAchievements(),
+  newUnlockedAchievements: [], // Achievements queue for modal/toast celebrations
 };
 
 /** ─── Reducer ───────────────────────────────────────────────────────────── */
@@ -102,6 +240,46 @@ function appReducer(state, action) {
     case 'SET_ASTEROID_FILTER':
       return { ...state, asteroidFilter: action.payload };
 
+    case 'LOG_OBSERVATION': {
+      const newObs = action.payload;
+      const updatedLog = [newObs, ...state.observedLog];
+      localStorage.setItem('orbitwatch_observed_log', JSON.stringify(updatedLog));
+
+      // Calculate achievements
+      const allUnlocked = checkNewAchievements(updatedLog, newObs);
+      const newlyUnlocked = [];
+      const newUnlockedState = { ...state.unlockedAchievements };
+
+      Object.keys(allUnlocked).forEach(key => {
+        if (!state.unlockedAchievements[key]) {
+          const timestamp = new Date().toISOString();
+          newUnlockedState[key] = timestamp;
+          newlyUnlocked.push(key);
+        }
+      });
+
+      if (newlyUnlocked.length > 0) {
+        localStorage.setItem('orbitwatch_unlocked_achievements', JSON.stringify(newUnlockedState));
+      }
+
+      return {
+        ...state,
+        observedLog: updatedLog,
+        unlockedAchievements: newUnlockedState,
+        newUnlockedAchievements: [...(state.newUnlockedAchievements || []), ...newlyUnlocked]
+      };
+    }
+
+    case 'DELETE_OBSERVATION': {
+      const id = action.payload;
+      const updatedLog = state.observedLog.filter(l => l.id !== id);
+      localStorage.setItem('orbitwatch_observed_log', JSON.stringify(updatedLog));
+      return { ...state, observedLog: updatedLog };
+    }
+
+    case 'DISMISS_ACHIEVEMENT_TOAST':
+      return { ...state, newUnlockedAchievements: [] };
+
     case 'RESET':
       return { ...initialState };
 
@@ -138,6 +316,9 @@ export function AppProvider({ children }) {
     setAsteroids: (asteroids) => dispatch({ type: 'SET_ASTEROIDS', payload: asteroids }),
     selectAsteroid: (asteroid) => dispatch({ type: 'SELECT_ASTEROID', payload: asteroid }),
     setAsteroidFilter: (filter) => dispatch({ type: 'SET_ASTEROID_FILTER', payload: filter }),
+    logObservation: (obs) => dispatch({ type: 'LOG_OBSERVATION', payload: obs }),
+    deleteObservation: (id) => dispatch({ type: 'DELETE_OBSERVATION', payload: id }),
+    dismissAchievementToast: () => dispatch({ type: 'DISMISS_ACHIEVEMENT_TOAST' }),
     reset: () => dispatch({ type: 'RESET' }),
   }), [dispatch]);
 

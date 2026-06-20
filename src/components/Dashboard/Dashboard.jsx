@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useApp } from '../../context/AppContext.jsx';
+import { useApp, ACHIEVEMENT_DEFS } from '../../context/AppContext.jsx';
 import { useISSTracker } from '../../hooks/useISSTracker.js';
 import { useSatellites } from '../../hooks/useSatellites.js';
 import { usePassPredictions } from '../../hooks/usePassPredictions.js';
@@ -12,9 +12,10 @@ import PassCountdown from '../PassCountdown/PassCountdown.jsx';
 import LookUpCard from '../LookUpCard/LookUpCard.jsx';
 import NightReport from '../NightReport/NightReport.jsx';
 import LocationSearch from '../LandingPage/LocationSearch.jsx';
+import JournalPanel from '../JournalPanel/JournalPanel.jsx';
 import {
   Map, List, Star, Compass, Radio, RotateCcw,
-  Eye, EyeOff, Satellite, Settings, ChevronLeft, Globe
+  Eye, EyeOff, Satellite, Settings, ChevronLeft, Globe, Trophy
 } from 'lucide-react';
 
 const MOBILE_VIEWS = [
@@ -22,6 +23,7 @@ const MOBILE_VIEWS = [
   { id: 'satellites', label: 'Satellites', icon: Satellite },
   { id: 'report', label: 'Tonight', icon: Star },
   { id: 'lookup', label: 'Look Up', icon: Compass },
+  { id: 'journal', label: 'Journal', icon: Trophy },
 ];
 
 /**
@@ -31,7 +33,7 @@ const MOBILE_VIEWS = [
  */
 export default function Dashboard({ onReset }) {
   const { state, actions } = useApp();
-  const { location, issPosition, satellites, selectedSatellite, showConeOverlay } = state;
+  const { location, issPosition, satellites, selectedSatellite, showConeOverlay, newUnlockedAchievements } = state;
 
   // Activate all data hooks
   useISSTracker(!!location);
@@ -55,6 +57,7 @@ export default function Dashboard({ onReset }) {
     { id: 'countdown', label: 'Countdown', icon: Radio },
     { id: 'lookup', label: 'Look Up', icon: Compass },
     { id: 'report', label: 'Tonight', icon: Star },
+    { id: 'journal', label: 'Journal', icon: Trophy },
   ];
 
   return (
@@ -216,6 +219,7 @@ export default function Dashboard({ onReset }) {
                 {rightPanel === 'countdown' && <PassCountdown />}
                 {rightPanel === 'lookup' && <LookUpCard />}
                 {rightPanel === 'report' && <NightReport />}
+                {rightPanel === 'journal' && <JournalPanel />}
               </motion.div>
             </AnimatePresence>
           </div>
@@ -235,6 +239,7 @@ export default function Dashboard({ onReset }) {
           >
             {mobileView === 'satellites' && <SatellitePanel />}
             {mobileView === 'report' && <NightReport />}
+            {mobileView === 'journal' && <JournalPanel />}
             {mobileView === 'lookup' && (
               <div className="divide-y divide-border">
                 <PassCountdown />
@@ -244,6 +249,51 @@ export default function Dashboard({ onReset }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── Achievement Unlock Toast Celebrations ── */}
+      {newUnlockedAchievements && newUnlockedAchievements.length > 0 && (() => {
+        const activeId = newUnlockedAchievements[0];
+        const ach = ACHIEVEMENT_DEFS.find(a => a.id === activeId);
+        if (!ach) return null;
+
+        return (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-navy/80 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0, y: 50 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: 50 }}
+              transition={{ type: 'spring', damping: 15 }}
+              className="w-full max-w-sm bg-panel border-2 border-amber/60 rounded-2xl p-6 flex flex-col items-center gap-4 text-center shadow-[0_0_50px_rgba(245,158,11,0.4)] relative overflow-hidden scanlines"
+            >
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-amber to-transparent animate-pulse" />
+              
+              <div className="w-16 h-16 rounded-full bg-amber/20 border border-amber/40 flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(245,158,11,0.3)] animate-bounce mt-2">
+                {ach.icon}
+              </div>
+
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] font-mono text-amber tracking-[0.25em] uppercase font-bold text-glow-amber">
+                  Achievement Unlocked
+                </span>
+                <h3 className="text-xl font-playfair font-bold text-text mt-1 text-shadow-amber">
+                  {ach.title}
+                </h3>
+              </div>
+
+              <p className="text-sm text-muted-light font-crimson px-2">
+                {ach.description}
+              </p>
+
+              <button
+                onClick={actions.dismissAchievementToast}
+                className="mt-2 w-full py-2 bg-amber border border-amber text-xs font-crimson font-bold text-navy rounded-lg hover:bg-transparent hover:text-amber hover:border-amber transition-all shadow-md uppercase tracking-wider"
+              >
+                Awesome!
+              </button>
+            </motion.div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

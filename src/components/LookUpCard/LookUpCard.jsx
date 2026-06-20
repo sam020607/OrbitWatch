@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useApp } from '../../context/AppContext.jsx';
 import { azimuthToCompass } from '../../utils/orbitMath.js';
 import { getLocalCoordinates } from '../../data/constellations.js';
@@ -9,8 +10,11 @@ import { Compass, Target, X } from 'lucide-react';
  */
 export default function LookUpCard() {
   const { state, actions } = useApp();
-  const { selectedSatellite, selectedConstellation, selectedAsteroid, viewMode, issNextPasses, location } = state;
+  const { selectedSatellite, selectedConstellation, selectedAsteroid, viewMode, issNextPasses, location, observedLog = [] } = state;
   const [now] = [Math.floor(Date.now() / 1000)];
+
+  const [showNotesForm, setShowNotesForm] = useState(false);
+  const [notesText, setNotesText] = useState('');
 
   // Determine what to show
   let displayData = null;
@@ -34,6 +38,8 @@ export default function LookUpCard() {
       nasa_jpl_url: selectedAsteroid.nasa_jpl_url,
       ra: selectedAsteroid.ra,
       dec: selectedAsteroid.dec,
+      id: selectedAsteroid.id,
+      type: 'asteroid'
     };
     title = 'Asteroid Direction';
   } else if (viewMode === 'constellations' && selectedConstellation) {
@@ -48,6 +54,8 @@ export default function LookUpCard() {
       abbr: selectedConstellation.abbr,
       ra: selectedConstellation.ra,
       dec: selectedConstellation.dec,
+      id: selectedConstellation.id,
+      type: 'constellation'
     };
     title = 'Constellation Direction';
   } else if (selectedSatellite) {
@@ -60,6 +68,8 @@ export default function LookUpCard() {
       name: selectedSatellite.satname,
       alt: selectedSatellite.satalt,
       velocity: selectedSatellite.velocity,
+      id: selectedSatellite.satid,
+      type: 'satellite'
     };
     title = 'Satellite Direction';
   } else if (issNextPasses.length > 0) {
@@ -70,6 +80,8 @@ export default function LookUpCard() {
         az: nextPass.maxAz,
         el: nextPass.maxEl,
         name: 'ISS',
+        id: '25544',
+        type: 'satellite',
         passTime: nextPass.maxUTC,
       };
       title = 'ISS Peak Direction';
@@ -285,6 +297,75 @@ export default function LookUpCard() {
         <p className="text-muted text-xs font-crimson mt-1">
           {getElevationHint(el)}
         </p>
+      </div>
+
+      {/* Spotting Log Gamification Action */}
+      <div className="border-t border-border/40 pt-4 mt-2">
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <span className="text-[10px] font-crimson text-muted uppercase tracking-wider block">Observed Status</span>
+            {observedLog.filter(l => l.targetId === String(displayData?.id) && l.type === displayData?.type).length > 0 ? (
+              <span className="text-xs font-crimson text-cyan font-bold flex items-center gap-1">
+                ✓ Spotted {observedLog.filter(l => l.targetId === String(displayData?.id) && l.type === displayData?.type).length}x before
+              </span>
+            ) : (
+              <span className="text-xs font-crimson text-muted italic">Not observed yet</span>
+            )}
+          </div>
+
+          {!showNotesForm ? (
+            <button
+              onClick={() => setShowNotesForm(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan/10 border border-cyan/30 text-[11px] text-cyan rounded-md hover:bg-cyan/20 hover:border-cyan transition-colors"
+            >
+              <span>🔭 I Spotted This!</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => { setShowNotesForm(false); setNotesText(''); }}
+              className="text-xs font-crimson text-muted hover:text-text transition-colors"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+
+        {showNotesForm && (
+          <div className="bg-navy/40 p-2.5 rounded-lg border border-border/60 flex flex-col gap-2 mt-2">
+            <label className="text-[10px] font-crimson text-muted uppercase tracking-wider block">
+              Spotting Notes (Optional)
+            </label>
+            <textarea
+              placeholder="e.g. Very bright overhead, clear sky, spotted with naked eye!"
+              value={notesText}
+              onChange={(e) => setNotesText(e.target.value)}
+              className="w-full text-xs font-crimson bg-panel border border-border rounded p-1.5 text-text placeholder-muted/50 focus:outline-none focus:border-cyan h-16 resize-none"
+              maxLength={200}
+            />
+            <button
+              onClick={() => {
+                const observation = {
+                  id: Math.random().toString(36).substr(2, 9),
+                  targetId: String(displayData.id),
+                  name: displayData.name,
+                  type: displayData.type,
+                  timestamp: new Date().toISOString(),
+                  locationName: location?.name || 'Unknown Location',
+                  lat: location?.lat,
+                  lon: location?.lon,
+                  notes: notesText.trim(),
+                  isHazardous: displayData.type === 'asteroid' && !!displayData.is_potentially_hazardous
+                };
+                actions.logObservation(observation);
+                setShowNotesForm(false);
+                setNotesText('');
+              }}
+              className="w-full py-1.5 bg-cyan border border-cyan text-xs font-crimson font-bold text-navy rounded-md hover:bg-transparent hover:text-cyan transition-colors text-center"
+            >
+              Log Observation
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
