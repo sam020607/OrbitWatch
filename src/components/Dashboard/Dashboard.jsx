@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp, ACHIEVEMENT_DEFS } from '../../context/AppContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { useISSTracker } from '../../hooks/useISSTracker.js';
 import { useSatellites } from '../../hooks/useSatellites.js';
 import { usePassPredictions } from '../../hooks/usePassPredictions.js';
@@ -17,8 +18,99 @@ import DiagnosticsPanel from './DiagnosticsPanel.jsx';
 import { CONSTELLATIONS, getLocalCoordinates } from '../../data/constellations.js';
 import {
   Map, List, Star, Compass, Radio, RotateCcw,
-  Eye, EyeOff, Satellite, Settings, ChevronLeft, ChevronRight, Globe, Trophy, Activity, Flame, Moon, Zap
+  Eye, EyeOff, Satellite, Settings, ChevronLeft, ChevronRight, Globe, Trophy, Activity, Flame, Moon, Zap, LogOut
 } from 'lucide-react';
+
+/** User avatar + sign-out dropdown shown in the top navigation bar */
+function UserAvatar() {
+  const { user, signOut } = useAuth();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  if (!user) return null;
+
+  const initials = (user.displayName || user.email || '?')
+    .split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+
+  return (
+    <div ref={ref} className="relative flex-shrink-0">
+      <button
+        id="user-avatar-btn"
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center gap-2 rounded-full focus:outline-none transition-all"
+        style={{ padding: '2px' }}
+        title={user.displayName || user.email}
+      >
+        {user.photoURL ? (
+          <img
+            src={user.photoURL}
+            alt="avatar"
+            className="w-7 h-7 rounded-full object-cover ring-2"
+            style={{ ringColor: open ? 'rgba(77,141,255,0.8)' : 'rgba(77,141,255,0.3)', border: open ? '2px solid rgba(77,141,255,0.7)' : '2px solid rgba(255,255,255,0.12)' }}
+          />
+        ) : (
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold font-sans"
+            style={{
+              background: 'linear-gradient(135deg, #4d8dff 0%, #6b6fd6 100%)',
+              border: open ? '2px solid rgba(77,141,255,0.7)' : '2px solid rgba(255,255,255,0.12)',
+              color: '#fff',
+            }}
+          >
+            {initials}
+          </div>
+        )}
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            id="user-dropdown"
+            initial={{ opacity: 0, y: 6, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 top-10 z-[2000] min-w-[220px] rounded-xl overflow-hidden"
+            style={{
+              background: 'rgba(10,14,22,0.96)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(24px)',
+              boxShadow: '0 16px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
+            }}
+          >
+            {/* User info */}
+            <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <p className="text-[13px] font-semibold font-sans text-white truncate">
+                {user.displayName || 'Operator'}
+              </p>
+              <p className="text-[11px] font-sans text-muted truncate mt-0.5">{user.email}</p>
+            </div>
+            {/* Sign out */}
+            <button
+              id="sign-out-btn"
+              onClick={async () => { setOpen(false); await signOut(); }}
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] font-sans font-medium transition-colors focus:outline-none"
+              style={{ color: 'rgba(255,255,255,0.55)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(224,88,79,0.08)'; e.currentTarget.style.color = '#f87171'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; }}
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Sign Out
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 const MOBILE_VIEWS = [
   { id: 'map', label: 'Map', icon: Map },
@@ -582,6 +674,9 @@ export default function Dashboard({ onReset }) {
             >
               <RotateCcw className="w-4 h-4" />
             </button>
+
+            {/* User avatar + sign-out dropdown */}
+            <UserAvatar />
           </div>
         </header>
 
