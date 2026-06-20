@@ -9,14 +9,34 @@ import { Compass, Target, X } from 'lucide-react';
  */
 export default function LookUpCard() {
   const { state, actions } = useApp();
-  const { selectedSatellite, selectedConstellation, viewMode, issNextPasses, location } = state;
+  const { selectedSatellite, selectedConstellation, selectedAsteroid, viewMode, issNextPasses, location } = state;
   const [now] = [Math.floor(Date.now() / 1000)];
 
   // Determine what to show
   let displayData = null;
   let title = '';
 
-  if (viewMode === 'constellations' && selectedConstellation) {
+  if (viewMode === 'asteroids' && selectedAsteroid) {
+    const coords = location 
+      ? getLocalCoordinates(selectedAsteroid.ra, selectedAsteroid.dec, location.lat, location.lon)
+      : { az: 0, el: 0 };
+    displayData = {
+      az: coords.az,
+      el: coords.el,
+      name: selectedAsteroid.name,
+      id: selectedAsteroid.id,
+      diameter_min: selectedAsteroid.diameter_min,
+      diameter_max: selectedAsteroid.diameter_max,
+      velocity_kms: selectedAsteroid.velocity_kms,
+      miss_distance_ld: selectedAsteroid.miss_distance_ld,
+      miss_distance_km: selectedAsteroid.miss_distance_km,
+      is_potentially_hazardous: selectedAsteroid.is_potentially_hazardous,
+      nasa_jpl_url: selectedAsteroid.nasa_jpl_url,
+      ra: selectedAsteroid.ra,
+      dec: selectedAsteroid.dec,
+    };
+    title = 'Asteroid Direction';
+  } else if (viewMode === 'constellations' && selectedConstellation) {
     const coords = location 
       ? getLocalCoordinates(selectedConstellation.ra, selectedConstellation.dec, location.lat, location.lon)
       : { az: 0, el: 0 };
@@ -83,11 +103,12 @@ export default function LookUpCard() {
         <h2 className="text-xs font-crimson font-bold tracking-widest uppercase text-muted-light">
           {title}
         </h2>
-        {(selectedSatellite || selectedConstellation) && (
+        {(selectedSatellite || selectedConstellation || selectedAsteroid) && (
           <button
             onClick={() => {
               if (selectedSatellite) actions.selectSatellite(null);
               if (selectedConstellation) actions.selectConstellation(null);
+              if (selectedAsteroid) actions.selectAsteroid(null);
             }}
             className="ml-auto text-muted hover:text-text transition-colors"
             aria-label="Close look-up card"
@@ -98,9 +119,57 @@ export default function LookUpCard() {
       </div>
 
       {/* Target name */}
-      <div className="text-center flex flex-col items-center">
+      <div className="text-center flex flex-col items-center w-full">
         <p className="text-cyan font-crimson font-bold text-base">{name}</p>
-        {viewMode === 'constellations' ? (
+        {viewMode === 'asteroids' && selectedAsteroid ? (
+          <div className="w-full flex flex-col items-center mt-2 gap-2">
+            {displayData.is_potentially_hazardous && (
+              <div className="w-full px-3 py-1.5 rounded-lg border border-red/40 bg-red/10 text-red text-center text-xs font-crimson font-bold animate-pulse">
+                ⚠️ Potentially Hazardous Asteroid
+              </div>
+            )}
+            <p className="text-muted text-xs font-crimson">
+              RA: <span className="font-mono">{displayData.ra?.toFixed(1)}h</span> · Dec: <span className="font-mono">{displayData.dec?.toFixed(1)}°</span>
+            </p>
+            <div className="w-full grid grid-cols-2 gap-2 bg-navy/40 p-2.5 rounded-xl border border-border mt-1 text-left text-xs font-crimson">
+              <div>
+                <span className="text-muted text-[10px] uppercase block tracking-wider">Est. Diameter</span>
+                <span className="text-text font-mono text-xs">
+                  {displayData.diameter_min?.toFixed(0)}-{displayData.diameter_max?.toFixed(0)} m
+                </span>
+                <span className="text-muted text-[10px] font-mono block">
+                  ({(displayData.diameter_min * 3.28084).toFixed(0)}-{(displayData.diameter_max * 3.28084).toFixed(0)} ft)
+                </span>
+              </div>
+              <div>
+                <span className="text-muted text-[10px] uppercase block tracking-wider">Rel. Velocity</span>
+                <span className="text-text font-mono text-xs block">
+                  {displayData.velocity_kms?.toFixed(2)} km/s
+                </span>
+                <span className="text-muted text-[10px] font-mono block">
+                  ({(displayData.velocity_kms * 3600).toFixed(0)} km/h)
+                </span>
+              </div>
+              <div className="col-span-2 border-t border-border/40 pt-2 mt-1">
+                <span className="text-muted text-[10px] uppercase block tracking-wider">Miss Distance</span>
+                <span className="text-text font-mono text-xs block">
+                  {displayData.miss_distance_ld?.toFixed(2)} LD
+                </span>
+                <span className="text-muted text-[10px] font-mono block">
+                  ({displayData.miss_distance_km?.toLocaleString()} km)
+                </span>
+              </div>
+            </div>
+            <a
+              href={displayData.nasa_jpl_url || `https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=${displayData.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 flex items-center justify-center gap-1.5 px-3 py-1 bg-navy/60 border border-border text-[11px] text-text rounded-md hover:border-amber/50 hover:text-amber transition-colors w-full"
+            >
+              <span>☄️ View JPL Small-Body Database</span>
+            </a>
+          </div>
+        ) : viewMode === 'constellations' ? (
           <>
             <p className="text-muted text-xs font-crimson mt-0.5">
               RA: <span className="font-mono">{displayData.ra}h</span> · Dec: <span className="font-mono">{displayData.dec}°</span> · {displayData.abbr}

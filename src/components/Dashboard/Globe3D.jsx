@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { useApp } from '../../context/AppContext.jsx';
 import { generateOrbitalArc } from '../../utils/orbitMath.js';
 import { SAT_TYPE_CONFIG } from '../../data/mockSatellites.js';
-import { CONSTELLATIONS, getSubStellarPoint, getLocalCoordinates, getConstellationShape } from '../../data/constellations.js';
+import { CONSTELLATIONS, getSubStellarPoint, getLocalCoordinates, getConstellationShape, getGMST } from '../../data/constellations.js';
 import worldData from '../../data/world.json';
 
 // Constants for Globe scaling
@@ -76,7 +76,10 @@ function SceneContent() {
     showConeOverlay,
     satelliteFilter,
     viewMode,
-    selectedConstellation
+    selectedConstellation,
+    asteroids = [],
+    selectedAsteroid,
+    asteroidFilter
   } = state;
 
   const earthRef = useRef();
@@ -103,6 +106,50 @@ function SceneContent() {
     })
     .filter(c => c.coords.el > 0);
   }, [location]);
+
+  // Filter asteroids based on active selection
+  const filteredAsteroids = useMemo(() => {
+    if (viewMode !== 'asteroids') return [];
+    return asteroids.filter(ast => {
+      if (asteroidFilter === 'phas') return ast.is_potentially_hazardous;
+      if (asteroidFilter === 'close') {
+        const timeDiff = Math.abs(Date.now() - ast.close_approach_timestamp);
+        return timeDiff < 24 * 3600 * 1000;
+      }
+      return true;
+    });
+  }, [asteroids, asteroidFilter, viewMode]);
+
+  // Selected asteroid trajectory points in 3D
+  const asteroid3DPath = useMemo(() => {
+    if (viewMode !== 'asteroids' || !selectedAsteroid) return [];
+    const points = [];
+    const hash = parseInt(selectedAsteroid.id) || 54321;
+    const latSlope = Math.sin(hash) * 20;
+    const lonSlope = Math.cos(hash) * 50;
+    const now = Date.now();
+    const gmst = getGMST(now);
+    const baseLat = selectedAsteroid.dec;
+    const raDeg = selectedAsteroid.ra * 15;
+    
+    let baseLon = raDeg - gmst;
+    baseLon = baseLon % 360;
+    if (baseLon > 180) baseLon -= 360;
+    if (baseLon < -180) baseLon += 360;
+
+    const radius = EARTH_RADIUS + 0.3 + Math.min(2.5, selectedAsteroid.miss_distance_ld * 0.1);
+
+    for (let i = -15; i <= 15; i++) {
+      const t = i / 15;
+      const lat = Math.max(-90, Math.min(90, baseLat + t * latSlope));
+      let lon = baseLon + t * lonSlope;
+      lon = lon % 360;
+      if (lon > 180) lon -= 360;
+      if (lon < -180) lon += 360;
+      points.push(latLonToVector3(lat, lon, radius));
+    }
+    return points;
+  }, [viewMode, selectedAsteroid]);
 
   // Calculate country border lines once
   const borderGeometry = useMemo(() => {
@@ -170,6 +217,8 @@ function SceneContent() {
     e.stopPropagation();
     if (viewMode === 'satellites') {
       actions.selectSatellite(null);
+    } else if (viewMode === 'asteroids') {
+      actions.selectAsteroid(null);
     } else {
       actions.selectConstellation(null);
     }
@@ -313,6 +362,85 @@ function SceneContent() {
         </>
       )}
 
+      {/* ── Asteroids Mode Overlays ── */}
+      {viewMode === 'asteroids' && (
+        <>
+          {/* Selected Asteroid's 3D Trajectory Path */}
+          {asteroid3DPath.length > 1 && (
+            <Line
+              points={asteroid3DPath}
+              color={selectedAsteroid.is_potentially_hazardous ? '#ef4444' : '#f59e0b'}
+              lineWidth={1.5}
+              dashed
+              dashSize={0.08}
+              gapSize={0.04}
+              raycast={() => null}
+            />
+          )}
+
+          {/* Asteroid markers */}
+          {filteredAsteroids.map((ast) => {
+            const isSelected = selectedAsteroid?.id === ast.id;
+            const radius = EARTH_RADIUS + 0.3 + Math.min(2.5, ast.miss_distance_ld * 0.1);
+            const astPos = latLonToVector3(ast.lat, ast.lon, radius);
+            const color = isSelected ? '#00d4ff' : (ast.is_potentially_hazardous ? '#ef4444' : '#f59e0b');
+
+            const handleAsteroidClick = (e) => {
+              e.stopPropagation();
+              actions.selectAsteroid(isSelected ? null : ast);
+            };
+
+            return (
+              <group key={ast.id} position={astPos}>
+                {/* Node */}
+                <mesh onClick={handleAsteroidClick}>
+                  <sphereGeometry args={[isSelected ? 0.04 : 0.025, 8, 8]} />
+                  <meshBasicMaterial color={color} />
+                </mesh>
+
+                {/* Pulsing halo */}
+                <mesh onClick={handleAsteroidClick}>
+                  <sphereGeometry args={[isSelected ? 0.08 : 0.05, 8, 8]} />
+                  <meshBasicMaterial color={color} transparent opacity={0.2} />
+                </mesh>
+
+                {/* HTML Hover/Select Tooltip */}
+                {isSelected && (
+                  <Html distanceFactor={6}>
+                    <div className="bg-panel/95 border border-cyan rounded px-2 py-1 text-[9px] text-text font-crimson font-bold select-none shadow-xl -translate-x-1/2 -translate-y-8 select-none whitespace-nowrap">
+                      <p className="text-cyan">☄️ {ast.name}</p>
+                      <p className="text-muted-light font-mono text-[7px] mt-0.5">
+                        {ast.velocity_kms?.toFixed(1)} km/s · {ast.miss_distance_ld?.toFixed(1)} LD
+                      </p>
+                      {ast.is_potentially_hazardous && (
+                        <p className="text-red-500 font-bold text-[7px] mt-0.5 animate-pulse">⚠️ HAZARDOUS (PHA)</p>
+                      )}
+                    </div>
+                  </Html>
+                )}
+              </group>
+            );
+          })}
+
+          {/* Alignment line between observer and selected asteroid */}
+          {selectedAsteroid && observerPos && (() => {
+            const radius = EARTH_RADIUS + 0.3 + Math.min(2.5, selectedAsteroid.miss_distance_ld * 0.1);
+            const astPos = latLonToVector3(selectedAsteroid.lat, selectedAsteroid.lon, radius);
+            return (
+              <Line
+                points={[observerPos, astPos]}
+                color="#00d4ff"
+                lineWidth={1}
+                dashed
+                dashSize={0.06}
+                gapSize={0.03}
+                raycast={() => null}
+              />
+            );
+          })()}
+        </>
+      )}
+
       {/* ── Constellations Mode Overlays ── */}
       {viewMode === 'constellations' && visibleConstellations.map(constell => {
         const isSelected = selectedConstellation?.id === constell.id;
@@ -414,6 +542,7 @@ export default function Globe3D({ className = '' }) {
         onPointerMissed={() => {
           actions.selectSatellite(null);
           actions.selectConstellation(null);
+          actions.selectAsteroid(null);
         }}
       >
         {/* Lights */}

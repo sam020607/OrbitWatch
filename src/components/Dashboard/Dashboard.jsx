@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext.jsx';
 import { useISSTracker } from '../../hooks/useISSTracker.js';
 import { useSatellites } from '../../hooks/useSatellites.js';
 import { usePassPredictions } from '../../hooks/usePassPredictions.js';
+import { useAsteroids } from '../../hooks/useAsteroids.js';
 import GlobeMap from './GlobeMap.jsx';
 import Globe3D from './Globe3D.jsx';
 import SatellitePanel from './SatellitePanel.jsx';
@@ -36,6 +37,7 @@ export default function Dashboard({ onReset }) {
   useISSTracker(!!location);
   useSatellites();
   usePassPredictions();
+  useAsteroids();
 
   const [mobileView, setMobileView] = useState('map');
   const [rightPanel, setRightPanel] = useState('countdown'); // 'countdown' | 'lookup' | 'report'

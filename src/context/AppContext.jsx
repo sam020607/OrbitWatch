@@ -29,15 +29,18 @@ const initialState = {
   activeView: 'map',       // 'map' | 'report' | 'lookup'
   showConeOverlay: true,
   satelliteFilter: 'major', // 'major' | 'all' | 'tv' | 'gps' | 'comms' | 'weather' | 'space-station' | 'debris' | 'earth-obs'
-  viewMode: 'satellites',   // 'satellites' | 'constellations'
+  viewMode: 'satellites',   // 'satellites' | 'constellations' | 'asteroids'
   selectedConstellation: null, // Currently selected constellation
+  asteroids: [],            // Array of asteroid objects
+  selectedAsteroid: null,   // Currently selected asteroid
+  asteroidFilter: 'all',    // 'all' | 'phas' | 'close'
 };
 
 /** ─── Reducer ───────────────────────────────────────────────────────────── */
 function appReducer(state, action) {
   switch (action.type) {
     case 'SET_LOCATION':
-      return { ...state, location: action.payload, issTrail: [], selectedSatellite: null, selectedConstellation: null };
+      return { ...state, location: action.payload, issTrail: [], selectedSatellite: null, selectedConstellation: null, selectedAsteroid: null };
 
     case 'SET_LOCATION_NAME':
       return { ...state, locationName: action.payload };
@@ -52,7 +55,7 @@ function appReducer(state, action) {
       return { ...state, satellites: action.payload };
 
     case 'SELECT_SATELLITE':
-      return { ...state, selectedSatellite: action.payload, selectedConstellation: null, activeView: action.payload ? 'lookup' : state.activeView };
+      return { ...state, selectedSatellite: action.payload, selectedConstellation: null, selectedAsteroid: null, activeView: action.payload ? 'lookup' : state.activeView };
 
     case 'SET_ISS_PASSES':
       return { ...state, issNextPasses: action.payload };
@@ -85,10 +88,19 @@ function appReducer(state, action) {
       return { ...state, satelliteFilter: action.payload };
 
     case 'SET_VIEW_MODE':
-      return { ...state, viewMode: action.payload, selectedSatellite: null, selectedConstellation: null };
+      return { ...state, viewMode: action.payload, selectedSatellite: null, selectedConstellation: null, selectedAsteroid: null };
 
     case 'SELECT_CONSTELLATION':
-      return { ...state, selectedConstellation: action.payload, selectedSatellite: null, activeView: action.payload ? 'lookup' : state.activeView };
+      return { ...state, selectedConstellation: action.payload, selectedSatellite: null, selectedAsteroid: null, activeView: action.payload ? 'lookup' : state.activeView };
+
+    case 'SET_ASTEROIDS':
+      return { ...state, asteroids: action.payload };
+
+    case 'SELECT_ASTEROID':
+      return { ...state, selectedAsteroid: action.payload, selectedSatellite: null, selectedConstellation: null, activeView: action.payload ? 'lookup' : state.activeView };
+
+    case 'SET_ASTEROID_FILTER':
+      return { ...state, asteroidFilter: action.payload };
 
     case 'RESET':
       return { ...initialState };
@@ -123,6 +135,9 @@ export function AppProvider({ children }) {
     setSatelliteFilter: (filter) => dispatch({ type: 'SET_SATELLITE_FILTER', payload: filter }),
     setViewMode: (mode) => dispatch({ type: 'SET_VIEW_MODE', payload: mode }),
     selectConstellation: (constell) => dispatch({ type: 'SELECT_CONSTELLATION', payload: constell }),
+    setAsteroids: (asteroids) => dispatch({ type: 'SET_ASTEROIDS', payload: asteroids }),
+    selectAsteroid: (asteroid) => dispatch({ type: 'SELECT_ASTEROID', payload: asteroid }),
+    setAsteroidFilter: (filter) => dispatch({ type: 'SET_ASTEROID_FILTER', payload: filter }),
     reset: () => dispatch({ type: 'RESET' }),
   }), [dispatch]);
 
