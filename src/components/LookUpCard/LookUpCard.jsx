@@ -174,10 +174,10 @@ export default function LookUpCard() {
         {/* NASA Astronomy Picture of the Day */}
         <div 
           onClick={() => setActiveModal('apod')}
-          className="glass-panel overflow-hidden border border-border flex flex-col transition-all duration-300 hover:border-amber hover:shadow-lg cursor-pointer hover:scale-[1.01]"
+          className="glass-panel overflow-hidden border border-border flex flex-col transition-all duration-300 hover:border-cyan hover:shadow-lg cursor-pointer hover:scale-[1.01]"
         >
           <div className="p-3 border-b border-border bg-navy/30 flex items-center justify-between">
-            <span className="text-[10px] font-mono text-amber tracking-[0.2em] uppercase font-bold text-glow-amber flex items-center gap-1">
+            <span className="text-[10px] font-mono text-cyan tracking-[0.2em] uppercase font-bold text-glow-cyan flex items-center gap-1">
               📷 NASA APOD
             </span>
             {apodData && (
@@ -219,17 +219,17 @@ export default function LookUpCard() {
         {satelliteOfTheDay && (
           <div 
             onClick={() => setActiveModal('sat')}
-            className="glass-panel p-4 border border-border flex flex-col gap-3 relative overflow-hidden transition-all duration-300 hover:border-amber hover:shadow-lg cursor-pointer hover:scale-[1.01]"
+            className="glass-panel p-4 border border-border flex flex-col gap-3 relative overflow-hidden transition-all duration-300 hover:border-cyan hover:shadow-lg cursor-pointer hover:scale-[1.01]"
           >
             <div className="absolute top-0 right-0 p-2 opacity-5">
               <Compass className="w-24 h-24 text-amber" />
             </div>
 
             <div className="flex items-center justify-between border-b border-border/40 pb-2">
-              <span className="text-[10px] font-mono text-amber tracking-[0.2em] uppercase font-bold text-glow-amber">
+              <span className="text-[10px] font-mono text-cyan tracking-[0.2em] uppercase font-bold text-glow-cyan">
                 🛰️ Satellite of the Day
               </span>
-              <span className="text-[9px] font-mono text-muted">ID: {satelliteOfTheDay.satid}</span>
+              <span className="text-[9px] font-mono text-cyan/70">ID: {satelliteOfTheDay.satid}</span>
             </div>
 
             <div className="flex flex-col gap-1 z-10 text-left">
@@ -250,7 +250,7 @@ export default function LookUpCard() {
                 actions.setViewMode('satellites');
                 actions.selectSatellite(satelliteOfTheDay);
               }}
-              className="mt-2 w-full py-2 bg-amber/15 border border-amber/40 hover:bg-amber hover:text-navy text-xs font-crimson font-bold text-amber rounded-lg transition-all text-center flex items-center justify-center gap-1.5 shadow-sm uppercase tracking-wider"
+              className="mt-2 w-full py-2 bg-cyan/15 border border-cyan/40 hover:bg-cyan hover:text-space text-xs font-crimson font-bold text-cyan rounded-lg transition-all text-center flex items-center justify-center gap-1.5 shadow-sm uppercase tracking-wider"
             >
               <span>Track on Map 🔭</span>
             </button>

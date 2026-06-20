@@ -27,11 +27,11 @@ function createISSIcon() {
 
 // Satellite custom icon
 function createSatIcon(type, selected = false) {
-  const color = SAT_TYPE_CONFIG[type]?.color || '#ffdf00';
+  const color = SAT_TYPE_CONFIG[type]?.color || '#5ad1ff';
   const size = selected ? 12 : 8;
   return L.divIcon({
     className: 'sat-marker-icon',
-    html: `<div class="sat-dot${selected ? ' selected' : ''}" style="width:${size}px;height:${size}px;background:${selected ? '#ff007f' : color};box-shadow:0 0 ${selected ? 12 : 6}px ${selected ? 'rgba(255,0,127,1)' : color}80;border-radius:50%;"></div>`,
+    html: `<div class="sat-dot${selected ? ' selected' : ''}" style="width:${size}px;height:${size}px;background:${selected ? '#3a7bd9' : color};box-shadow:0 0 ${selected ? 12 : 6}px ${selected ? 'rgba(58,123,217,1)' : color}80;border-radius:50%;"></div>`,
     iconSize: [size + 4, size + 4],
     iconAnchor: [(size + 4) / 2, (size + 4) / 2],
     popupAnchor: [0, -8],
@@ -45,9 +45,9 @@ function createObserverIcon() {
     html: `<div style="
       width: 14px; height: 14px;
       border-radius: 50%;
-      border: 2px solid #ffdf00;
-      background: rgba(255,223,0,0.3);
-      box-shadow: 0 0 10px rgba(255,223,0,0.8), 0 0 20px rgba(255,223,0,0.4);
+      border: 2px solid #3a7bd9;
+      background: rgba(58,123,217,0.3);
+      box-shadow: 0 0 10px rgba(58,123,217,0.8), 0 0 20px rgba(58,123,217,0.4);
     "></div>`,
     iconSize: [18, 18],
     iconAnchor: [9, 9],
@@ -56,17 +56,18 @@ function createObserverIcon() {
 
 // Asteroid custom icon
 function createAsteroidIcon(isHazardous, selected = false) {
-  const color = isHazardous ? '#ff6b6b' : '#ffdf00';
+  // Hazardous = danger red, non-hazardous = muted slate-blue
+  const color = isHazardous ? '#ff6b6b' : '#6b7fb8';
   const size = selected ? 14 : 9;
-  const shadowColor = isHazardous ? 'rgba(255,107,107,0.8)' : 'rgba(255,223,0,0.8)';
+  const shadowColor = isHazardous ? 'rgba(255,107,107,0.8)' : 'rgba(107,127,184,0.8)';
   const pulseClass = isHazardous ? 'animate-pulse' : '';
   
   return L.divIcon({
     className: 'ast-marker-icon',
     html: `<div class="${pulseClass}" style="
       width: ${size}px; height: ${size}px;
-      background: ${selected ? '#ff007f' : color};
-      box-shadow: 0 0 ${selected ? 12 : 6}px ${selected ? 'rgba(255,0,127,1)' : shadowColor};
+      background: ${selected ? '#3a7bd9' : color};
+      box-shadow: 0 0 ${selected ? 12 : 6}px ${selected ? 'rgba(58,123,217,1)' : shadowColor};
       border-radius: 50%;
       border: ${selected ? '1.5px solid #ffffff' : '1px solid rgba(255,255,255,0.4)'};
       transition: all 0.2s;

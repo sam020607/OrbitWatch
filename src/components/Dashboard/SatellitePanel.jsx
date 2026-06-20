@@ -125,7 +125,7 @@ export default function SatellitePanel() {
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
         {viewMode === 'constellations' ? (
-          <Star className="w-4 h-4 text-amber" />
+          <Star className="w-4 h-4 text-cyan" />
         ) : viewMode === 'asteroids' ? (
           <Flame className="w-4 h-4 text-red" />
         ) : (
@@ -138,7 +138,7 @@ export default function SatellitePanel() {
               ? 'Near-Earth Asteroids' 
               : 'Overhead Objects'}
         </h2>
-        <span className={`ml-auto badge ${viewMode === 'constellations' ? 'badge-amber' : viewMode === 'asteroids' ? 'badge-red' : 'badge-cyan'} text-xs`}>
+        <span className={`ml-auto badge ${viewMode === 'constellations' ? 'badge-cyan' : viewMode === 'asteroids' ? 'badge-red' : 'badge-cyan'} text-xs`}>
           {viewMode === 'constellations' 
             ? visibleConstellations.length 
             : viewMode === 'asteroids' 
@@ -166,7 +166,7 @@ export default function SatellitePanel() {
               </>
             ) : viewMode === 'constellations' ? (
               <>
-                <Star className="w-3.5 h-3.5 text-amber" />
+                <Star className="w-3.5 h-3.5 text-cyan" />
                 <span>Constellations</span>
               </>
             ) : (

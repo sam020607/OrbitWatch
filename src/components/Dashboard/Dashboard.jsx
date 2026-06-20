@@ -15,7 +15,7 @@ import LocationSearch from '../LandingPage/LocationSearch.jsx';
 import JournalPanel from '../JournalPanel/JournalPanel.jsx';
 import {
   Map, List, Star, Compass, Radio, RotateCcw,
-  Eye, EyeOff, Satellite, Settings, ChevronLeft, Globe, Trophy, Sun, Moon
+  Eye, EyeOff, Satellite, Settings, ChevronLeft, Globe, Trophy
 } from 'lucide-react';
 
 const MOBILE_VIEWS = [
@@ -33,7 +33,7 @@ const MOBILE_VIEWS = [
  */
 export default function Dashboard({ onReset }) {
   const { state, actions } = useApp();
-  const { location, issPosition, satellites, selectedSatellite, showConeOverlay, newUnlockedAchievements, theme } = state;
+  const { location, issPosition, satellites, selectedSatellite, showConeOverlay, newUnlockedAchievements } = state;
 
   // Activate all data hooks
   useISSTracker(!!location);
@@ -67,7 +67,7 @@ export default function Dashboard({ onReset }) {
         style={{ zIndex: 100 }}>
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <Satellite className="w-5 h-5 text-cyan" style={{ filter: 'drop-shadow(0 0 4px #e8b568)' }} />
+          <Satellite className="w-5 h-5 text-cyan" style={{ filter: 'drop-shadow(0 0 4px #3a7bd9)' }} />
           <span className="font-playfair font-bold text-text text-sm hidden sm:block">
             Project <span className="text-cyan">Zenith</span>
           </span>
@@ -77,7 +77,7 @@ export default function Dashboard({ onReset }) {
         <div className="flex items-center gap-2 px-3 py-1 rounded-lg border border-border bg-panel/80 cursor-pointer hover:border-border-light transition-colors"
           onClick={() => setShowSearch(s => !s)}
         >
-          <div className="w-2 h-2 rounded-full bg-amber animate-pulse" />
+          <div className="w-2 h-2 rounded-full bg-cyan animate-pulse" />
           <span className="font-crimson text-sm font-semibold text-text truncate max-w-[200px]">
             {location?.name || 'No location'}
           </span>
@@ -105,19 +105,10 @@ export default function Dashboard({ onReset }) {
           </button>
 
           {/* Satellite count */}
-          <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-md border border-amber/20 bg-amber/5">
-            <Satellite className="w-3 h-3 text-amber" />
-            <span className="font-mono text-xs text-amber">{satellites.length}</span>
+          <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-md border border-cyan/20 bg-cyan/5">
+            <Satellite className="w-3 h-3 text-cyan" />
+            <span className="font-mono text-xs text-cyan">{satellites.length}</span>
           </div>
-
-          {/* Theme toggle */}
-          <button
-            onClick={actions.toggleTheme}
-            className="p-1.5 rounded-md border border-border text-muted hover:text-text hover:border-border-light transition-all"
-            title="Toggle space theme"
-          >
-            {theme === 'light' ? <Moon className="w-4 h-4 text-cyan" /> : <Sun className="w-4 h-4 text-amber" />}
-          </button>
 
           {/* Reset */}
           <button
@@ -272,19 +263,19 @@ export default function Dashboard({ onReset }) {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.8, opacity: 0, y: 50 }}
               transition={{ type: 'spring', damping: 15 }}
-              className="w-full max-w-sm bg-panel border-2 border-amber/60 rounded-2xl p-6 flex flex-col items-center gap-4 text-center shadow-[0_0_50px_rgba(245,158,11,0.4)] relative overflow-hidden scanlines"
+              className="w-full max-w-sm bg-panel border-2 border-cyan/60 rounded-2xl p-6 flex flex-col items-center gap-4 text-center shadow-[0_0_50px_rgba(58,123,217,0.4)] relative overflow-hidden scanlines"
             >
-              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-amber to-transparent animate-pulse" />
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan to-transparent animate-pulse" />
               
-              <div className="w-16 h-16 rounded-full bg-amber/20 border border-amber/40 flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(245,158,11,0.3)] animate-bounce mt-2">
+              <div className="w-16 h-16 rounded-full bg-cyan/20 border border-cyan/40 flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(58,123,217,0.3)] animate-bounce mt-2">
                 {ach.icon}
               </div>
 
               <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-mono text-amber tracking-[0.25em] uppercase font-bold text-glow-amber">
+                <span className="text-[10px] font-mono text-cyan tracking-[0.25em] uppercase font-bold text-glow-cyan">
                   Achievement Unlocked
                 </span>
-                <h3 className="text-xl font-playfair font-bold text-text mt-1 text-shadow-amber">
+                <h3 className="text-xl font-playfair font-bold text-text mt-1">
                   {ach.title}
                 </h3>
               </div>
@@ -295,7 +286,7 @@ export default function Dashboard({ onReset }) {
 
               <button
                 onClick={actions.dismissAchievementToast}
-                className="mt-2 w-full py-2 bg-amber border border-amber text-xs font-crimson font-bold text-navy rounded-lg hover:bg-transparent hover:text-amber hover:border-amber transition-all shadow-md uppercase tracking-wider"
+                className="mt-2 w-full py-2 bg-cyan border border-cyan text-xs font-crimson font-bold text-space rounded-lg hover:bg-transparent hover:text-cyan hover:border-cyan transition-all shadow-md uppercase tracking-wider"
               >
                 Awesome!
               </button>

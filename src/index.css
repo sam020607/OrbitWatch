@@ -10,16 +10,17 @@
   --color-panel-light: #1d0e36;  /* Elevated surface */
   --color-border: #2a174d;       /* Twilight line */
   --color-border-light: #3d266a; /* Lighter twilight line */
-  --color-cyan: #e8b568;         /* Stardust gold */
-  --color-cyan-dim: #ba8a3f;     /* Dimmed Stardust gold */
-  --color-amber: #ffdf00;        /* Bright Stardust gold */
-  --color-amber-dim: #cca300;    /* Dimmed Bright Stardust gold */
+  /* Blue accent system — replaces all gold/amber/purple */
+  --color-cyan: #3a7bd9;         /* Primary accent blue */
+  --color-cyan-dim: #2a5fa8;     /* Pressed/darker blue */
+  --color-amber: #7fb3e0;        /* Lighter accent / hover blue */
+  --color-amber-dim: #2a5fa8;    /* Darker pressed blue */
   --color-success: #10b981;      /* Standard success green */
   --color-danger: #ff6b6b;       /* Comet coral */
-  --color-text: #ffffff;         /* Starlight white */
+  --color-text: #f5f7fa;         /* Starlight white */
   --color-muted: #7a7f9a;        /* Moon mist (darker) */
   --color-muted-light: #a3aed0;  /* Moon mist (lighter) */
-  --color-pink: #b57edc;         /* Aurora lavender */
+  --color-pink: #6b7fb8;         /* Muted slate-blue (replaces aurora lavender) */
 
   /* Cinematic Theme Custom Properties - Dark Mode */
   --bg: #070a12;
@@ -102,9 +103,9 @@ h1, h2, h3, h4, h5, h6 {
 .iss-dot {
   width: 16px;
   height: 16px;
-  background: #e8b568;
+  background: #3a7bd9;
   border-radius: 50%;
-  box-shadow: 0 0 0 3px rgba(232, 181, 104, 0.3), 0 0 15px rgba(232, 181, 104, 0.8);
+  box-shadow: 0 0 0 3px rgba(58, 123, 217, 0.3), 0 0 15px rgba(58, 123, 217, 0.8);
   animation: issPulse 1.5s ease-in-out infinite;
   position: relative;
 }
@@ -114,13 +115,13 @@ h1, h2, h3, h4, h5, h6 {
   position: absolute;
   inset: -6px;
   border-radius: 50%;
-  border: 2px solid rgba(232, 181, 104, 0.4);
+  border: 2px solid rgba(58, 123, 217, 0.4);
   animation: issRing 1.5s ease-in-out infinite;
 }
 
 @keyframes issPulse {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(232, 181, 104, 0.3), 0 0 15px rgba(232, 181, 104, 0.8); }
-  50% { box-shadow: 0 0 0 6px rgba(232, 181, 104, 0.15), 0 0 30px rgba(232, 181, 104, 1); }
+  0%, 100% { box-shadow: 0 0 0 3px rgba(58, 123, 217, 0.3), 0 0 15px rgba(58, 123, 217, 0.8); }
+  50% { box-shadow: 0 0 0 6px rgba(58, 123, 217, 0.15), 0 0 30px rgba(58, 123, 217, 1); }
 }
 
 @keyframes issRing {
@@ -134,29 +135,29 @@ h1, h2, h3, h4, h5, h6 {
 .sat-dot {
   width: 8px;
   height: 8px;
-  background: #f59e0b;
+  background: #5ad1ff;
   border-radius: 50%;
-  box-shadow: 0 0 6px rgba(245, 158, 11, 0.8);
+  box-shadow: 0 0 6px rgba(90, 209, 255, 0.8);
   transition: all 0.2s;
 }
 
 .sat-dot:hover {
   width: 12px;
   height: 12px;
-  box-shadow: 0 0 12px rgba(245, 158, 11, 1);
+  box-shadow: 0 0 12px rgba(90, 209, 255, 1);
 }
 
 .sat-dot.selected {
-  background: #e8b568;
-  box-shadow: 0 0 12px rgba(232, 181, 104, 1);
+  background: #3a7bd9;
+  box-shadow: 0 0 12px rgba(58, 123, 217, 1);
 }
 
 /* ─── Orbital Path ──────────────────────────────────────────────────────── */
 .orbital-path {
-  stroke: rgba(232, 181, 104, 0.5) !important;
+  stroke: rgba(58, 123, 217, 0.5) !important;
   stroke-width: 2 !important;
   stroke-dasharray: 8, 4 !important;
-  filter: drop-shadow(0 0 3px rgba(232, 181, 104, 0.6));
+  filter: drop-shadow(0 0 3px rgba(58, 123, 217, 0.6));
   animation: orbitDash 2s linear infinite;
 }
 
@@ -232,9 +233,9 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ─── Tab active state ──────────────────────────────────────────────────── */
 .tab-active {
-  color: #e8b568;
-  border-bottom: 2px solid #e8b568;
-  text-shadow: 0 0 8px rgba(232, 181, 104, 0.6);
+  color: #3a7bd9;
+  border-bottom: 2px solid #3a7bd9;
+  text-shadow: 0 0 8px rgba(58, 123, 217, 0.6);
 }
 
 /* ─── Elevation arc ─────────────────────────────────────────────────────── */
@@ -286,82 +287,82 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid color-mix(in srgb, var(--color-pink) 30%, transparent);
 }
 
-/* ─── Hero Page Gold Accent Styles ───────────────────────────────────────── */
+/* ─── Hero Page Blue Accent Styles ───────────────────────────────────────── */
 .hero-pill-gold:hover {
-  border-color: rgba(232, 181, 104, 0.5) !important;
-  color: #e8b568 !important;
-  background-color: rgba(232, 181, 104, 0.05) !important;
+  border-color: rgba(58, 123, 217, 0.5) !important;
+  color: #3a7bd9 !important;
+  background-color: rgba(58, 123, 217, 0.05) !important;
 }
 
 .hero-btn-gold {
-  background-color: #e8b568 !important;
-  color: #4a3417 !important;
-  box-shadow: 0 0 15px rgba(232, 181, 104, 0.5) !important;
+  background-color: #3a7bd9 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 15px rgba(58, 123, 217, 0.5) !important;
   transition: all 0.25s ease-in-out;
 }
 
 .hero-btn-gold:hover {
-  background-color: #ba8a3f !important;
-  box-shadow: 0 0 20px rgba(232, 181, 104, 0.7) !important;
+  background-color: #2a5fa8 !important;
+  box-shadow: 0 0 20px rgba(58, 123, 217, 0.7) !important;
 }
 
-/* ─── Tailwind Cyan-to-Gold Class Overrides ─────────────────────────────── */
+/* ─── Tailwind Blue Accent Class Overrides ─────────────────────────────── */
 .text-cyan {
-  color: #e8b568 !important;
+  color: #3a7bd9 !important;
 }
 .text-cyan\/70 {
-  color: rgba(232, 181, 104, 0.7) !important;
+  color: rgba(58, 123, 217, 0.7) !important;
 }
 .bg-cyan {
-  background-color: #e8b568 !important;
+  background-color: #3a7bd9 !important;
 }
 .bg-cyan\/5 {
-  background-color: rgba(232, 181, 104, 0.05) !important;
+  background-color: rgba(58, 123, 217, 0.05) !important;
 }
 .bg-cyan\/10 {
-  background-color: rgba(232, 181, 104, 0.1) !important;
+  background-color: rgba(58, 123, 217, 0.1) !important;
 }
 .bg-cyan\/20 {
-  background-color: rgba(232, 181, 104, 0.2) !important;
+  background-color: rgba(58, 123, 217, 0.2) !important;
 }
 .bg-cyan\/40 {
-  background-color: rgba(232, 181, 104, 0.4) !important;
+  background-color: rgba(58, 123, 217, 0.4) !important;
 }
 .border-cyan {
-  border-color: #e8b568 !important;
+  border-color: #3a7bd9 !important;
 }
 .border-cyan\/20 {
-  border-color: rgba(232, 181, 104, 0.2) !important;
+  border-color: rgba(58, 123, 217, 0.2) !important;
 }
 .border-cyan\/30 {
-  border-color: rgba(232, 181, 104, 0.3) !important;
+  border-color: rgba(58, 123, 217, 0.3) !important;
 }
 .border-cyan\/40 {
-  border-color: rgba(232, 181, 104, 0.4) !important;
+  border-color: rgba(58, 123, 217, 0.4) !important;
 }
 .border-l-cyan {
-  border-left-color: #e8b568 !important;
+  border-left-color: #3a7bd9 !important;
 }
 .badge-cyan {
-  background-color: rgba(232, 181, 104, 0.15) !important;
-  color: #e8b568 !important;
-  border-color: rgba(232, 181, 104, 0.3) !important;
+  background-color: rgba(58, 123, 217, 0.15) !important;
+  color: #7fb3e0 !important;
+  border-color: rgba(58, 123, 217, 0.3) !important;
 }
 .hover\:text-cyan:hover {
-  color: #e8b568 !important;
+  color: #3a7bd9 !important;
 }
 .hover\:border-cyan:hover {
-  border-color: #e8b568 !important;
+  border-color: #3a7bd9 !important;
 }
 .hover\:bg-cyan\/10:hover {
-  background-color: rgba(232, 181, 104, 0.1) !important;
+  background-color: rgba(58, 123, 217, 0.1) !important;
 }
 .hover\:bg-cyan\/20:hover {
-  background-color: rgba(232, 181, 104, 0.2) !important;
+  background-color: rgba(58, 123, 217, 0.2) !important;
 }
 .focus\:border-cyan:focus {
-  border-color: #e8b568 !important;
+  border-color: #3a7bd9 !important;
 }
 .focus\:ring-cyan\/30:focus {
-  --tw-ring-color: rgba(232, 181, 104, 0.3) !important;
+  --tw-ring-color: rgba(58, 123, 217, 0.3) !important;
 }

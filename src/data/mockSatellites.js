@@ -302,11 +302,11 @@ export const MOCK_METEOR_SHOWERS = [
  * Satellite type display config
  */
 export const SAT_TYPE_CONFIG = {
-  'space-station': { label: 'Station', color: '#ff007f', badgeClass: 'badge-cyan' },
-  'weather':       { label: 'Weather', color: '#b57edc', badgeClass: 'badge-pink' },
-  'gps':           { label: 'GPS', badgeClass: 'badge-amber', color: '#ffdf00' },
+  'space-station': { label: 'Station', color: '#3a7bd9', badgeClass: 'badge-cyan' },
+  'weather':       { label: 'Weather', color: '#6b7fb8', badgeClass: 'badge-pink' },
+  'gps':           { label: 'GPS',     color: '#5ad1ff', badgeClass: 'badge-cyan' },
   'comms':         { label: 'Comms',   color: '#ff6b6b', badgeClass: 'badge-red' },
-  'tv':            { label: 'TV Sat',  color: '#b57edc', badgeClass: 'badge-pink' },
-  'earth-obs':     { label: 'EO Sat',  color: '#ffdf00', badgeClass: 'badge-amber' },
+  'tv':            { label: 'TV Sat',  color: '#6b7fb8', badgeClass: 'badge-pink' },
+  'earth-obs':     { label: 'EO Sat',  color: '#5ad1ff', badgeClass: 'badge-cyan' },
   'debris':        { label: 'Debris',  color: '#7a7f9a', badgeClass: 'badge-red' },
 };

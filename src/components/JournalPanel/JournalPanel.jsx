@@ -69,7 +69,7 @@ export default function JournalPanel() {
               className="h-full rounded-full bg-cyan transition-all duration-500"
               style={{
                 width: `${levelProgress}%`,
-                boxShadow: '0 0 6px rgba(0,212,255,0.7)',
+                boxShadow: '0 0 6px rgba(58, 123, 217, 0.7)',
               }}
             />
           </div>
@@ -89,7 +89,7 @@ export default function JournalPanel() {
             </div>
           </div>
           <div className="bg-navy/40 border border-border/40 rounded-lg p-2 flex items-center gap-2">
-            <Award className="w-4 h-4 text-amber" />
+            <Award className="w-4 h-4 text-cyan" />
             <div>
               <span className="text-[9px] text-muted block leading-none">ACHIEVEMENTS</span>
               <span className="font-mono text-xs font-bold text-text leading-none">

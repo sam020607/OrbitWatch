@@ -70,7 +70,7 @@ export default function PassCountdown() {
           </span>
         )}
         {isVisible && (
-          <span className="ml-auto badge badge-amber" style={{ fontSize: 9 }}>
+          <span className="ml-auto badge badge-cyan" style={{ fontSize: 9 }}>
             VISIBLE NOW
           </span>
         )}
@@ -79,7 +79,7 @@ export default function PassCountdown() {
       {/* Countdown timer */}
       <div className={`relative flex flex-col items-center justify-center py-5 rounded-xl border transition-all duration-1000
         ${isVisible
-          ? 'border-amber/40 bg-amber/5'
+          ? 'border-cyan/40 bg-cyan/5'
           : isImminent
             ? 'border-cyan/60 bg-cyan/5 animate-pulse-glow'
             : 'border-border bg-navy/30'
@@ -95,8 +95,8 @@ export default function PassCountdown() {
         <div
           className="font-mono text-4xl font-bold tracking-wider"
           style={{
-            color: '#e8b568',
-            textShadow: '0 0 20px rgba(232, 181, 104, 0.6)',
+            color: '#3a7bd9',
+            textShadow: '0 0 20px rgba(58, 123, 217, 0.6)',
             fontVariantNumeric: 'tabular-nums',
           }}
         >
@@ -106,7 +106,7 @@ export default function PassCountdown() {
         {/* Magnitude */}
         {currentPass.mag != null && (
           <p className="mt-2 text-xs text-muted font-crimson">
-            Brightness: <span className="text-amber">{magnitudeToDescription(currentPass.mag)}</span>
+            Brightness: <span className="text-cyan">{magnitudeToDescription(currentPass.mag)}</span>
             <span className="text-muted ml-1">({currentPass.mag > 0 ? '+' : ''}{currentPass.mag?.toFixed(1)} mag)</span>
           </p>
         )}
@@ -118,7 +118,7 @@ export default function PassCountdown() {
           <span className="font-mono text-lg font-bold text-cyan">{currentPass.maxEl}°</span>
         </StatCard>
         <StatCard icon={<Eye className="w-3 h-3" />} label="Peak Direction">
-          <span className="font-mono text-lg font-bold text-amber">{currentPass.maxAzCompass}</span>
+          <span className="font-mono text-lg font-bold text-cyan">{currentPass.maxAzCompass}</span>
           <span className="font-mono text-xs text-muted ml-1">{currentPass.maxAz}°</span>
         </StatCard>
         <StatCard label="AOS (Start)" sub={`from ${currentPass.startAzCompass}`}>
@@ -138,7 +138,7 @@ export default function PassCountdown() {
         <div className="w-full h-1.5 bg-border rounded-full overflow-hidden">
           {isVisible ? (
             <div
-              className="h-full bg-amber rounded-full transition-all duration-1000"
+              className="h-full bg-cyan rounded-full transition-all duration-1000"
               style={{ width: `${((currentPass.duration - secsToEnd) / currentPass.duration) * 100}%` }}
             />
           ) : (

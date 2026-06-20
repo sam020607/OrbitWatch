@@ -30,7 +30,7 @@ export default function NightReport() {
       {/* Header */}
       <div className="px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2 mb-1">
-          <Star className="w-4 h-4 text-amber" />
+          <Star className="w-4 h-4 text-cyan" />
           <h2 className="text-sm font-crimson font-bold tracking-wider uppercase text-text">
             What's Visible Tonight?
           </h2>
@@ -196,7 +196,7 @@ function PlanetsTab({ data }) {
             </div>
             {mag != null && (
               <div className="text-right shrink-0">
-                <p className="font-mono text-sm text-amber">{mag > 0 ? '+' : ''}{mag.toFixed(1)}</p>
+                <p className="font-mono text-sm text-cyan">{mag > 0 ? '+' : ''}{mag.toFixed(1)}</p>
                 <p className="text-muted text-xs font-crimson">mag</p>
               </div>
             )}
@@ -246,7 +246,7 @@ function MoonTab({ data }) {
       {/* Phase info */}
       <div className="text-center z-10">
         <p className="font-crimson text-lg font-bold text-text">{phaseName}</p>
-        <p className="text-amber font-crimson text-sm mt-1">
+        <p className="text-cyan font-crimson text-sm mt-1">
           <span className="font-mono text-base font-bold">{illumination}%</span> illuminated
         </p>
         {age && (
@@ -309,7 +309,7 @@ function MeteorTab({ showers }) {
                 Peak: <span className="text-muted-light">{shower.peak}</span>
               </p>
               <p className="text-muted text-xs mb-2 font-crimson">
-                Rate: <span className="text-amber font-mono font-bold">~{shower.rate}</span><span className="text-muted-light">/hour at peak</span>
+                Rate: <span className="text-cyan font-mono font-bold">~{shower.rate}</span><span className="text-muted-light">/hour at peak</span>
               </p>
               <p className="text-muted text-xs leading-relaxed font-crimson">{shower.description}</p>
             </div>
