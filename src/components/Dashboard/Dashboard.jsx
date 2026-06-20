@@ -257,7 +257,7 @@ export default function Dashboard({ onReset }) {
           ${isCollapsed ? 'w-[72px]' : 'w-[240px]'}`}
       >
         {/* Header block at top */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.02] h-[52px] shrink-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08] h-[52px] shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             <Satellite className="w-5 h-5 text-cyan shrink-0 animate-pulse" />
             {!isCollapsed && (
@@ -414,7 +414,7 @@ export default function Dashboard({ onReset }) {
         </div>
 
         {/* Separator */}
-        <div className="border-t border-white/[0.02] my-2 mx-3 shrink-0" />
+        <div className="border-t border-white/[0.08] my-2 mx-3 shrink-0" />
 
         {/* Bottom anchored diagnostics/settings links */}
         <div className="space-y-1 px-3 pb-4 shrink-0">
@@ -456,7 +456,7 @@ export default function Dashboard({ onReset }) {
       <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
         {/* ── Top Navigation Bar ── */}
         <header className="flex items-center gap-3 px-4 py-2.5 shrink-0"
-          style={{ zIndex: 100, background: 'rgba(10,13,21,0.60)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+          style={{ zIndex: 100, background: 'rgba(10,13,21,0.70)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           {/* Logo (hidden on desktop, since rail shows it) */}
           <div className="flex items-center gap-2 lg:hidden">
             <Satellite className="w-5 h-5 text-cyan animate-pulse" />
@@ -666,7 +666,7 @@ export default function Dashboard({ onReset }) {
                  const headerInfo = getHeaderInfo();
                  const Icon = headerInfo.icon;
                  return (
-                   <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.02] h-[52px] shrink-0 select-none">
+                   <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.08] h-[52px] shrink-0 select-none">
                      <Icon className="w-3.5 h-3.5 text-cyan" />
                      <h3 className="font-playfair italic text-base font-bold text-text-primary">
                       {headerInfo.label}

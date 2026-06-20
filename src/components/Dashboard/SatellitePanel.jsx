@@ -150,7 +150,7 @@ export default function SatellitePanel({ hideHeader = false }) {
       )}
 
       {/* Filter / Mode Dropdown Selector */}
-      <div className="px-4 py-2 border-b border-white/[0.02] flex flex-col gap-1 shrink-0 relative z-[200]" style={{ background: 'rgba(15,22,38,0.4)' }}>
+      <div className="px-4 py-2 border-b border-white/[0.08] flex flex-col gap-1 shrink-0 relative z-[200]" style={{ background: 'rgba(15,22,38,0.4)' }}>
         <label className="text-[11px] font-sans text-muted uppercase tracking-wider font-semibold">
           Tracking Target
         </label>
@@ -297,7 +297,7 @@ export default function SatellitePanel({ hideHeader = false }) {
       </div>
 
       {/* Search Bar */}
-      <div className="px-4 py-2 border-b border-white/[0.02] shrink-0" style={{ background: 'rgba(15,22,38,0.4)' }}>
+      <div className="px-4 py-2 border-b border-white/[0.08] shrink-0" style={{ background: 'rgba(15,22,38,0.4)' }}>
         <div className="relative">
           <input
             type="text"
@@ -611,21 +611,21 @@ export default function SatellitePanel({ hideHeader = false }) {
 
       {/* Footer: selected object info */}
       {viewMode === 'constellations' && selectedConstellation && (
-        <div className="p-3 border-t border-white/[0.02] glass-tile" style={{ borderRadius: 0 }}>
+        <div className="p-3 border-t border-white/[0.08] glass-tile" style={{ borderRadius: 0 }}>
           <p className="text-cyan text-[11px] font-sans uppercase tracking-wider font-bold text-center">
             🌌 Tracking: {selectedConstellation.name}
           </p>
         </div>
       )}
       {viewMode === 'asteroids' && selectedAsteroid && (
-        <div className="p-3 border-t border-white/[0.02] glass-tile" style={{ borderRadius: 0 }}>
+        <div className="p-3 border-t border-white/[0.08] glass-tile" style={{ borderRadius: 0 }}>
           <p className="text-cyan text-[11px] font-sans uppercase tracking-wider font-bold text-center">
             ☄️ Tracking: {selectedAsteroid.name}
           </p>
         </div>
       )}
       {viewMode === 'satellites' && selectedSatellite && (
-        <div className="p-3 border-t border-white/[0.02] glass-tile" style={{ borderRadius: 0 }}>
+        <div className="p-3 border-t border-white/[0.08] glass-tile" style={{ borderRadius: 0 }}>
           <p className="text-cyan text-[11px] font-sans uppercase tracking-wider font-bold text-center">
             📡 Tracking: {selectedSatellite.satname}
           </p>
