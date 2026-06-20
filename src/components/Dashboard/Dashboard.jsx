@@ -36,17 +36,7 @@ function UserAvatar() {
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
-  if (!user) {
-    return (
-      <button
-        id="top-bar-signin-btn"
-        onClick={() => setShowAuthModal(true)}
-        className="px-3 py-1 rounded-md border border-accent/40 bg-accent/10 text-accent hover:bg-accent/20 hover:border-accent/60 transition-all font-sans text-xs font-semibold uppercase tracking-wider focus:outline-none cursor-pointer"
-      >
-        Sign In
-      </button>
-    );
-  }
+  if (!user) return null;
 
   const initials = (user.displayName || user.email || '?')
     .split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);

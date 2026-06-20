@@ -33,7 +33,7 @@ function AppInner() {
 
   return (
     <AppProvider>
-      <div className="relative w-full h-full overflow-hidden bg-[#070a12]">
+      <div className="relative w-full h-full overflow-hidden bg-transparent">
         <AnimatePresence mode="wait">
           {!hasLocation ? (
             <motion.div
