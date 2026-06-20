@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, Suspense, Fragment } from 'react';
+import React, { useRef, useMemo, Suspense, Fragment, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, useTexture, Stars, Html, Line } from '@react-three/drei';
 import * as THREE from 'three';
@@ -725,7 +725,23 @@ export default function Globe3D({ className = '' }) {
     return latLonToVector3(pos.lat, pos.lon, 15);
   }, []);
 
-  const shouldAutoRotate = !selectedSatellite && !selectedAsteroid && !selectedConstellation;
+  const [globeSettings, setGlobeSettings] = useState({
+    autoRotate: localStorage.getItem('orbitwatch_settings_globe_rotate') !== 'false',
+    speed: parseFloat(localStorage.getItem('orbitwatch_settings_globe_speed') || '0.3'),
+  });
+
+  useEffect(() => {
+    const handleSettingsChange = () => {
+      setGlobeSettings({
+        autoRotate: localStorage.getItem('orbitwatch_settings_globe_rotate') !== 'false',
+        speed: parseFloat(localStorage.getItem('orbitwatch_settings_globe_speed') || '0.3'),
+      });
+    };
+    window.addEventListener('orbitwatch-settings-changed', handleSettingsChange);
+    return () => window.removeEventListener('orbitwatch-settings-changed', handleSettingsChange);
+  }, []);
+
+  const shouldAutoRotate = globeSettings.autoRotate && !selectedSatellite && !selectedAsteroid && !selectedConstellation;
 
   return (
     <div className={`relative bg-space ${className}`}>
@@ -764,7 +780,7 @@ export default function Globe3D({ className = '' }) {
           minDistance={2.5}
           maxDistance={12}
           autoRotate={shouldAutoRotate}
-          autoRotateSpeed={0.3}
+          autoRotateSpeed={globeSettings.speed}
         />
       </Canvas>
 

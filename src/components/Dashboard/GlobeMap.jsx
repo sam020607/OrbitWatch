@@ -322,6 +322,26 @@ export default function GlobeMap({ className = '' }) {
     issNextPasses = []
   } = state;
 
+  const [mapSettings, setMapSettings] = useState({
+    showGrid: localStorage.getItem('orbitwatch_settings_show_grid') !== 'false',
+    showStars: localStorage.getItem('orbitwatch_settings_show_stars') !== 'false',
+    showRadar: localStorage.getItem('orbitwatch_settings_show_radar') !== 'false',
+    showCities: localStorage.getItem('orbitwatch_settings_show_cities') !== 'false',
+  });
+
+  useEffect(() => {
+    const handleSettingsChange = () => {
+      setMapSettings({
+        showGrid: localStorage.getItem('orbitwatch_settings_show_grid') !== 'false',
+        showStars: localStorage.getItem('orbitwatch_settings_show_stars') !== 'false',
+        showRadar: localStorage.getItem('orbitwatch_settings_show_radar') !== 'false',
+        showCities: localStorage.getItem('orbitwatch_settings_show_cities') !== 'false',
+      });
+    };
+    window.addEventListener('orbitwatch-settings-changed', handleSettingsChange);
+    return () => window.removeEventListener('orbitwatch-settings-changed', handleSettingsChange);
+  }, []);
+
   // Filter based on active selection
   const filteredSatellites = satellites.filter(sat => {
     if (satelliteFilter === 'all') return true;
@@ -407,7 +427,7 @@ export default function GlobeMap({ className = '' }) {
         <ResizeController />
 
         {/* Faint Lat/Long Grid Overlay */}
-        {GRID_LINES.map(line => (
+        {mapSettings.showGrid && GRID_LINES.map(line => (
           <Polyline
             key={line.id}
             positions={line.positions}
@@ -418,7 +438,7 @@ export default function GlobeMap({ className = '' }) {
         ))}
 
         {/* Sparse Ambient Stars in Oceans */}
-        {OCEAN_STARS.map((coords, idx) => {
+        {mapSettings.showStars && OCEAN_STARS.map((coords, idx) => {
           const starIcon = L.divIcon({
             className: 'ambient-star',
             html: '<div class="star-sparkle"></div>',
@@ -437,7 +457,7 @@ export default function GlobeMap({ className = '' }) {
         })}
 
         {/* Radar sweep at user location */}
-        {location && (
+        {location && mapSettings.showRadar && (
           <Pane name="radar-sweep-pane" style={{ zIndex: 450 }}>
             <Marker 
               position={[location.lat, location.lon]} 
@@ -448,7 +468,7 @@ export default function GlobeMap({ className = '' }) {
         )}
 
         {/* Ambient City Lights Glow Overlay */}
-        {CITY_LIGHTS.map((coords, idx) => {
+        {mapSettings.showCities && CITY_LIGHTS.map((coords, idx) => {
           const cityIcon = L.divIcon({
             className: 'city-glow-dot',
             html: '<div style="width: 2.5px; height: 2.5px; background: rgba(255, 180, 90, 0.45); border-radius: 50%; box-shadow: 0 0 3px rgba(255, 180, 90, 0.65);"></div>',

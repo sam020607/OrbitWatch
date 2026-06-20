@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Satellite, Github, Mail, Lock, User, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
+import { Satellite, Github, Mail, Lock, User, Eye, EyeOff, AlertCircle, Loader2, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 
 /* ─── Google G SVG icon ──────────────────────────────────────────────────── */
@@ -63,8 +63,8 @@ function OrbitalRing({ radius, duration, opacity = 0.12, children }) {
 }
 
 /* ─── Main Auth Page ─────────────────────────────────────────────────────── */
-export default function AuthPage() {
-  const { signInWithGoogle, signInWithGithub, signInWithEmail, signUpWithEmail, authError, clearError } = useAuth();
+export default function AuthPage({ isModal = false, onClose }) {
+  const { signInWithGoogle, signInWithGithub, signInWithEmail, signUpWithEmail, authError, clearError, user } = useAuth();
   const [mode, setMode]         = useState('signin'); // 'signin' | 'signup'
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -72,6 +72,12 @@ export default function AuthPage() {
   const [showPw, setShowPw]     = useState(false);
   const [loading, setLoading]   = useState(null); // 'google' | 'github' | 'email' | null
   const [localError, setLocalError] = useState(null);
+
+  useEffect(() => {
+    if (user && onClose) {
+      onClose();
+    }
+  }, [user, onClose]);
 
   const error = localError || authError;
 
@@ -122,8 +128,19 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center overflow-hidden"
-      style={{ background: '#070a12' }}>
+    <div
+      className="fixed inset-0 flex items-center justify-center overflow-hidden"
+      style={{
+        background: isModal ? 'rgba(7, 10, 18, 0.72)' : '#070a12',
+        backdropFilter: isModal ? 'blur(16px)' : 'none',
+        WebkitBackdropFilter: isModal ? 'blur(16px)' : 'none',
+      }}
+      onClick={(e) => {
+        if (isModal && e.target === e.currentTarget && onClose) {
+          onClose();
+        }
+      }}
+    >
 
       {/* Background — inherits the Earth-from-space body::before / body::after */}
       <Stars />
@@ -146,6 +163,7 @@ export default function AuthPage() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="relative z-10 w-full max-w-[420px] mx-4"
+        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking card content
       >
         <div style={{
           background: 'rgba(10, 14, 22, 0.82)',
@@ -155,7 +173,20 @@ export default function AuthPage() {
           borderRadius: '20px',
           boxShadow: '0 24px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)',
           padding: '40px 36px 36px',
+          position: 'relative',
         }}>
+
+          {/* Close button for modal */}
+          {isModal && onClose && (
+            <button
+              id="auth-modal-close-btn"
+              type="button"
+              onClick={onClose}
+              className="absolute top-4 right-4 p-1 rounded-md text-muted hover:text-white hover:bg-white/5 transition-all focus:outline-none"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
 
           {/* Logo */}
           <div className="flex flex-col items-center gap-2 mb-8">

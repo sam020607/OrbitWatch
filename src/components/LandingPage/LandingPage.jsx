@@ -6,6 +6,7 @@ import L from 'leaflet';
 import { reverseGeocode } from '../../api/geocodeApi.js';
 import LocationSearch from './LocationSearch.jsx';
 import { useApp } from '../../context/AppContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 const POPULAR_LOCATIONS = [
   { name: 'New York', lat: 40.7128, lon: -74.0060 },
@@ -77,6 +78,7 @@ function GlobeController({ onInteraction, center }) {
  */
 export default function LandingPage({ onLocationSet }) {
   const { state, actions } = useApp();
+  const { user, setShowAuthModal } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [method, setMethod] = useState('search'); // 'search' | 'globe'
   const [clickedCoords, setClickedCoords] = useState(null); // { lat, lon }
@@ -143,6 +145,50 @@ export default function LandingPage({ onLocationSet }) {
   return (
     <div className="w-full min-h-screen bg-[var(--bg)] text-[var(--text-primary)] transition-colors duration-300 overflow-y-auto overflow-x-hidden scroll-smooth">
       
+      {/* Floating Header */}
+      <header className="absolute top-0 left-0 right-0 h-16 flex items-center justify-between px-6 z-30 pointer-events-none">
+        <div className="flex items-center gap-2 pointer-events-auto">
+          <span className="font-sans text-[10px] font-bold tracking-[0.3em] uppercase text-[var(--text-secondary)] select-none">
+            ORBITWATCH // PROJ_ZENITH
+          </span>
+        </div>
+        <div className="pointer-events-auto">
+          {user ? (
+            <div className="flex items-center gap-3">
+              <span className="text-[11px] font-sans font-semibold text-[var(--text-secondary)] uppercase tracking-wider hidden sm:inline-block">
+                Operator: <span className="text-white font-bold">{user.displayName || user.email.split('@')[0]}</span>
+              </span>
+              {user.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt="avatar"
+                  className="w-8 h-8 rounded-full border border-white/10"
+                />
+              ) : (
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold font-sans"
+                  style={{
+                    background: 'linear-gradient(135deg, #4d8dff 0%, #6b6fd6 100%)',
+                    color: '#fff',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                  }}
+                >
+                  {(user.displayName || user.email || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              id="landing-signin-btn"
+              onClick={() => setShowAuthModal(true)}
+              className="px-4 py-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all font-sans text-xs font-semibold uppercase tracking-widest text-white focus:outline-none cursor-pointer"
+            >
+              Sign In
+            </button>
+          )}
+        </div>
+      </header>
+
       {/* Hero Section */}
       <div id="hero-section" className="relative w-full min-h-[85vh] pt-16 pb-24 flex flex-col justify-start items-center overflow-hidden border-b border-[var(--surface-border)] bg-[var(--bg)] transition-colors duration-300">
         

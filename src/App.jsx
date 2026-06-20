@@ -12,7 +12,7 @@ import AuthPage from './components/Auth/AuthPage.jsx';
  * Shows the AuthPage if not signed in, then the existing landing → dashboard flow.
  */
 function AppInner() {
-  const { user, loading } = useAuth();
+  const { user, loading, showAuthModal, setShowAuthModal } = useAuth();
   const [hasLocation, setHasLocation] = useState(false);
 
   // Firebase is resolving the persisted session — show a minimal splash
@@ -31,49 +31,51 @@ function AppInner() {
     );
   }
 
-  // Not authenticated — show login page
-  if (!user) {
-    return (
-      <motion.div
-        key="auth"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="w-full h-full"
-      >
-        <AuthPage />
-      </motion.div>
-    );
-  }
-
-  // Authenticated — existing landing → dashboard flow
   return (
     <AppProvider>
-      <AnimatePresence mode="wait">
-        {!hasLocation ? (
-          <motion.div
-            key="landing"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.5 }}
-            className="w-full h-full"
-          >
-            <LandingPage onLocationSet={() => setHasLocation(true)} />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="dashboard"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="w-full h-full"
-          >
-            <Dashboard onReset={() => setHasLocation(false)} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="relative w-full h-full overflow-hidden bg-[#070a12]">
+        <AnimatePresence mode="wait">
+          {!hasLocation ? (
+            <motion.div
+              key="landing"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.5 }}
+              className="w-full h-full"
+            >
+              <LandingPage onLocationSet={() => setHasLocation(true)} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="dashboard"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+              className="w-full h-full"
+            >
+              <Dashboard onReset={() => setHasLocation(false)} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Global Auth Modal Overlay */}
+        <AnimatePresence>
+          {showAuthModal && (
+            <motion.div
+              key="auth-modal"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={{ zIndex: 9999 }}
+              className="fixed inset-0"
+            >
+              <AuthPage isModal={true} onClose={() => setShowAuthModal(false)} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </AppProvider>
   );
 }

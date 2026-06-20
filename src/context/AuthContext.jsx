@@ -16,6 +16,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser]       = useState(undefined); // undefined = loading
   const [authError, setAuthError] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Listen to auth state — Firebase restores session from localStorage automatically
   useEffect(() => {
@@ -91,6 +92,8 @@ export function AuthProvider({ children }) {
       signUpWithEmail,
       signInWithEmail,
       signOut,
+      showAuthModal,
+      setShowAuthModal,
     }}>
       {children}
     </AuthContext.Provider>

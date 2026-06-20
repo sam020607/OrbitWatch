@@ -15,6 +15,7 @@ import NightReport from '../NightReport/NightReport.jsx';
 import LocationSearch from '../LandingPage/LocationSearch.jsx';
 import JournalPanel from '../JournalPanel/JournalPanel.jsx';
 import DiagnosticsPanel from './DiagnosticsPanel.jsx';
+import SettingsPanel from './SettingsPanel.jsx';
 import { CONSTELLATIONS, getLocalCoordinates } from '../../data/constellations.js';
 import {
   Map, List, Star, Compass, Radio, RotateCcw,
@@ -35,7 +36,17 @@ function UserAvatar() {
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <button
+        id="top-bar-signin-btn"
+        onClick={() => setShowAuthModal(true)}
+        className="px-3 py-1 rounded-md border border-accent/40 bg-accent/10 text-accent hover:bg-accent/20 hover:border-accent/60 transition-all font-sans text-xs font-semibold uppercase tracking-wider focus:outline-none cursor-pointer"
+      >
+        Sign In
+      </button>
+    );
+  }
 
   const initials = (user.displayName || user.email || '?')
     .split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -147,6 +158,7 @@ const RIGHT_PANEL_HEADERS = {
   report: { label: "Tonight's Sky", icon: Star },
   journal: { label: "Observer Journal", icon: Trophy },
   diagnostics: { label: "System Diagnostics", icon: Activity },
+  settings: { label: "Settings", icon: Settings },
 };
 
 /**
@@ -520,8 +532,9 @@ export default function Dashboard({ onReset }) {
                   if (item.id === 'diagnostics') {
                     handleNavClick('diagnostics');
                     setRightPanelOpen(true);
-                  } else {
-                    console.log(`${item.label} action triggered`);
+                  } else if (item.id === 'settings') {
+                    handleNavClick('settings');
+                    setRightPanelOpen(true);
                   }
                 }}
                 className={`w-full flex items-center ${isCollapsed ? 'justify-center nav-tooltip gap-0' : 'justify-start gap-2.5'} p-2 rounded transition-all group
@@ -800,6 +813,7 @@ export default function Dashboard({ onReset }) {
                     )}
                     {rightPanel === 'journal' && <JournalPanel />}
                     {rightPanel === 'diagnostics' && <DiagnosticsPanel />}
+                    {rightPanel === 'settings' && <SettingsPanel />}
                   </motion.div>
                 </AnimatePresence>
               </div>
