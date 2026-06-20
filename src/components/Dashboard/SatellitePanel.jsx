@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext.jsx';
 import { SAT_TYPE_CONFIG } from '../../data/mockSatellites.js';
 import { getSatTypeIcon, azimuthToCompass } from '../../utils/orbitMath.js';
 import { CONSTELLATIONS, getLocalCoordinates } from '../../data/constellations.js';
-import { Satellite, ChevronRight, Star, ChevronDown, Flame } from 'lucide-react';
+import { Satellite, ChevronRight, Star, ChevronDown, Flame, Search, X } from 'lucide-react';
 
 const SATELLITE_CATEGORIES = [
   { value: 'major', label: 'Major & Brightest', icon: '✨' },
@@ -48,36 +48,59 @@ export default function SatellitePanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [isSatellitesSubOpen, setIsSatellitesSubOpen] = useState(false);
   const [isAsteroidsSubOpen, setIsAsteroidsSubOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Filter satellites based on active selection
-  const filteredSats = satellites.filter(sat => {
-    if (satelliteFilter === 'all') return true;
-    if (satelliteFilter === 'major') {
-      return sat.type === 'space-station' || sat.type === 'weather' || sat.type === 'earth-obs' || sat.type === 'gps';
-    }
-    return sat.type === satelliteFilter;
-  });
+  // Filter satellites based on active selection and search query
+  const filteredSats = useMemo(() => {
+    return satellites.filter(sat => {
+      let matchesCategory = true;
+      if (satelliteFilter === 'all') matchesCategory = true;
+      else if (satelliteFilter === 'major') {
+        matchesCategory = sat.type === 'space-station' || sat.type === 'weather' || sat.type === 'earth-obs' || sat.type === 'gps';
+      } else {
+        matchesCategory = sat.type === satelliteFilter;
+      }
 
-  // Filter asteroids based on active selection
+      let matchesSearch = true;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        matchesSearch = sat.satname.toLowerCase().includes(q) || sat.satid.toString().includes(q);
+      }
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [satellites, satelliteFilter, searchQuery]);
+
+  // Filter asteroids based on active selection and search query
   const filteredAsteroids = useMemo(() => {
     return asteroids.filter(ast => {
-      if (asteroidFilter === 'phas') return ast.is_potentially_hazardous;
-      if (asteroidFilter === 'close') {
+      let matchesFilter = true;
+      if (asteroidFilter === 'phas') matchesFilter = ast.is_potentially_hazardous;
+      else if (asteroidFilter === 'close') {
         const timeDiff = Math.abs(Date.now() - ast.close_approach_timestamp);
-        return timeDiff < 24 * 3600 * 1000; // within 24 hours
+        matchesFilter = timeDiff < 24 * 3600 * 1000; // within 24 hours
       }
-      return true; // 'all'
+
+      let matchesSearch = true;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        matchesSearch = ast.name.toLowerCase().includes(q) || ast.id.toLowerCase().includes(q);
+      }
+
+      return matchesFilter && matchesSearch;
     });
-  }, [asteroids, asteroidFilter]);
+  }, [asteroids, asteroidFilter, searchQuery]);
 
   // Sort satellites: space stations first, then by altitude
-  const sortedSats = [...filteredSats].sort((a, b) => {
-    if (a.type === 'space-station') return -1;
-    if (b.type === 'space-station') return 1;
-    return a.satalt - b.satalt;
-  });
+  const sortedSats = useMemo(() => {
+    return [...filteredSats].sort((a, b) => {
+      if (a.type === 'space-station') return -1;
+      if (b.type === 'space-station') return 1;
+      return a.satalt - b.satalt;
+    });
+  }, [filteredSats]);
 
-  // Dynamic calculations of visible constellations
+  // Dynamic calculations of visible constellations and search query
   const visibleConstellations = useMemo(() => {
     if (!location) return [];
     const now = Date.now();
@@ -85,9 +108,17 @@ export default function SatellitePanel() {
       const coords = getLocalCoordinates(c.ra, c.dec, location.lat, location.lon, now);
       return { ...c, coords };
     })
-    .filter(c => c.coords.el > 0)
+    .filter(c => {
+      const isVisible = c.coords.el > 0;
+      let matchesSearch = true;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        matchesSearch = c.name.toLowerCase().includes(q) || c.abbr.toLowerCase().includes(q) || c.description.toLowerCase().includes(q);
+      }
+      return isVisible && matchesSearch;
+    })
     .sort((a, b) => b.coords.el - a.coords.el);
-  }, [location]);
+  }, [location, searchQuery]);
 
   return (
     <div className="flex flex-col h-full">
@@ -175,6 +206,7 @@ export default function SatellitePanel() {
                   <button
                     onClick={() => {
                       actions.setViewMode('constellations');
+                      setSearchQuery('');
                       setIsOpen(false);
                     }}
                     className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-panel-light transition-colors
@@ -216,6 +248,7 @@ export default function SatellitePanel() {
                       onClick={() => {
                         actions.setViewMode('satellites');
                         actions.setSatelliteFilter(cat.value);
+                        setSearchQuery('');
                         setIsOpen(false);
                         setIsSatellitesSubOpen(false);
                       }}
@@ -243,6 +276,7 @@ export default function SatellitePanel() {
                       onClick={() => {
                         actions.setViewMode('asteroids');
                         actions.setAsteroidFilter(filter.value);
+                        setSearchQuery('');
                         setIsOpen(false);
                         setIsAsteroidsSubOpen(false);
                       }}
@@ -258,6 +292,35 @@ export default function SatellitePanel() {
             </div>
           </>
         )}
+      </div>
+
+      {/* Search Bar */}
+      <div className="px-4 py-2 border-b border-border bg-navy/10 shrink-0">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder={
+              viewMode === 'constellations' 
+                ? 'Search constellations...' 
+                : viewMode === 'asteroids' 
+                  ? 'Search asteroids...' 
+                  : 'Search satellites (ISS, Starlink...)'
+            }
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full text-xs font-crimson bg-panel border border-border rounded pl-8 pr-7 py-1.5 text-text placeholder-muted/50 focus:outline-none focus:border-cyan focus:ring-1 focus:ring-cyan/30 transition-all"
+          />
+          <Search className="w-3.5 h-3.5 text-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-text"
+              title="Clear search"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* List content */}
