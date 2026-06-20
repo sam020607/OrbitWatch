@@ -147,10 +147,10 @@ export default function LookUpCard() {
         {/* Space Fun Fact */}
         <div 
           onClick={() => setActiveModal('fact')}
-          className="glass-panel p-4 glow-cyan flex flex-col gap-2 relative overflow-hidden transition-all duration-300 hover:border-cyan hover:shadow-lg cursor-pointer hover:scale-[1.01]"
+          className="glass-panel p-4 flex flex-col gap-2 relative overflow-hidden transition-all duration-300 hover:border-border-light cursor-pointer hover:scale-[1.01]"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono text-cyan tracking-[0.2em] uppercase font-bold text-glow-cyan flex items-center gap-1">
+            <span className="text-[10px] font-sans text-cyan tracking-[0.1em] uppercase font-bold flex items-center gap-1">
               ✨ Space Fact of the Moment
             </span>
             <button 
@@ -165,7 +165,7 @@ export default function LookUpCard() {
             </button>
           </div>
           <div className="mt-1">
-            <p className="text-sm font-crimson text-text leading-relaxed text-left line-clamp-3">
+            <p className="text-sm font-sans text-text leading-relaxed text-left line-clamp-3">
               "{spaceFacts[factIndex]}"
             </p>
           </div>
@@ -174,10 +174,10 @@ export default function LookUpCard() {
         {/* NASA Astronomy Picture of the Day */}
         <div 
           onClick={() => setActiveModal('apod')}
-          className="glass-panel overflow-hidden border border-border flex flex-col transition-all duration-300 hover:border-cyan hover:shadow-lg cursor-pointer hover:scale-[1.01]"
+          className="glass-panel overflow-hidden border border-border flex flex-col transition-all duration-300 hover:border-border-light cursor-pointer hover:scale-[1.01]"
         >
-          <div className="p-3 border-b border-border bg-navy/30 flex items-center justify-between">
-            <span className="text-[10px] font-mono text-cyan tracking-[0.2em] uppercase font-bold text-glow-cyan flex items-center gap-1">
+          <div className="p-3 border-b border-border bg-panel flex items-center justify-between">
+            <span className="text-[10px] font-sans text-cyan tracking-[0.1em] uppercase font-bold flex items-center gap-1">
               📷 NASA APOD
             </span>
             {apodData && (
@@ -219,26 +219,26 @@ export default function LookUpCard() {
         {satelliteOfTheDay && (
           <div 
             onClick={() => setActiveModal('sat')}
-            className="glass-panel p-4 border border-border flex flex-col gap-3 relative overflow-hidden transition-all duration-300 hover:border-cyan hover:shadow-lg cursor-pointer hover:scale-[1.01]"
+            className="glass-panel p-4 border border-border flex flex-col gap-3 relative overflow-hidden transition-all duration-300 hover:border-border-light cursor-pointer hover:scale-[1.01]"
           >
             <div className="absolute top-0 right-0 p-2 opacity-5">
-              <Compass className="w-24 h-24 text-amber" />
+              <Compass className="w-24 h-24 text-cyan" />
             </div>
 
             <div className="flex items-center justify-between border-b border-border/40 pb-2">
-              <span className="text-[10px] font-mono text-cyan tracking-[0.2em] uppercase font-bold text-glow-cyan">
+              <span className="text-[10px] font-sans text-cyan tracking-[0.1em] uppercase font-bold">
                 🛰️ Satellite of the Day
               </span>
               <span className="text-[9px] font-mono text-cyan/70">ID: {satelliteOfTheDay.satid}</span>
             </div>
 
             <div className="flex flex-col gap-1 z-10 text-left">
-              <h3 className="text-sm font-playfair font-bold text-text">{satelliteOfTheDay.satname}</h3>
+              <h3 className="text-sm font-sans uppercase tracking-wider font-bold text-text">{satelliteOfTheDay.satname}</h3>
               <p className="text-[10px] font-mono text-muted">
                 Launched: {satelliteOfTheDay.launchDate} · Altitude: {satelliteOfTheDay.satalt} km
               </p>
               <div className="mt-2">
-                <p className="text-xs font-crimson text-muted-light leading-relaxed line-clamp-3">
+                <p className="text-xs font-sans text-muted leading-relaxed line-clamp-3">
                   {satelliteOfTheDay.description}
                 </p>
               </div>
@@ -322,7 +322,7 @@ export default function LookUpCard() {
                     />
                     <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-panel via-panel/85 to-transparent pointer-events-none" />
                     <div className="absolute bottom-4 left-6 right-6 text-left z-10">
-                      <span className="text-[10px] font-mono text-amber tracking-[0.2em] uppercase font-bold text-glow-amber">
+                      <span className="text-[10px] font-sans text-cyan tracking-[0.1em] uppercase font-bold">
                         NASA APOD
                       </span>
                       <h3 className="text-xl font-playfair font-bold text-text mt-1">{apodData.title}</h3>
@@ -367,7 +367,7 @@ export default function LookUpCard() {
                     <X className="w-4 h-4" />
                   </button>
 
-                  <span className="text-[10px] font-mono text-amber tracking-[0.2em] uppercase font-bold text-glow-amber">
+                  <span className="text-[10px] font-sans text-cyan tracking-[0.1em] uppercase font-bold">
                     🛰️ Satellite of the Day
                   </span>
 
@@ -378,29 +378,29 @@ export default function LookUpCard() {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 bg-navy/40 p-4 rounded-xl border border-border/60 text-left text-xs font-crimson shrink-0">
+                  <div className="grid grid-cols-2 gap-4 bg-panel p-4 rounded-xl border border-border text-left text-xs font-sans shrink-0">
                     <div>
-                      <span className="text-muted text-[10px] uppercase block tracking-wider">Operational Type</span>
+                      <span className="text-muted text-[10px] uppercase block tracking-wider font-semibold">Operational Type</span>
                       <span className="text-text font-mono font-bold capitalize">{satelliteOfTheDay.type?.replace('-', ' ')}</span>
                     </div>
                     <div>
-                      <span className="text-muted text-[10px] uppercase block tracking-wider">Orbital Altitude</span>
+                      <span className="text-muted text-[10px] uppercase block tracking-wider font-semibold">Orbital Altitude</span>
                       <span className="text-text font-mono font-bold">{satelliteOfTheDay.satalt} km</span>
                     </div>
                     <div>
-                      <span className="text-muted text-[10px] uppercase block tracking-wider">Orbital Velocity</span>
+                      <span className="text-muted text-[10px] uppercase block tracking-wider font-semibold">Orbital Velocity</span>
                       <span className="text-text font-mono font-bold">{satelliteOfTheDay.velocity} km/s</span>
                     </div>
                     <div>
-                      <span className="text-muted text-[10px] uppercase block tracking-wider">Int. Designator</span>
+                      <span className="text-muted text-[10px] uppercase block tracking-wider font-semibold">Int. Designator</span>
                       <span className="text-text font-mono font-bold">{satelliteOfTheDay.intDesignator}</span>
                     </div>
                   </div>
 
                   <div className="text-left flex-1 overflow-hidden flex flex-col gap-2 min-h-[150px]">
-                    <h4 className="text-xs font-mono text-cyan tracking-wider uppercase font-bold border-b border-border/20 pb-1 shrink-0">Description</h4>
+                    <h4 className="text-xs font-mono text-cyan tracking-wider uppercase font-bold border-b border-border pb-1 shrink-0">Description</h4>
                     <div className="overflow-y-auto pr-1 flex-1">
-                      <p className="text-sm font-crimson text-muted-light leading-relaxed">
+                      <p className="text-sm font-sans text-muted leading-relaxed">
                         {satelliteOfTheDay.description}
                       </p>
                     </div>
@@ -413,7 +413,7 @@ export default function LookUpCard() {
                         actions.selectSatellite(satelliteOfTheDay);
                         setActiveModal(null);
                       }}
-                      className="flex-1 py-2.5 bg-amber border border-amber text-xs font-crimson font-bold text-navy rounded-lg hover:bg-transparent hover:text-amber hover:border-amber transition-all text-center flex items-center justify-center gap-1.5 shadow-md uppercase tracking-wider"
+                      className="flex-1 py-2.5 bg-white text-xs font-sans font-bold text-[var(--bg)] rounded-full hover:opacity-90 transition-all text-center flex items-center justify-center gap-1.5 uppercase tracking-wider shadow-sm"
                     >
                       <span>Track on Map 🔭</span>
                     </button>
@@ -442,7 +442,7 @@ export default function LookUpCard() {
       {/* Header */}
       <div className="flex items-center gap-2">
         <Compass className="w-4 h-4 text-cyan" />
-        <h2 className="text-xs font-crimson font-bold tracking-widest uppercase text-muted-light">
+        <h2 className="font-playfair italic text-2xl tracking-normal text-text">
           {title}
         </h2>
         {(selectedSatellite || selectedConstellation || selectedAsteroid) && (
@@ -462,20 +462,20 @@ export default function LookUpCard() {
 
       {/* Target name */}
       <div className="text-center flex flex-col items-center w-full">
-        <p className="text-cyan font-crimson font-bold text-base">{name}</p>
+        <p className="text-cyan font-playfair italic text-2xl font-bold">{name}</p>
         {viewMode === 'asteroids' && selectedAsteroid ? (
           <div className="w-full flex flex-col items-center mt-2 gap-2">
             {displayData.is_potentially_hazardous && (
-              <div className="w-full px-3 py-1.5 rounded-lg border border-red/40 bg-red/10 text-red text-center text-xs font-crimson font-bold animate-pulse">
+              <div className="w-full px-3 py-1.5 rounded-lg border border-red/40 bg-red/10 text-red text-center text-xs font-sans font-bold uppercase tracking-wider">
                 ⚠️ Potentially Hazardous Asteroid
               </div>
             )}
-            <p className="text-muted text-xs font-crimson">
-              RA: <span className="font-mono">{displayData.ra?.toFixed(1)}h</span> · Dec: <span className="font-mono">{displayData.dec?.toFixed(1)}°</span>
+            <p className="text-muted text-xs font-sans uppercase tracking-wider font-semibold">
+              RA: <span className="font-mono text-text font-bold">{displayData.ra?.toFixed(1)}h</span> · Dec: <span className="font-mono text-text font-bold">{displayData.dec?.toFixed(1)}°</span>
             </p>
-            <div className="w-full grid grid-cols-2 gap-2 bg-navy/40 p-2.5 rounded-xl border border-border mt-1 text-left text-xs font-crimson">
+            <div className="w-full grid grid-cols-2 gap-2 bg-panel p-2.5 rounded-xl border border-border mt-1 text-left text-xs font-sans">
               <div>
-                <span className="text-muted text-[10px] uppercase block tracking-wider">Est. Diameter</span>
+                <span className="text-muted text-[10px] uppercase block tracking-wider font-semibold">Est. Diameter</span>
                 <span className="text-text font-mono text-xs">
                   {displayData.diameter_min?.toFixed(0)}-{displayData.diameter_max?.toFixed(0)} m
                 </span>
@@ -484,7 +484,7 @@ export default function LookUpCard() {
                 </span>
               </div>
               <div>
-                <span className="text-muted text-[10px] uppercase block tracking-wider">Rel. Velocity</span>
+                <span className="text-muted text-[10px] uppercase block tracking-wider font-semibold">Rel. Velocity</span>
                 <span className="text-text font-mono text-xs block">
                   {displayData.velocity_kms?.toFixed(2)} km/s
                 </span>
@@ -493,7 +493,7 @@ export default function LookUpCard() {
                 </span>
               </div>
               <div className="col-span-2 border-t border-border/40 pt-2 mt-1">
-                <span className="text-muted text-[10px] uppercase block tracking-wider">Miss Distance</span>
+                <span className="text-muted text-[10px] uppercase block tracking-wider font-semibold">Miss Distance</span>
                 <span className="text-text font-mono text-xs block">
                   {displayData.miss_distance_ld?.toFixed(2)} LD
                 </span>
@@ -506,28 +506,28 @@ export default function LookUpCard() {
               href={displayData.nasa_jpl_url || `https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=${displayData.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 flex items-center justify-center gap-1.5 px-3 py-1 bg-navy/60 border border-border text-[11px] text-text rounded-md hover:border-amber/50 hover:text-amber transition-colors w-full"
+              className="mt-2 flex items-center justify-center gap-1.5 px-3 py-1 bg-panel border border-border text-[11px] text-text rounded-md hover:border-border-light transition-colors w-full uppercase font-sans tracking-wider"
             >
               <span>☄️ View JPL Small-Body Database</span>
             </a>
           </div>
         ) : viewMode === 'constellations' ? (
           <>
-            <p className="text-muted text-xs font-crimson mt-0.5">
-              RA: <span className="font-mono">{displayData.ra}h</span> · Dec: <span className="font-mono">{displayData.dec}°</span> · {displayData.abbr}
+            <p className="text-muted text-xs font-sans uppercase tracking-wider font-semibold mt-0.5">
+              RA: <span className="font-mono text-text font-bold">{displayData.ra}h</span> · Dec: <span className="font-mono text-text font-bold">{displayData.dec}°</span> · {displayData.abbr}
             </p>
             <a
               href={`https://en.wikipedia.org/wiki/${name.replace(' ', '_')}_(constellation)`}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 flex items-center justify-center gap-1.5 px-3 py-1 bg-navy/60 border border-border text-[11px] text-text rounded-md hover:border-amber/50 hover:text-amber transition-colors"
+              className="mt-2 flex items-center justify-center gap-1.5 px-3 py-1 bg-panel border border-border text-[11px] text-text rounded-md hover:border-border-light transition-colors uppercase font-sans tracking-wider"
             >
               <span>📖 Explore on Wikipedia</span>
             </a>
           </>
         ) : displayData.alt && (
-          <p className="text-muted text-xs font-crimson mt-0.5">
-            <span className="font-mono">{displayData.alt?.toFixed(0)} km</span> altitude · <span className="font-mono">{displayData.velocity?.toFixed(2)} km/s</span>
+          <p className="text-muted text-xs font-sans uppercase tracking-wider font-semibold mt-0.5">
+            <span className="font-mono text-text font-bold">{displayData.alt?.toFixed(0)} km</span> altitude · <span className="font-mono text-text font-bold">{displayData.velocity?.toFixed(2)} km/s</span>
           </p>
         )}
       </div>
@@ -536,8 +536,8 @@ export default function LookUpCard() {
       <div className="flex justify-center">
         <svg width="180" height="180" viewBox="0 0 180 180" className="overflow-visible">
           {/* Outer ring */}
-          <circle cx="90" cy="90" r="80" fill="none" stroke="#2a174d" strokeWidth="1" />
-          <circle cx="90" cy="90" r="80" fill="rgba(19,9,36,0.6)" />
+          <circle cx="90" cy="90" r="80" fill="none" stroke="var(--surface-border)" strokeWidth="1" />
+          <circle cx="90" cy="90" r="80" fill="var(--surface)" />
 
           {/* Degree ticks */}
           {Array.from({ length: 36 }, (_, i) => {
@@ -549,82 +549,78 @@ export default function LookUpCard() {
             const y2 = 90 + (isMajor ? 66 : 71) * Math.sin(angle);
             return (
               <line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
-                stroke={isMajor ? '#3d266a' : '#2a174d'} strokeWidth={isMajor ? 1.5 : 0.5}
+                stroke="var(--surface-border)" strokeWidth={isMajor ? 1.5 : 0.5}
               />
             );
           })}
 
           {/* Cardinal labels */}
           {[
-            { label: 'N', angle: -90, color: '#ff6b6b' },
-            { label: 'E', angle: 0, color: '#a3aed0' },
-            { label: 'S', angle: 90, color: '#a3aed0' },
-            { label: 'W', angle: 180, color: '#a3aed0' },
+            { label: 'N', angle: -90, color: 'var(--accent)' },
+            { label: 'E', angle: 0, color: 'var(--text-secondary)' },
+            { label: 'S', angle: 90, color: 'var(--text-secondary)' },
+            { label: 'W', angle: 180, color: 'var(--text-secondary)' },
           ].map(({ label, angle, color }) => {
             const rad = angle * (Math.PI / 180);
             const x = 90 + 58 * Math.cos(rad);
             const y = 90 + 58 * Math.sin(rad) + 4;
             return (
               <text key={label} x={x} y={y} textAnchor="middle" fill={color}
-                fontSize="11" fontFamily="Crimson Text, Georgia, serif" fontWeight="700">
+                fontSize="11" fontFamily="Inter, sans-serif" fontWeight="700">
                 {label}
               </text>
             );
           })}
 
           {/* Inner circles */}
-          <circle cx="90" cy="90" r="45" fill="none" stroke="#2a174d" strokeWidth="0.5" strokeDasharray="3,3" />
-          <circle cx="90" cy="90" r="20" fill="rgba(232, 181, 104, 0.05)" stroke="#e8b568" strokeWidth="0.5" />
+          <circle cx="90" cy="90" r="45" fill="none" stroke="var(--surface-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+          <circle cx="90" cy="90" r="20" fill="none" stroke="var(--surface-border)" strokeWidth="0.5" />
 
           {/* Compass needle */}
           <line
             x1="90" y1="90" x2={nx} y2={ny}
-            stroke="#e8b568" strokeWidth="2.5" strokeLinecap="round"
-            style={{ filter: 'drop-shadow(0 0 4px rgba(232, 181, 104, 0.8))' }}
+            stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round"
           />
           <line
             x1="90" y1="90"
             x2={90 - (nx - 90) * 0.35}
             y2={90 - (ny - 90) * 0.35}
-            stroke="#2a174d" strokeWidth="1.5" strokeLinecap="round"
+            stroke="var(--surface-border)" strokeWidth="1.5" strokeLinecap="round"
           />
 
           {/* Center dot */}
-          <circle cx="90" cy="90" r="5" fill="#e8b568"
-            style={{ filter: 'drop-shadow(0 0 6px rgba(232, 181, 104, 1))' }}
-          />
+          <circle cx="90" cy="90" r="4" fill="var(--accent)" />
 
           {/* Azimuth label */}
-          <text x="90" y="165" textAnchor="middle" fill="#e8b568" fontSize="11" fontWeight="700">
-            <tspan fontFamily="Space Mono, monospace">{az.toFixed(0)}°</tspan>
-            <tspan fontFamily="Crimson Text, Georgia, serif" dx="4">{compass}</tspan>
+          <text x="90" y="165" textAnchor="middle" fill="var(--accent)" fontSize="11" fontWeight="700">
+            <tspan fontFamily="monospace">{az.toFixed(0)}°</tspan>
+            <tspan fontFamily="sans-serif" dx="4">{compass}</tspan>
           </text>
         </svg>
       </div>
 
       {/* Elevation Arc */}
       <div className="flex flex-col items-center gap-2">
-        <p className="text-muted text-xs font-crimson uppercase tracking-wider">Elevation above horizon</p>
+        <p className="text-muted text-[11px] font-sans uppercase tracking-wider font-semibold">Elevation above horizon</p>
         <div className="flex items-end gap-3">
           <ElevationArc elevation={el} />
           <div className="text-center pb-2">
-            <p className="font-mono text-3xl font-bold text-amber"
-              style={{ textShadow: '0 0 15px rgba(245,158,11,0.6)' }}>
+            <p className="font-mono text-3xl font-bold text-cyan">
               {el.toFixed(0)}°
             </p>
-            <p className="text-muted text-xs font-crimson">{getElevationLabel(el)}</p>
+            <p className="text-muted text-[10px] font-sans uppercase tracking-wider font-semibold">{getElevationLabel(el)}</p>
           </div>
         </div>
       </div>
 
       {/* Plain English instruction */}
-      <div className="px-4 py-3 rounded-xl border border-cyan/30 bg-cyan/5 text-center">
+      <div className="px-4 py-3 rounded-xl border border-border bg-panel text-center">
         <Target className="w-4 h-4 text-cyan mx-auto mb-1" />
-        <p className="text-text text-sm leading-relaxed font-crimson">
+        <p className="text-text text-xs leading-relaxed font-sans uppercase tracking-wider font-medium">
           Point <span className="text-cyan font-bold">{compass}</span>{' '}
-          at <span className="text-amber font-mono font-bold">{el.toFixed(0)}°</span> above the horizon
+          at <span className="font-mono font-bold text-text">{el.toFixed(0)}°</span> above the horizon
         </p>
-        <p className="text-muted text-xs font-crimson mt-1">
+        <p className="text-muted text-[11px] font-sans uppercase tracking-wider font-semibold mt-1">
           {getElevationHint(el)}
         </p>
       </div>
@@ -633,27 +629,27 @@ export default function LookUpCard() {
       <div className="border-t border-border/40 pt-4 mt-2">
         <div className="flex items-center justify-between mb-2">
           <div>
-            <span className="text-[10px] font-crimson text-muted uppercase tracking-wider block">Observed Status</span>
+            <span className="text-[10px] font-sans text-muted uppercase tracking-wider font-bold block">Observed Status</span>
             {observedLog.filter(l => l.targetId === String(displayData?.id) && l.type === displayData?.type).length > 0 ? (
-              <span className="text-xs font-crimson text-cyan font-bold flex items-center gap-1">
+              <span className="text-xs font-sans text-cyan uppercase tracking-wider font-bold flex items-center gap-1 mt-0.5">
                 ✓ Spotted {observedLog.filter(l => l.targetId === String(displayData?.id) && l.type === displayData?.type).length}x before
               </span>
             ) : (
-              <span className="text-xs font-crimson text-muted italic">Not observed yet</span>
+              <span className="text-xs font-sans text-muted uppercase tracking-wider font-semibold italic mt-0.5">Not observed yet</span>
             )}
           </div>
 
           {!showNotesForm ? (
             <button
               onClick={() => setShowNotesForm(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan/10 border border-cyan/30 text-[11px] text-cyan rounded-md hover:bg-cyan/20 hover:border-cyan transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan text-white text-[11px] font-sans uppercase tracking-wider font-bold rounded-full hover:opacity-90 transition-colors shadow-sm"
             >
               <span>🔭 I Spotted This!</span>
             </button>
           ) : (
             <button
               onClick={() => { setShowNotesForm(false); setNotesText(''); }}
-              className="text-xs font-crimson text-muted hover:text-text transition-colors"
+              className="text-xs font-sans uppercase tracking-wider font-bold text-muted hover:text-text transition-colors"
             >
               Cancel
             </button>
@@ -661,15 +657,15 @@ export default function LookUpCard() {
         </div>
 
         {showNotesForm && (
-          <div className="bg-navy/40 p-2.5 rounded-lg border border-border/60 flex flex-col gap-2 mt-2">
-            <label className="text-[10px] font-crimson text-muted uppercase tracking-wider block">
+          <div className="bg-panel p-2.5 rounded-lg border border-border flex flex-col gap-2 mt-2">
+            <label className="text-[10px] font-sans text-muted uppercase tracking-wider block">
               Spotting Notes (Optional)
             </label>
             <textarea
               placeholder="e.g. Very bright overhead, clear sky, spotted with naked eye!"
               value={notesText}
               onChange={(e) => setNotesText(e.target.value)}
-              className="w-full text-xs font-crimson bg-panel border border-border rounded p-1.5 text-text placeholder-muted/50 focus:outline-none focus:border-cyan h-16 resize-none"
+              className="w-full text-xs font-sans bg-panel border border-border rounded p-1.5 text-text placeholder-muted/50 focus:outline-none focus:border-cyan h-16 resize-none"
               maxLength={200}
             />
             <button
@@ -690,7 +686,7 @@ export default function LookUpCard() {
                 setShowNotesForm(false);
                 setNotesText('');
               }}
-              className="w-full py-1.5 bg-cyan border border-cyan text-xs font-crimson font-bold text-navy rounded-md hover:bg-transparent hover:text-cyan transition-colors text-center"
+              className="w-full py-2 bg-white text-xs font-sans font-bold text-[var(--bg)] rounded-full hover:opacity-90 transition-colors text-center uppercase tracking-wider shadow-sm"
             >
               Log Observation
             </button>
@@ -721,24 +717,23 @@ function ElevationArc({ elevation }) {
   return (
     <svg width="140" height="85" viewBox="0 0 140 85">
       {/* Horizon line */}
-      <line x1="10" y1="75" x2="130" y2="75" stroke="#2a174d" strokeWidth="1" />
-      <text x="135" y="78" fontSize="9" fill="#a3aed0" fontFamily="Space Mono, monospace">0°</text>
+      <line x1="10" y1="75" x2="130" y2="75" stroke="var(--surface-border)" strokeWidth="1" />
+      <text x="135" y="78" fontSize="9" fill="var(--text-secondary)" fontFamily="monospace">0°</text>
 
       {/* Zenith label */}
-      <text x="70" y="8" textAnchor="middle" fontSize="9" fill="#a3aed0" fontFamily="Space Mono, monospace">90°</text>
-      <text x="70" y="17" textAnchor="middle" fontSize="7" fill="#a3aed0" fontFamily="Crimson Text, Georgia, serif">zenith</text>
+      <text x="70" y="8" textAnchor="middle" fontSize="9" fill="var(--text-secondary)" fontFamily="monospace">90°</text>
+      <text x="70" y="17" textAnchor="middle" fontSize="7" fill="var(--text-secondary)" fontFamily="sans-serif">zenith</text>
 
       {/* Arc background (full half-circle) */}
       <path
         d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
-        fill="none" stroke="#2a174d" strokeWidth="1.5" strokeDasharray="3,3"
+        fill="none" stroke="var(--surface-border)" strokeWidth="1.5" strokeDasharray="3,3"
       />
 
       {/* Elevation arc */}
       <path
         d={`M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`}
-        fill="none" stroke="#e8b568" strokeWidth="2.5" strokeLinecap="round"
-        style={{ filter: 'drop-shadow(0 0 4px rgba(232, 181, 104, 0.7))' }}
+        fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round"
       />
 
       {/* Angle tick marks */}
@@ -748,21 +743,17 @@ function ElevationArc({ elevation }) {
         const y = cy + r * Math.sin(a);
         return (
           <g key={deg}>
-            <line x1={cx} y1={cy} x2={x} y2={y} stroke="#2a174d" strokeWidth="0.5" strokeDasharray="2,2" />
-            <text x={x - 2} y={y - 3} fontSize="7" fill="#a3aed0" fontFamily="Space Mono, monospace">{deg}°</text>
+            <line x1={cx} y1={cy} x2={x} y2={y} stroke="var(--surface-border)" strokeWidth="0.5" strokeDasharray="2,2" />
+            <text x={x - 2} y={y - 3} fontSize="7" fill="var(--text-secondary)" fontFamily="monospace">{deg}°</text>
           </g>
         );
       })}
 
       {/* Satellite/Constellation dot */}
-      <circle cx={satX} cy={satY} r="5" fill="#e8b568"
-        style={{ filter: 'drop-shadow(0 0 5px rgba(232, 181, 104, 0.9))' }}
-      />
+      <circle cx={satX} cy={satY} r="5" fill="var(--accent)" />
 
       {/* Observer dot */}
-      <circle cx={cx} cy={cy} r="4" fill="#e8b568"
-        style={{ filter: 'drop-shadow(0 0 5px rgba(232, 181, 104, 0.9))' }}
-      />
+      <circle cx={cx} cy={cy} r="4" fill="var(--accent)" />
     </svg>
   );
 }

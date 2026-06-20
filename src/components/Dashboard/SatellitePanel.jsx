@@ -131,7 +131,7 @@ export default function SatellitePanel() {
         ) : (
           <Satellite className="w-4 h-4 text-cyan" />
         )}
-        <h2 className="text-sm font-crimson font-bold tracking-wider uppercase text-text">
+        <h2 className="font-playfair italic text-2xl tracking-normal text-text">
           {viewMode === 'constellations' 
             ? 'Visible Constellations' 
             : viewMode === 'asteroids' 
@@ -148,15 +148,15 @@ export default function SatellitePanel() {
       </div>
 
       {/* Filter / Mode Dropdown Selector */}
-      <div className="px-4 py-2 border-b border-border bg-navy/20 flex flex-col gap-1 shrink-0 relative z-[200]">
-        <label className="text-[9px] font-crimson text-muted uppercase tracking-wider">
+      <div className="px-4 py-2 border-b border-border bg-panel flex flex-col gap-1 shrink-0 relative z-[200]">
+        <label className="text-[11px] font-sans text-muted uppercase tracking-wider font-semibold">
           Tracking Target
         </label>
         
         {/* Custom Dropdown Trigger */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between text-xs font-crimson bg-panel border border-border rounded px-2.5 py-1.5 text-text hover:border-border-light transition-all focus:outline-none"
+          className="w-full flex items-center justify-between text-[11px] font-sans uppercase tracking-wider bg-panel border border-border rounded px-2.5 py-1.5 text-text hover:border-border-light transition-all focus:outline-none"
         >
           <span className="flex items-center gap-1.5">
             {viewMode === 'satellites' ? (
@@ -345,7 +345,7 @@ export default function SatellitePanel() {
                   onClick={() => actions.selectConstellation(isSelected ? null : constell)}
                   className={`w-full text-left px-4 py-3 border-b border-border/50 transition-all duration-200 group
                     ${isSelected
-                      ? 'bg-amber/5 border-l-2 border-l-amber'
+                      ? 'bg-[rgba(255,255,255,0.03)] border-l-[3px] border-l-cyan'
                       : 'hover:bg-panel-light'
                     }`}
                 >
@@ -353,16 +353,17 @@ export default function SatellitePanel() {
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-base shrink-0">🌌</span>
                       <div className="min-w-0">
-                        <p className={`text-xs font-crimson font-bold truncate ${isSelected ? 'text-amber' : 'text-text'}`}>
+                        <p className={`text-xs font-sans uppercase tracking-wider font-bold truncate ${isSelected ? 'text-cyan' : 'text-text'}`}>
                           {constell.name}
                         </p>
-                        <p className="text-muted text-[10px] font-crimson truncate">
+                        <p className="text-muted text-[10px] font-sans truncate">
                           {constell.abbr} · {constell.description}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0 ml-2">
-                      <ChevronRight className={`w-3 h-3 transition-transform ${isSelected ? 'text-amber rotate-90' : 'text-muted group-hover:translate-x-0.5'}`} />
+                    <div className="flex items-center gap-2 shrink-0 ml-2">
+                      <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-cyan' : 'bg-muted/40'}`} />
+                      <ChevronRight className={`w-3 h-3 transition-transform ${isSelected ? 'text-cyan rotate-90' : 'text-muted group-hover:translate-x-0.5'}`} />
                     </div>
                   </div>
 
@@ -370,25 +371,24 @@ export default function SatellitePanel() {
                   <div className="grid grid-cols-2 gap-x-3 gap-y-1">
                     <div>
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-muted font-crimson text-[9px]">EL</span>
-                        <span className="font-mono text-muted-light text-[9px]">
+                        <span className="text-muted font-sans text-[10px] uppercase tracking-wider">EL</span>
+                        <span className="font-mono text-text text-[10px] font-bold">
                           {el.toFixed(0)}°
                         </span>
                       </div>
                       <div className="w-full h-0.5 bg-border rounded-full">
                         <div
-                          className="h-full rounded-full bg-amber"
+                          className="h-full rounded-full bg-cyan"
                           style={{
                             width: `${elBarWidth}%`,
-                            boxShadow: '0 0 4px rgba(245,158,11,0.5)',
                           }}
                         />
                       </div>
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-muted font-crimson text-[9px]">AZ</span>
-                        <span className="font-mono text-muted-light text-[9px]">
+                        <span className="text-muted font-sans text-[10px] uppercase tracking-wider">AZ</span>
+                        <span className="font-mono text-text text-[10px] font-bold">
                           {az.toFixed(0)}° {compass}
                         </span>
                       </div>
@@ -397,7 +397,6 @@ export default function SatellitePanel() {
                           className="h-full rounded-full bg-cyan"
                           style={{
                             width: `${(az / 360) * 100}%`,
-                            boxShadow: '0 0 4px rgba(0,212,255,0.5)',
                           }}
                         />
                       </div>
@@ -439,7 +438,7 @@ export default function SatellitePanel() {
                   onClick={() => actions.selectAsteroid(isSelected ? null : ast)}
                   className={`w-full text-left px-4 py-3 border-b border-border/50 transition-all duration-200 group
                     ${isSelected
-                      ? 'bg-red/5 border-l-2 border-l-red'
+                      ? 'bg-[rgba(255,255,255,0.03)] border-l-[3px] border-l-cyan'
                       : 'hover:bg-panel-light'
                     }`}
                 >
@@ -447,19 +446,20 @@ export default function SatellitePanel() {
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-base shrink-0">☄️</span>
                       <div className="min-w-0">
-                        <p className={`text-xs font-crimson font-bold truncate ${isSelected ? 'text-red' : 'text-text'}`}>
+                        <p className={`text-xs font-sans uppercase tracking-wider font-bold truncate ${isSelected ? 'text-cyan' : 'text-text'}`}>
                           {ast.name}
                         </p>
-                        <p className="text-muted text-[10px] font-crimson truncate">
+                        <p className="text-muted text-[10px] font-sans truncate">
                           Size: {ast.diameter_min.toFixed(0)} - {ast.diameter_max.toFixed(0)} m
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0 ml-2">
+                    <div className="flex items-center gap-2 shrink-0 ml-2">
+                      <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-cyan' : ast.is_potentially_hazardous ? 'bg-amber' : 'bg-muted/40'}`} />
                       <span className={`badge ${ast.is_potentially_hazardous ? 'badge-red' : 'badge-amber'}`} style={{ fontSize: 9 }}>
                         {ast.is_potentially_hazardous ? 'PHA' : 'NEA'}
                       </span>
-                      <ChevronRight className={`w-3 h-3 transition-transform ${isSelected ? 'text-red rotate-90' : 'text-muted group-hover:translate-x-0.5'}`} />
+                      <ChevronRight className={`w-3 h-3 transition-transform ${isSelected ? 'text-cyan rotate-90' : 'text-muted group-hover:translate-x-0.5'}`} />
                     </div>
                   </div>
 
@@ -467,8 +467,8 @@ export default function SatellitePanel() {
                   <div className="grid grid-cols-2 gap-x-3 gap-y-1">
                     <div>
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-muted font-crimson text-[9px]">DISTANCE</span>
-                        <span className="font-mono text-muted-light text-[9px]">
+                        <span className="text-muted font-sans text-[10px] uppercase tracking-wider">DISTANCE</span>
+                        <span className="font-mono text-text text-[10px] font-bold">
                           {ast.miss_distance_ld.toFixed(1)} LD
                         </span>
                       </div>
@@ -477,25 +477,22 @@ export default function SatellitePanel() {
                           className="h-full rounded-full bg-cyan"
                           style={{
                             width: `${distBarWidth}%`,
-                            boxShadow: '0 0 4px rgba(0,212,255,0.5)',
                           }}
                         />
                       </div>
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-muted font-crimson text-[9px]">{isPassed ? 'PASSED' : 'APPROACH'}</span>
-                        <span className="font-mono text-muted-light text-[9px]">
+                        <span className="text-muted font-sans text-[10px] uppercase tracking-wider">{isPassed ? 'PASSED' : 'APPROACH'}</span>
+                        <span className="font-mono text-text text-[10px] font-bold">
                           {isPassed ? '-' : ''}{timeStr}
                         </span>
                       </div>
                       <div className="w-full h-0.5 bg-border rounded-full">
                         <div
-                          className="h-full rounded-full"
+                          className="h-full rounded-full bg-cyan"
                           style={{
                             width: `${speedBarWidth}%`,
-                            background: ast.is_potentially_hazardous ? '#ef4444' : '#f59e0b',
-                            boxShadow: `0 0 4px ${ast.is_potentially_hazardous ? '#ef4444' : '#f59e0b'}80`,
                           }}
                         />
                       </div>
@@ -524,7 +521,7 @@ export default function SatellitePanel() {
                   onClick={() => actions.selectSatellite(isSelected ? null : sat)}
                   className={`w-full text-left px-4 py-3 border-b border-border/50 transition-all duration-200 group
                     ${isSelected
-                      ? 'bg-cyan/5 border-l-2 border-l-cyan'
+                      ? 'bg-[rgba(255,255,255,0.03)] border-l-[3px] border-l-cyan'
                       : 'hover:bg-panel-light'
                     }`}
                 >
@@ -532,13 +529,14 @@ export default function SatellitePanel() {
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-base shrink-0">{getSatTypeIcon(sat.type)}</span>
                       <div className="min-w-0">
-                        <p className={`text-xs font-crimson font-bold truncate ${isSelected ? 'text-cyan' : 'text-text'}`}>
+                        <p className={`text-xs font-sans uppercase tracking-wider font-bold truncate ${isSelected ? 'text-cyan' : 'text-text'}`}>
                           {sat.satname}
                         </p>
                         <p className="text-muted text-[10px] font-mono">#{sat.satid}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0 ml-2">
+                    <div className="flex items-center gap-2 shrink-0 ml-2">
+                      <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-cyan' : sat.type === 'space-station' ? 'bg-amber' : 'bg-muted/40'}`} />
                       <span className={`badge ${typeConf.badgeClass}`} style={{ fontSize: 9 }}>
                         {typeConf.label}
                       </span>
@@ -550,26 +548,24 @@ export default function SatellitePanel() {
                   <div className="grid grid-cols-2 gap-x-3 gap-y-1">
                     <div>
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-muted font-crimson text-[9px]">ALT</span>
-                        <span className="font-mono text-muted-light text-[9px]">
+                        <span className="text-muted font-sans text-[10px] uppercase tracking-wider">ALT</span>
+                        <span className="font-mono text-text text-[10px] font-bold">
                           {sat.satalt?.toFixed(0)} km
                         </span>
                       </div>
                       <div className="w-full h-0.5 bg-border rounded-full">
                         <div
-                          className="h-full rounded-full"
+                          className="h-full rounded-full bg-cyan"
                           style={{
                             width: `${altBarWidth}%`,
-                            background: typeConf.color || '#f59e0b',
-                            boxShadow: `0 0 4px ${typeConf.color || '#f59e0b'}80`,
                           }}
                         />
                       </div>
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-muted font-crimson text-[9px]">SPD</span>
-                        <span className="font-mono text-muted-light text-[9px]">
+                        <span className="text-muted font-sans text-[10px] uppercase tracking-wider">SPD</span>
+                        <span className="font-mono text-text text-[10px] font-bold">
                           {sat.velocity?.toFixed(2)} km/s
                         </span>
                       </div>
@@ -578,7 +574,6 @@ export default function SatellitePanel() {
                           className="h-full rounded-full bg-cyan"
                           style={{
                             width: `${speedBarWidth}%`,
-                            boxShadow: '0 0 4px rgba(0,212,255,0.5)',
                           }}
                         />
                       </div>
@@ -593,22 +588,22 @@ export default function SatellitePanel() {
 
       {/* Footer: selected object info */}
       {viewMode === 'constellations' && selectedConstellation && (
-        <div className="p-3 border-t border-border bg-amber/5">
-          <p className="text-amber text-xs font-crimson font-bold text-center">
+        <div className="p-3 border-t border-border bg-panel">
+          <p className="text-cyan text-[11px] font-sans uppercase tracking-wider font-bold text-center">
             🌌 Tracking: {selectedConstellation.name}
           </p>
         </div>
       )}
       {viewMode === 'asteroids' && selectedAsteroid && (
-        <div className="p-3 border-t border-border bg-red/5">
-          <p className="text-red text-xs font-crimson font-bold text-center">
+        <div className="p-3 border-t border-border bg-panel">
+          <p className="text-cyan text-[11px] font-sans uppercase tracking-wider font-bold text-center">
             ☄️ Tracking: {selectedAsteroid.name}
           </p>
         </div>
       )}
       {viewMode === 'satellites' && selectedSatellite && (
-        <div className="p-3 border-t border-border bg-cyan/5">
-          <p className="text-cyan text-xs font-crimson font-bold text-center">
+        <div className="p-3 border-t border-border bg-panel">
+          <p className="text-cyan text-[11px] font-sans uppercase tracking-wider font-bold text-center">
             📡 Tracking: {selectedSatellite.satname}
           </p>
         </div>

@@ -63,22 +63,22 @@ export default function Dashboard({ onReset }) {
   return (
     <div className="flex flex-col h-screen bg-space overflow-hidden">
       {/* ── Top Navigation Bar ── */}
-      <header className="flex items-center gap-3 px-4 py-2.5 border-b border-border bg-navy/90 backdrop-blur-md shrink-0"
+      <header className="flex items-center gap-3 px-4 py-2.5 border-b border-border bg-panel shrink-0"
         style={{ zIndex: 100 }}>
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <Satellite className="w-5 h-5 text-cyan" style={{ filter: 'drop-shadow(0 0 4px #3a7bd9)' }} />
+          <Satellite className="w-5 h-5 text-cyan" />
           <span className="font-playfair font-bold text-text text-sm hidden sm:block">
             Project <span className="text-cyan">Zenith</span>
           </span>
         </div>
 
         {/* Location display */}
-        <div className="flex items-center gap-2 px-3 py-1 rounded-lg border border-border bg-panel/80 cursor-pointer hover:border-border-light transition-colors"
+        <div className="flex items-center gap-2 px-3 py-1 rounded-lg border border-border bg-panel cursor-pointer hover:border-border-light transition-colors"
           onClick={() => setShowSearch(s => !s)}
         >
           <div className="w-2 h-2 rounded-full bg-cyan animate-pulse" />
-          <span className="font-crimson text-sm font-semibold text-text truncate max-w-[200px]">
+          <span className="font-sans text-[11px] font-semibold text-text uppercase tracking-wider truncate max-w-[200px]">
             {location?.name || 'No location'}
           </span>
           <span className="text-muted text-xs font-mono hidden md:block">
@@ -87,9 +87,9 @@ export default function Dashboard({ onReset }) {
         </div>
 
         {/* ISS live indicator */}
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-cyan/20 bg-cyan/5">
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-border bg-panel">
           <div className={`w-1.5 h-1.5 rounded-full ${issPosition ? 'bg-cyan animate-pulse' : 'bg-muted'}`} />
-          <span className="font-crimson text-xs font-semibold text-muted-light hidden sm:block">
+          <span className="font-sans text-[10px] font-semibold text-muted uppercase tracking-wider hidden sm:block">
             ISS {issPosition ? 'LIVE' : 'OFFLINE'}
           </span>
         </div>
@@ -105,7 +105,7 @@ export default function Dashboard({ onReset }) {
           </button>
 
           {/* Satellite count */}
-          <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-md border border-cyan/20 bg-cyan/5">
+          <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-md border border-border bg-panel">
             <Satellite className="w-3 h-3 text-cyan" />
             <span className="font-mono text-xs text-cyan">{satellites.length}</span>
           </div>
@@ -139,7 +139,7 @@ export default function Dashboard({ onReset }) {
       <div className="flex-1 flex overflow-hidden">
 
         {/* ── Left Sidebar (desktop) ── */}
-        <aside className="hidden lg:flex flex-col w-72 border-r border-border bg-panel/80 shrink-0 overflow-hidden starfield shell-panel">
+        <aside className="hidden lg:flex flex-col w-72 border-r border-border bg-panel shrink-0 overflow-hidden">
           <SatellitePanel />
         </aside>
 
@@ -154,7 +154,7 @@ export default function Dashboard({ onReset }) {
           {/* 3D Globe / 2D Map Toggle Button */}
           <button
             onClick={() => setIs3DMode(!is3DMode)}
-            className="absolute bottom-16 lg:bottom-5 right-5 z-[1000] flex items-center gap-2 px-3 py-2 rounded-lg bg-navy/90 border border-cyan/40 text-cyan hover:border-cyan text-xs font-crimson font-semibold backdrop-blur-sm shadow-lg transition-all"
+            className="absolute bottom-16 lg:bottom-5 right-5 z-[1000] flex items-center gap-2 px-3 py-2 rounded-lg bg-panel border border-border text-cyan hover:border-border-light text-[11px] font-sans uppercase tracking-wider transition-all"
             title={is3DMode ? 'Switch to flat map' : 'Switch to 3D globe'}
           >
             {is3DMode ? (
@@ -172,7 +172,7 @@ export default function Dashboard({ onReset }) {
 
           {/* Mobile: bottom tab bar */}
           <div className="lg:hidden absolute bottom-0 left-0 right-0 z-[1000]">
-            <div className="flex bg-navy/95 border-t border-border backdrop-blur-md">
+            <div className="flex bg-panel border-t border-border">
               {MOBILE_VIEWS.map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -181,7 +181,7 @@ export default function Dashboard({ onReset }) {
                     ${mobileView === id ? 'text-cyan border-t-2 border-cyan -mt-0.5' : 'text-muted'}`}
                 >
                   <Icon className="w-4 h-4" />
-                  <span className="text-xs font-crimson font-semibold">{label}</span>
+                  <span className="text-[10px] font-sans uppercase tracking-wider">{label}</span>
                 </button>
               ))}
             </div>
@@ -189,15 +189,15 @@ export default function Dashboard({ onReset }) {
         </main>
 
         {/* ── Right Panel (desktop) ── */}
-        <aside className="hidden lg:flex flex-col w-80 border-l border-border bg-panel/80 shrink-0 overflow-hidden starfield shell-panel">
+        <aside className="hidden lg:flex flex-col w-80 border-l border-border bg-panel shrink-0 overflow-hidden">
           {/* Panel tabs */}
-          <div className="flex border-b border-border bg-navy/30 shrink-0">
+          <div className="flex border-b border-border bg-panel shrink-0">
             {rightTabs.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 onClick={() => setRightPanel(id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-crimson font-semibold transition-all
-                  ${rightPanel === id ? 'tab-active' : 'text-muted hover:text-muted-light'}`}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-sans uppercase tracking-wider transition-all
+                  ${rightPanel === id ? 'tab-active font-semibold' : 'text-muted hover:text-muted-light'}`}
               >
                 <Icon className="w-3 h-3" />
                 <span>{label}</span>
@@ -235,7 +235,7 @@ export default function Dashboard({ onReset }) {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="lg:hidden absolute inset-x-0 bottom-12 top-14 z-[500] bg-panel/97 backdrop-blur-md border-t border-border overflow-y-auto"
+            className="lg:hidden absolute inset-x-0 bottom-12 top-14 z-[500] bg-panel border-t border-border overflow-y-auto"
           >
             {mobileView === 'satellites' && <SatellitePanel />}
             {mobileView === 'report' && <NightReport />}

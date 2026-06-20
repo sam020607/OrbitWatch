@@ -61,11 +61,11 @@ export default function PassCountdown() {
       {/* Header */}
       <div className="flex items-center gap-2">
         <Timer className="w-4 h-4 text-cyan" />
-        <h2 className="text-xs font-crimson font-bold tracking-widest uppercase text-muted-light">
+        <h2 className="font-playfair italic text-2xl tracking-normal text-text">
           Next ISS Pass
         </h2>
         {isImminent && (
-          <span className="ml-auto badge badge-cyan animate-pulse" style={{ fontSize: 9 }}>
+          <span className="ml-auto badge badge-cyan" style={{ fontSize: 9 }}>
             INCOMING
           </span>
         )}
@@ -77,26 +77,13 @@ export default function PassCountdown() {
       </div>
 
       {/* Countdown timer */}
-      <div className={`relative flex flex-col items-center justify-center py-5 rounded-xl border transition-all duration-1000
-        ${isVisible
-          ? 'border-cyan/40 bg-cyan/5'
-          : isImminent
-            ? 'border-cyan/60 bg-cyan/5 animate-pulse-glow'
-            : 'border-border bg-navy/30'
-        }`}
-      >
-        {/* Pulsing outer ring for imminent */}
-        {isImminent && (
-          <div className="absolute inset-0 rounded-xl border-2 border-cyan/20 animate-ping" />
-        )}
-
-        <p className="text-muted-light text-xs font-crimson mb-2 text-center px-4">{countdownLabel}</p>
+      <div className="relative flex flex-col items-center justify-center py-5 rounded-xl border border-border bg-panel">
+        <p className="text-muted text-[11px] font-sans uppercase tracking-wider mb-2 text-center px-4">{countdownLabel}</p>
 
         <div
           className="font-mono text-4xl font-bold tracking-wider"
           style={{
-            color: '#3a7bd9',
-            textShadow: '0 0 20px rgba(58, 123, 217, 0.55), 0 0 40px rgba(58, 123, 217, 0.25)',
+            color: 'var(--text-primary)',
             fontVariantNumeric: 'tabular-nums',
           }}
         >
@@ -105,9 +92,9 @@ export default function PassCountdown() {
 
         {/* Magnitude */}
         {currentPass.mag != null && (
-          <p className="mt-2 text-xs text-muted font-crimson">
-            Brightness: <span className="text-cyan">{magnitudeToDescription(currentPass.mag)}</span>
-            <span className="text-muted ml-1">({currentPass.mag > 0 ? '+' : ''}{currentPass.mag?.toFixed(1)} mag)</span>
+          <p className="mt-2 text-[11px] text-muted font-sans uppercase tracking-wider">
+            Brightness: <span className="font-mono text-cyan font-bold">{magnitudeToDescription(currentPass.mag)}</span>
+            <span className="font-mono ml-1">({currentPass.mag > 0 ? '+' : ''}{currentPass.mag?.toFixed(1)} mag)</span>
           </p>
         )}
       </div>
@@ -115,10 +102,7 @@ export default function PassCountdown() {
       {/* Pass details grid */}
       <div className="grid grid-cols-2 gap-2">
         <StatCard icon={<Navigation className="w-3 h-3" />} label="Max Elevation">
-          <span
-            className="font-mono text-lg font-bold text-cyan"
-            style={{ textShadow: '0 0 16px rgba(58, 123, 217, 0.6), 0 0 32px rgba(58, 123, 217, 0.25)' }}
-          >{currentPass.maxEl}°</span>
+          <span className="font-mono text-lg font-bold text-cyan">{currentPass.maxEl}°</span>
         </StatCard>
         <StatCard icon={<Eye className="w-3 h-3" />} label="Peak Direction">
           <span className="font-mono text-lg font-bold text-cyan">{currentPass.maxAzCompass}</span>
@@ -151,8 +135,8 @@ export default function PassCountdown() {
       </div>
 
       {/* Look up instruction */}
-      <div className="px-3 py-2 rounded-lg bg-navy/50 border border-border text-center">
-        <p className="text-xs text-muted-light font-sans leading-relaxed">
+      <div className="px-3 py-2 rounded-lg bg-panel border border-border text-center">
+        <p className="text-[12px] text-muted font-sans leading-relaxed">
           {isVisible
             ? `🌟 Look ${currentPass.maxAzCompass} — ${currentPass.maxEl}° above the horizon`
             : `🧭 Point ${currentPass.startAzCompass} at ${currentPass.maxEl}° elevation at ${formatTime(currentPass.startUTC)}`
@@ -163,7 +147,7 @@ export default function PassCountdown() {
       {/* Upcoming passes nav */}
       {upcomingPasses.length > 1 && (
         <div className="flex items-center gap-2">
-          <span className="text-muted text-xs font-crimson">More tonight:</span>
+          <span className="text-muted text-[11px] font-sans uppercase tracking-wider font-semibold">More tonight:</span>
           <div className="flex gap-1 flex-wrap">
             {upcomingPasses.slice(0, 4).map((p, i) => (
               <button
@@ -171,7 +155,7 @@ export default function PassCountdown() {
                 onClick={() => setPassIdx(i)}
                 className={`text-xs font-mono px-2 py-0.5 rounded border transition-all
                   ${i === passIdx
-                    ? 'border-cyan text-cyan bg-cyan/10'
+                    ? 'border-cyan text-cyan bg-panel font-semibold'
                     : 'border-border text-muted hover:border-border-light hover:text-muted-light'
                   }`}
               >
@@ -187,15 +171,15 @@ export default function PassCountdown() {
 
 function StatCard({ icon, label, sub, children }) {
   return (
-    <div className="flex flex-col gap-1 px-3 py-2 rounded-lg bg-navy/40 border border-border"
-      style={{ boxShadow: 'var(--card-inset)' }}
-    >
+    <div className="flex flex-col gap-1 px-3 py-2 rounded-lg bg-panel border border-border">
       <div className="flex items-center gap-1 text-muted" style={{ fontSize: 10 }}>
         {icon}
-        <span className="font-crimson tracking-wide uppercase">{label}</span>
-        {sub && <span className="ml-auto text-muted opacity-70">{sub}</span>}
+        <span className="font-sans tracking-wider uppercase font-semibold text-[10px]">{label}</span>
       </div>
-      <div className="flex items-baseline gap-1">{children}</div>
+      <div className="flex items-baseline gap-1 mt-0.5">
+        {children}
+        {sub && <span className="text-[10px] font-sans text-muted uppercase tracking-wider">{sub}</span>}
+      </div>
     </div>
   );
 }
