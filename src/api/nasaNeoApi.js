@@ -17,16 +17,56 @@ export async function fetchNearEarthAsteroids() {
     .toISOString()
     .split('T')[0];
 
+  const cacheKey = 'orbitwatch_neows_cache';
+  const blockKey = 'orbitwatch_neows_blocked_until';
+
+  // 1. Check if NASA NeoWs is currently backed off due to rate-limiting/429
+  try {
+    const blockedUntil = localStorage.getItem(blockKey);
+    if (blockedUntil && Date.now() < Number(blockedUntil)) {
+      console.warn(`[NASA NeoWs API] Backing off due to previous rate limit. Serving from cache.`);
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const { asteroids } = JSON.parse(cached);
+        if (asteroids && asteroids.length > 0) {
+          recordSuccess(SOURCE, 0, { isLiveData: false, cached: true, note: 'Blocked backoff fallback' });
+          return asteroids;
+        }
+      }
+      return getMockAsteroids();
+    }
+  } catch (blockErr) {
+    console.warn('[NASA NeoWs API] Failed to check block status:', blockErr.message);
+  }
+
+  // 2. Try loading from localStorage cache first if it's fresh (same day and less than 4 hours old)
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const { asteroids, date, timestamp } = JSON.parse(cached);
+      const isFresh = date === startDate && (Date.now() - timestamp < 4 * 60 * 60 * 1000); // 4 hours
+      if (isFresh && asteroids && asteroids.length > 0) {
+        console.log('[NASA NeoWs API] Serving fresh asteroids from local cache.');
+        recordSuccess(SOURCE, 0, { isLiveData: true, cached: true });
+        return asteroids;
+      }
+    }
+  } catch (cacheErr) {
+    console.warn('[NASA NeoWs API] Failed to parse NeoWs cache:', cacheErr.message);
+  }
+
   let lastError;
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
     const t0 = Date.now();
     try {
       if (attempt > 1) recordRetry(SOURCE, attempt - 1);
+      
+      const apiKey = import.meta.env.VITE_NASA_API_KEY || 'DEMO_KEY';
       const response = await axios.get(NASA_NEO_API_URL, {
         params: {
           start_date: startDate,
           end_date: endDate,
-          api_key: 'DEMO_KEY',
+          api_key: apiKey,
         },
         timeout: 8000,
       });
@@ -69,13 +109,52 @@ export async function fetchNearEarthAsteroids() {
       flattenedAsteroids.sort((a, b) => a.miss_distance_km - b.miss_distance_km);
       const durationMs = Date.now() - t0;
       recordSuccess(SOURCE, durationMs, { isLiveData: true });
+
+      // Save to cache
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify({
+          asteroids: flattenedAsteroids,
+          date: startDate,
+          timestamp: Date.now()
+        }));
+        // Clear any previous block status on success
+        localStorage.removeItem(blockKey);
+      } catch (saveErr) {
+        console.warn('[NASA NeoWs API] Failed to save NeoWs cache:', saveErr.message);
+      }
+
       return flattenedAsteroids;
     } catch (error) {
       lastError = error;
       const statusCode = error.response?.status;
       if (attempt > MAX_RETRIES) {
         recordFailure(SOURCE, error.message, { statusCode, fallbackUsed: true });
-        console.warn('[NASA NeoWs API] Fetch failed or rate-limited. Falling back to mock database:', error.message);
+        console.warn('[NASA NeoWs API] Fetch failed or rate-limited. Falling back to cache or mock:', error.message);
+        
+        // If we got a 429 or 403, set a 1-hour backoff status
+        if (statusCode === 429 || statusCode === 403) {
+          try {
+            console.warn('[NASA NeoWs API] Rate limit or access denied. Backing off for 1 hour.');
+            localStorage.setItem(blockKey, String(Date.now() + 1 * 60 * 60 * 1000));
+          } catch (saveBlockErr) {
+            // ignore
+          }
+        }
+
+        // Return expired cache if we have it
+        try {
+          const cached = localStorage.getItem(cacheKey);
+          if (cached) {
+            const { asteroids } = JSON.parse(cached);
+            if (asteroids && asteroids.length > 0) {
+              console.warn('[NASA NeoWs API] Returning expired cached asteroid data as failover.');
+              return asteroids;
+            }
+          }
+        } catch (failoverErr) {
+          // ignore
+        }
+
         return getMockAsteroids();
       }
     }
