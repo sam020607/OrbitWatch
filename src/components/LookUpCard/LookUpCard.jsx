@@ -154,9 +154,11 @@ export default function LookUpCard() {
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
           </div>
-          <p className="text-sm font-crimson text-text leading-relaxed mt-1 text-left">
-            "{spaceFacts[factIndex]}"
-          </p>
+          <div className="max-h-24 overflow-y-auto pr-1 mt-1">
+            <p className="text-sm font-crimson text-text leading-relaxed text-left">
+              "{spaceFacts[factIndex]}"
+            </p>
+          </div>
         </div>
 
         {/* NASA Astronomy Picture of the Day */}
@@ -208,9 +210,11 @@ export default function LookUpCard() {
                 </button>
 
                 {expandApod && (
-                  <p className="text-xs font-crimson text-muted-light mt-2 leading-relaxed text-left max-h-48 overflow-y-auto pr-1">
-                    {apodData.explanation}
-                  </p>
+                  <div className="max-h-40 overflow-y-auto pr-1 mt-2">
+                    <p className="text-xs font-crimson text-muted-light leading-relaxed text-left">
+                      {apodData.explanation}
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
@@ -236,9 +240,11 @@ export default function LookUpCard() {
               <p className="text-[10px] font-mono text-muted">
                 Launched: {satelliteOfTheDay.launchDate} · Altitude: {satelliteOfTheDay.satalt} km
               </p>
-              <p className="text-xs font-crimson text-muted-light mt-2 leading-relaxed">
-                {satelliteOfTheDay.description}
-              </p>
+              <div className="max-h-24 overflow-y-auto pr-1 mt-2">
+                <p className="text-xs font-crimson text-muted-light leading-relaxed">
+                  {satelliteOfTheDay.description}
+                </p>
+              </div>
             </div>
 
             <button
