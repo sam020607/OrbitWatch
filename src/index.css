@@ -61,7 +61,7 @@ body::before {
   position: fixed;
   inset: -40px; /* extends beyond screen to prevent white edge bleed from blur */
   z-index: -2;
-  background-image: url('/earth-bg.png');
+  background-image: url('../public/earth-bg.png');
   background-size: cover;
   background-position: center 60%; /* curvature horizon in lower-third */
   background-repeat: no-repeat;

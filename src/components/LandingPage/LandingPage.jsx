@@ -87,7 +87,7 @@ export default function LandingPage({ onLocationSet }) {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Always dark mode — single Earth image
-  const earthImg = '/earth_view_from_space.png';
+  const earthImg = `${import.meta.env.BASE_URL}earth_view_from_space.png`;
 
   // Auto-rotation state
   const [globeCenter, setGlobeCenter] = useState([10, 0]);
