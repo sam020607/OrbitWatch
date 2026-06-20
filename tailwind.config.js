@@ -41,8 +41,8 @@ export default {
       },
       keyframes: {
         pulseGlow: {
-          '0%, 100%': { boxShadow: '0 0 5px #00d4ff, 0 0 10px #00d4ff' },
-          '50%': { boxShadow: '0 0 20px #00d4ff, 0 0 40px #00d4ff' },
+          '0%, 100%': { boxShadow: '0 0 5px var(--color-cyan), 0 0 10px var(--color-cyan)' },
+          '50%': { boxShadow: '0 0 20px var(--color-cyan), 0 0 40px var(--color-cyan)' },
         },
         float: {
           '0%, 100%': { transform: 'translateY(0px)' },

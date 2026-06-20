@@ -4,22 +4,22 @@
 
 /* ─── Base ──────────────────────────────────────────────────────────────── */
 :root {
-  --color-space: #060814; /* deep space dark background */
-  --color-navy: #0d1222;  /* space navy */
-  --color-panel: #11182c; /* dashboard dark panel */
-  --color-panel-light: #1b253b;
-  --color-border: #1e3a6f;
-  --color-border-light: #2d5aa8;
-  --color-cyan: #00d4ff;
-  --color-cyan-dim: #0099bb;
-  --color-amber: #f59e0b;
-  --color-amber-dim: #b47308;
-  --color-success: #10b981;
-  --color-danger: #ef4444;
-  --color-text: #f1f5f9;
-  --color-muted: #64748b;
-  --color-muted-light: #94a3b8;
-  --color-pink: #ec4899;
+  --color-space: #080414;        /* Deep void */
+  --color-navy: #0e071c;         /* Intermediate deep space background */
+  --color-panel: #130924;        /* Nebula surface */
+  --color-panel-light: #1d0e36;  /* Elevated surface */
+  --color-border: #2a174d;       /* Twilight line */
+  --color-border-light: #3d266a; /* Lighter twilight line */
+  --color-cyan: #e8b568;         /* Stardust gold */
+  --color-cyan-dim: #ba8a3f;     /* Dimmed Stardust gold */
+  --color-amber: #ffdf00;        /* Bright Stardust gold */
+  --color-amber-dim: #cca300;    /* Dimmed Bright Stardust gold */
+  --color-success: #10b981;      /* Standard success green */
+  --color-danger: #ff6b6b;       /* Comet coral */
+  --color-text: #ffffff;         /* Starlight white */
+  --color-muted: #7a7f9a;        /* Moon mist (darker) */
+  --color-muted-light: #a3aed0;  /* Moon mist (lighter) */
+  --color-pink: #b57edc;         /* Aurora lavender */
 }
 
 html.light, .light {
@@ -29,8 +29,8 @@ html.light, .light {
   --color-panel-light: #f8fafc;
   --color-border: #cbd5e1; /* soft slate border */
   --color-border-light: #94a3b8;
-  --color-cyan: #0284c7;  /* pastel blue sky highlight */
-  --color-cyan-dim: #0369a1;
+  --color-cyan: #d97706;  /* warm gold highlight */
+  --color-cyan-dim: #b45309;
   --color-amber: #ea580c; /* warm solar amber */
   --color-amber-dim: #c2410c;
   --color-success: #059669;
@@ -93,7 +93,7 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid var(--color-border) !important;
   border-radius: 8px !important;
   color: var(--color-text) !important;
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.15) !important;
+  box-shadow: 0 0 20px rgba(232, 181, 104, 0.15) !important;
 }
 .leaflet-popup-tip { background: var(--color-panel) !important; }
 .leaflet-popup-close-button { color: var(--color-muted) !important; }
@@ -109,9 +109,9 @@ h1, h2, h3, h4, h5, h6 {
 .iss-dot {
   width: 16px;
   height: 16px;
-  background: #00d4ff;
+  background: #e8b568;
   border-radius: 50%;
-  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.3), 0 0 15px rgba(0, 212, 255, 0.8);
+  box-shadow: 0 0 0 3px rgba(232, 181, 104, 0.3), 0 0 15px rgba(232, 181, 104, 0.8);
   animation: issPulse 1.5s ease-in-out infinite;
   position: relative;
 }
@@ -121,13 +121,13 @@ h1, h2, h3, h4, h5, h6 {
   position: absolute;
   inset: -6px;
   border-radius: 50%;
-  border: 2px solid rgba(0, 212, 255, 0.4);
+  border: 2px solid rgba(232, 181, 104, 0.4);
   animation: issRing 1.5s ease-in-out infinite;
 }
 
 @keyframes issPulse {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.3), 0 0 15px rgba(0, 212, 255, 0.8); }
-  50% { box-shadow: 0 0 0 6px rgba(0, 212, 255, 0.15), 0 0 30px rgba(0, 212, 255, 1); }
+  0%, 100% { box-shadow: 0 0 0 3px rgba(232, 181, 104, 0.3), 0 0 15px rgba(232, 181, 104, 0.8); }
+  50% { box-shadow: 0 0 0 6px rgba(232, 181, 104, 0.15), 0 0 30px rgba(232, 181, 104, 1); }
 }
 
 @keyframes issRing {
@@ -154,16 +154,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .sat-dot.selected {
-  background: #00d4ff;
-  box-shadow: 0 0 12px rgba(0, 212, 255, 1);
+  background: #e8b568;
+  box-shadow: 0 0 12px rgba(232, 181, 104, 1);
 }
 
 /* ─── Orbital Path ──────────────────────────────────────────────────────── */
 .orbital-path {
-  stroke: rgba(0, 212, 255, 0.5) !important;
+  stroke: rgba(232, 181, 104, 0.5) !important;
   stroke-width: 2 !important;
   stroke-dasharray: 8, 4 !important;
-  filter: drop-shadow(0 0 3px rgba(0, 212, 255, 0.6));
+  filter: drop-shadow(0 0 3px rgba(232, 181, 104, 0.6));
   animation: orbitDash 2s linear infinite;
 }
 
@@ -217,8 +217,8 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ─── Cone of Visibility ────────────────────────────────────────────────── */
 .leaflet-interactive.cone-overlay {
-  fill: rgba(0, 212, 255, 0.08) !important;
-  stroke: rgba(0, 212, 255, 0.4) !important;
+  fill: rgba(232, 181, 104, 0.08) !important;
+  stroke: rgba(232, 181, 104, 0.4) !important;
   stroke-width: 1.5 !important;
   stroke-dasharray: 6, 4 !important;
 }
@@ -227,8 +227,8 @@ h1, h2, h3, h4, h5, h6 {
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(0, 212, 255, 0.15);
-  border-top-color: #00d4ff;
+  border: 3px solid rgba(232, 181, 104, 0.15);
+  border-top-color: #e8b568;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -239,9 +239,9 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ─── Tab active state ──────────────────────────────────────────────────── */
 .tab-active {
-  color: #00d4ff;
-  border-bottom: 2px solid #00d4ff;
-  text-shadow: 0 0 8px rgba(0, 212, 255, 0.6);
+  color: #e8b568;
+  border-bottom: 2px solid #e8b568;
+  text-shadow: 0 0 8px rgba(232, 181, 104, 0.6);
 }
 
 /* ─── Elevation arc ─────────────────────────────────────────────────────── */
@@ -291,4 +291,84 @@ h1, h2, h3, h4, h5, h6 {
   background: color-mix(in srgb, var(--color-pink) 15%, transparent);
   color: var(--color-pink);
   border: 1px solid color-mix(in srgb, var(--color-pink) 30%, transparent);
+}
+
+/* ─── Hero Page Gold Accent Styles ───────────────────────────────────────── */
+.hero-pill-gold:hover {
+  border-color: rgba(232, 181, 104, 0.5) !important;
+  color: #e8b568 !important;
+  background-color: rgba(232, 181, 104, 0.05) !important;
+}
+
+.hero-btn-gold {
+  background-color: #e8b568 !important;
+  color: #4a3417 !important;
+  box-shadow: 0 0 15px rgba(232, 181, 104, 0.5) !important;
+  transition: all 0.25s ease-in-out;
+}
+
+.hero-btn-gold:hover {
+  background-color: #ba8a3f !important;
+  box-shadow: 0 0 20px rgba(232, 181, 104, 0.7) !important;
+}
+
+/* ─── Tailwind Cyan-to-Gold Class Overrides ─────────────────────────────── */
+.text-cyan {
+  color: #e8b568 !important;
+}
+.text-cyan\/70 {
+  color: rgba(232, 181, 104, 0.7) !important;
+}
+.bg-cyan {
+  background-color: #e8b568 !important;
+}
+.bg-cyan\/5 {
+  background-color: rgba(232, 181, 104, 0.05) !important;
+}
+.bg-cyan\/10 {
+  background-color: rgba(232, 181, 104, 0.1) !important;
+}
+.bg-cyan\/20 {
+  background-color: rgba(232, 181, 104, 0.2) !important;
+}
+.bg-cyan\/40 {
+  background-color: rgba(232, 181, 104, 0.4) !important;
+}
+.border-cyan {
+  border-color: #e8b568 !important;
+}
+.border-cyan\/20 {
+  border-color: rgba(232, 181, 104, 0.2) !important;
+}
+.border-cyan\/30 {
+  border-color: rgba(232, 181, 104, 0.3) !important;
+}
+.border-cyan\/40 {
+  border-color: rgba(232, 181, 104, 0.4) !important;
+}
+.border-l-cyan {
+  border-left-color: #e8b568 !important;
+}
+.badge-cyan {
+  background-color: rgba(232, 181, 104, 0.15) !important;
+  color: #e8b568 !important;
+  border-color: rgba(232, 181, 104, 0.3) !important;
+}
+.hover\:text-cyan:hover {
+  color: #e8b568 !important;
+}
+.hover\:border-cyan:hover {
+  border-color: #e8b568 !important;
+}
+.hover\:bg-cyan\/10:hover {
+  background-color: rgba(232, 181, 104, 0.1) !important;
+}
+.hover\:bg-cyan\/20:hover {
+  background-color: rgba(232, 181, 104, 0.2) !important;
+}
+.focus\:border-cyan:focus {
+  border-color: #e8b568 !important;
+}
+.focus\:ring-cyan\/30:focus {
+  --tw-ring-color: rgba(232, 181, 104, 0.3) !important;
 }

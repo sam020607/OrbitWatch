@@ -17,7 +17,7 @@ export async function fetchISSPosition() {
   try {
     // Use a CORS proxy for the open-notify API if running in browser
     const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(ISS_API_URL)}`;
-    const response = await axios.get(proxyUrl, { timeout: 8000 });
+    const response = await axios.get(proxyUrl, { timeout: 20000 });
     const data = JSON.parse(response.data.contents);
     return {
       lat: parseFloat(data.iss_position.latitude),

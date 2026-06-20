@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Satellite, MapPin, Globe, Sun, Moon } from 'lucide-react';
+import { Satellite, MapPin, Globe, Sun, Moon, Sparkles } from 'lucide-react';
 import StarfieldCanvas from './StarfieldCanvas.jsx';
 import LocationSearch from './LocationSearch.jsx';
 import { useApp } from '../../context/AppContext.jsx';
@@ -14,9 +14,9 @@ const locatorIcon = L.divIcon({
   html: `<div style="
     width: 16px; height: 16px;
     border-radius: 50%;
-    border: 3px solid #00d4ff;
-    background: rgba(0, 212, 255, 0.4);
-    box-shadow: 0 0 12px #00d4ff, 0 0 24px rgba(0, 212, 255, 0.4);
+    border: 3px solid #ff007f;
+    background: rgba(255, 0, 127, 0.4);
+    box-shadow: 0 0 12px #ff007f, 0 0 24px rgba(255, 0, 127, 0.4);
   "></div>`,
   iconSize: [20, 20],
   iconAnchor: [10, 10],
@@ -128,13 +128,13 @@ export default function LandingPage({ onLocationSet }) {
                 {/* Central planet */}
                 <div className="w-16 h-16 rounded-full"
                   style={{
-                    background: 'radial-gradient(circle at 35% 35%, #1e3a5f, #0d1b2a)',
-                    boxShadow: '0 0 30px rgba(0, 212, 255, 0.3), inset -4px -4px 10px rgba(0,0,0,0.5)',
+                    background: 'radial-gradient(circle at 35% 35%, #130924, #080414)',
+                    boxShadow: '0 0 30px rgba(255, 0, 127, 0.3), inset -4px -4px 10px rgba(0,0,0,0.5)',
                   }}
                 />
                 {/* Orbit ring */}
-                <div className="absolute inset-0 rounded-full border border-cyan/20"
-                  style={{ transform: 'rotateX(60deg)' }}
+                <div className="absolute inset-0 rounded-full border"
+                  style={{ borderColor: 'rgba(232, 181, 104, 0.25)', transform: 'rotateX(60deg)' }}
                 />
                 {/* Orbiting satellite dot */}
                 <motion.div
@@ -144,8 +144,11 @@ export default function LandingPage({ onLocationSet }) {
                   transition={{ repeat: Infinity, duration: 4, ease: 'linear' }}
                 >
                   <div style={{ transformOrigin: '4px 4px', transform: 'translateX(52px)' }}>
-                    <div className="w-2 h-2 rounded-full bg-cyan"
-                      style={{ boxShadow: '0 0 8px #00d4ff, 0 0 16px #00d4ff' }}
+                    <div className="w-2 h-2 rounded-full"
+                      style={{
+                        backgroundColor: '#e8b568',
+                        boxShadow: '0 0 8px #e8b568, 0 0 16px #e8b568'
+                      }}
                     />
                   </div>
                 </motion.div>
@@ -162,16 +165,16 @@ export default function LandingPage({ onLocationSet }) {
           className="text-center mb-6"
         >
           <div className="flex flex-col items-center justify-center gap-1.5 mb-2">
-            <span className="text-cyan text-xs font-playfair italic tracking-[0.25em] uppercase" style={{ filter: 'drop-shadow(0 0 4px rgba(0, 212, 255, 0.5))' }}>
+            <span className="text-xs font-playfair italic tracking-[0.25em] uppercase" style={{ color: '#e8b568', filter: 'drop-shadow(0 0 5px rgba(232, 181, 104, 0.7))' }}>
               The Celestial Eye
             </span>
             <div className="flex items-center gap-3">
-              <Satellite className="w-7 h-7 text-cyan" style={{ filter: 'drop-shadow(0 0 8px #00d4ff)' }} />
+              <Sparkles className="w-6 h-6" style={{ color: '#e8b568', fill: '#e8b568', filter: 'drop-shadow(0 0 10px rgba(232, 181, 104, 0.7))' }} />
               <h1 className="text-4xl md:text-5xl font-bold font-playfair text-text tracking-tight"
-                style={{ textShadow: theme === 'light' ? 'none' : '0 0 30px rgba(0, 212, 255, 0.4)' }}>
-                Project <span className="text-cyan">Zenith</span>
+                style={{ textShadow: theme === 'light' ? 'none' : '0 0 38px rgba(232, 181, 104, 0.5)' }}>
+                Project <span style={{ color: '#e8b568' }}>Zenith</span>
               </h1>
-              <Satellite className="w-7 h-7 text-cyan transform -scale-x-100" style={{ filter: 'drop-shadow(0 0 8px #00d4ff)' }} />
+              <Sparkles className="w-6 h-6 transform -scale-x-100" style={{ color: '#e8b568', fill: '#e8b568', filter: 'drop-shadow(0 0 10px rgba(232, 181, 104, 0.7))' }} />
             </div>
           </div>
           <p className="text-muted-light text-base md:text-lg font-light tracking-wide max-w-lg mx-auto mt-2">
@@ -213,7 +216,7 @@ export default function LandingPage({ onLocationSet }) {
               key={loc.name}
               onClick={() => handleLocationSelect({ ...loc, name: loc.name, country: '' })}
               className="px-3 py-0.5 rounded-full text-xs border border-border text-muted-light
-                         hover:border-cyan/50 hover:text-cyan hover:bg-cyan/5 transition-all duration-200"
+                         hero-pill-gold transition-all duration-200"
             >
               {loc.name}
             </button>
@@ -230,7 +233,8 @@ export default function LandingPage({ onLocationSet }) {
           <button
             onClick={() => setMethod('search')}
             className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-crimson font-bold transition-all
-              ${method === 'search' ? 'bg-cyan text-space font-bold' : 'text-muted-light hover:text-text'}`}
+              ${method === 'search' ? '' : 'text-muted-light hover:text-text'}`}
+            style={method === 'search' ? { backgroundColor: '#e8b568', color: '#4a3417' } : {}}
           >
             <MapPin className="w-3.5 h-3.5" />
             <span>Text Search</span>
@@ -238,7 +242,8 @@ export default function LandingPage({ onLocationSet }) {
           <button
             onClick={() => setMethod('globe')}
             className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-crimson font-bold transition-all
-              ${method === 'globe' ? 'bg-cyan text-space font-bold' : 'text-muted-light hover:text-text'}`}
+              ${method === 'globe' ? '' : 'text-muted-light hover:text-text'}`}
+            style={method === 'globe' ? { backgroundColor: '#e8b568', color: '#4a3417' } : {}}
           >
             <Globe className="w-3.5 h-3.5" />
             <span>Interactive Globe</span>
@@ -296,7 +301,7 @@ export default function LandingPage({ onLocationSet }) {
                     </p>
                     <button
                       onClick={confirmGlobeLocation}
-                      className="px-4 py-1 rounded bg-cyan text-space text-xs font-crimson font-bold hover:opacity-95 transition-all shadow-[0_0_12px_rgba(0,212,255,0.4)]"
+                      className="px-4 py-1 rounded text-xs font-crimson font-bold hero-btn-gold"
                     >
                       Confirm Observer Location
                     </button>

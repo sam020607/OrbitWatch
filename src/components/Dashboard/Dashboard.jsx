@@ -67,7 +67,7 @@ export default function Dashboard({ onReset }) {
         style={{ zIndex: 100 }}>
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <Satellite className="w-5 h-5 text-cyan" style={{ filter: 'drop-shadow(0 0 4px #00d4ff)' }} />
+          <Satellite className="w-5 h-5 text-cyan" style={{ filter: 'drop-shadow(0 0 4px #e8b568)' }} />
           <span className="font-playfair font-bold text-text text-sm hidden sm:block">
             Project <span className="text-cyan">Zenith</span>
           </span>

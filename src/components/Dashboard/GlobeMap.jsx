@@ -27,11 +27,11 @@ function createISSIcon() {
 
 // Satellite custom icon
 function createSatIcon(type, selected = false) {
-  const color = SAT_TYPE_CONFIG[type]?.color || '#f59e0b';
+  const color = SAT_TYPE_CONFIG[type]?.color || '#ffdf00';
   const size = selected ? 12 : 8;
   return L.divIcon({
     className: 'sat-marker-icon',
-    html: `<div class="sat-dot${selected ? ' selected' : ''}" style="width:${size}px;height:${size}px;background:${selected ? '#00d4ff' : color};box-shadow:0 0 ${selected ? 12 : 6}px ${selected ? 'rgba(0,212,255,1)' : color}80;border-radius:50%;"></div>`,
+    html: `<div class="sat-dot${selected ? ' selected' : ''}" style="width:${size}px;height:${size}px;background:${selected ? '#ff007f' : color};box-shadow:0 0 ${selected ? 12 : 6}px ${selected ? 'rgba(255,0,127,1)' : color}80;border-radius:50%;"></div>`,
     iconSize: [size + 4, size + 4],
     iconAnchor: [(size + 4) / 2, (size + 4) / 2],
     popupAnchor: [0, -8],
@@ -45,9 +45,9 @@ function createObserverIcon() {
     html: `<div style="
       width: 14px; height: 14px;
       border-radius: 50%;
-      border: 2px solid #f59e0b;
-      background: rgba(245,158,11,0.3);
-      box-shadow: 0 0 10px rgba(245,158,11,0.8), 0 0 20px rgba(245,158,11,0.4);
+      border: 2px solid #ffdf00;
+      background: rgba(255,223,0,0.3);
+      box-shadow: 0 0 10px rgba(255,223,0,0.8), 0 0 20px rgba(255,223,0,0.4);
     "></div>`,
     iconSize: [18, 18],
     iconAnchor: [9, 9],
@@ -56,17 +56,17 @@ function createObserverIcon() {
 
 // Asteroid custom icon
 function createAsteroidIcon(isHazardous, selected = false) {
-  const color = isHazardous ? '#ef4444' : '#f59e0b';
+  const color = isHazardous ? '#ff6b6b' : '#ffdf00';
   const size = selected ? 14 : 9;
-  const shadowColor = isHazardous ? 'rgba(239,68,68,0.8)' : 'rgba(245,158,11,0.8)';
+  const shadowColor = isHazardous ? 'rgba(255,107,107,0.8)' : 'rgba(255,223,0,0.8)';
   const pulseClass = isHazardous ? 'animate-pulse' : '';
   
   return L.divIcon({
     className: 'ast-marker-icon',
     html: `<div class="${pulseClass}" style="
       width: ${size}px; height: ${size}px;
-      background: ${selected ? '#00d4ff' : color};
-      box-shadow: 0 0 ${selected ? 12 : 6}px ${selected ? 'rgba(0,212,255,1)' : shadowColor};
+      background: ${selected ? '#ff007f' : color};
+      box-shadow: 0 0 ${selected ? 12 : 6}px ${selected ? 'rgba(255,0,127,1)' : shadowColor};
       border-radius: 50%;
       border: ${selected ? '1.5px solid #ffffff' : '1px solid rgba(255,255,255,0.4)'};
       transition: all 0.2s;
@@ -228,7 +228,7 @@ export default function GlobeMap({ className = '' }) {
             {trailPositions.length > 1 && (
               <Polyline
                 positions={trailPositions}
-                color="#00d4ff"
+                color="#ff007f"
                 weight={2}
                 opacity={0.4}
                 dashArray="4, 6"
@@ -240,8 +240,8 @@ export default function GlobeMap({ className = '' }) {
               <Polygon
                 positions={issCone}
                 pathOptions={{
-                  color: 'rgba(0, 212, 255, 0.5)',
-                  fillColor: 'rgba(0, 212, 255, 0.06)',
+                  color: 'rgba(255, 0, 127, 0.5)',
+                  fillColor: 'rgba(255, 0, 127, 0.06)',
                   fillOpacity: 1,
                   weight: 1.5,
                   dashArray: '6, 4',
@@ -291,8 +291,8 @@ export default function GlobeMap({ className = '' }) {
                   <Polygon
                     positions={calculateConeFootprint(selectedSatellite.satlat, selectedSatellite.satlon, selectedSatellite.satalt)}
                     pathOptions={{
-                      color: SAT_TYPE_CONFIG[selectedSatellite.type]?.color || '#f59e0b',
-                      fillColor: 'rgba(245, 158, 11, 0.05)',
+                      color: SAT_TYPE_CONFIG[selectedSatellite.type]?.color || '#ffdf00',
+                      fillColor: 'rgba(255, 223, 0, 0.05)',
                       fillOpacity: 1,
                       weight: 1,
                       dashArray: '4, 4',
@@ -361,8 +361,8 @@ export default function GlobeMap({ className = '' }) {
             html: `<div style="
               width: 8px; height: 8px;
               border-radius: 50%;
-              background: ${isSelected ? '#f59e0b' : '#00d4ff'};
-              box-shadow: 0 0 6px ${isSelected ? '#f59e0b' : '#00d4ff'};
+              background: ${isSelected ? '#ffdf00' : '#ff007f'};
+              box-shadow: 0 0 6px ${isSelected ? '#ffdf00' : '#ff007f'};
               opacity: 0.8;
             "></div>`,
             iconSize: [8, 8],
@@ -381,8 +381,8 @@ export default function GlobeMap({ className = '' }) {
                 <Polygon
                   positions={constellCone}
                   pathOptions={{
-                    color: 'rgba(245, 158, 11, 0.4)',
-                    fillColor: 'rgba(245, 158, 11, 0.05)',
+                    color: 'rgba(255, 223, 0, 0.4)',
+                    fillColor: 'rgba(255, 223, 0, 0.05)',
                     fillOpacity: 1,
                     weight: 1.5,
                     dashArray: '6, 4',
@@ -399,7 +399,7 @@ export default function GlobeMap({ className = '' }) {
                     [constell.subStellar.lat, constell.subStellar.lon],
                   ]}
                   pathOptions={{
-                    color: '#f59e0b',
+                    color: '#ffdf00',
                     weight: 1.5,
                     dashArray: '4, 4',
                   }}
@@ -419,7 +419,7 @@ export default function GlobeMap({ className = '' }) {
                       [star2.lat, star2.lon],
                     ]}
                     pathOptions={{
-                      color: isSelected ? '#f59e0b' : '#00d4ff',
+                      color: isSelected ? '#ffdf00' : '#ff007f',
                       weight: isSelected ? 2.0 : 1.0,
                       opacity: isSelected ? 0.95 : 0.35,
                       dashArray: isSelected ? 'none' : '2, 3',
@@ -435,7 +435,7 @@ export default function GlobeMap({ className = '' }) {
                   center={[star.lat, star.lon]}
                   radius={isSelected ? 14000 : 8000}
                   pathOptions={{
-                    color: isSelected ? '#ffffff' : '#a5f3fc',
+                    color: isSelected ? '#ffffff' : '#e6d5fa',
                     fillColor: '#ffffff',
                     fillOpacity: 0.9,
                     weight: 1,
@@ -507,7 +507,7 @@ export default function GlobeMap({ className = '' }) {
               <Polyline
                 positions={getAsteroidTrajectoryPoints(selectedAsteroid, Date.now())}
                 pathOptions={{
-                  color: selectedAsteroid.is_potentially_hazardous ? '#ef4444' : '#f59e0b',
+                  color: selectedAsteroid.is_potentially_hazardous ? '#ff6b6b' : '#ffdf00',
                   weight: 2,
                   opacity: 0.7,
                   dashArray: '6, 6',
@@ -572,7 +572,7 @@ export default function GlobeMap({ className = '' }) {
       {/* Map overlay: ISS live badge */}
       {viewMode === 'satellites' && issPosition && (
         <div className="absolute top-3 left-3 z-[1000] flex items-center gap-2 px-3 py-1.5 rounded-lg bg-navy/90 border border-cyan/30 backdrop-blur-sm">
-          <div className="w-2 h-2 rounded-full bg-cyan animate-pulse" style={{ boxShadow: '0 0 6px #00d4ff' }} />
+          <div className="w-2 h-2 rounded-full bg-cyan animate-pulse" style={{ boxShadow: '0 0 6px #ff007f' }} />
           <span className="text-cyan text-xs font-crimson font-semibold">ISS LIVE</span>
         </div>
       )}

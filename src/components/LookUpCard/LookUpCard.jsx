@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext.jsx';
 import { azimuthToCompass } from '../../utils/orbitMath.js';
 import { getLocalCoordinates } from '../../data/constellations.js';
-import { Compass, Target, X, RefreshCw, ChevronUp, ChevronDown } from 'lucide-react';
+import { Compass, Target, X, RefreshCw, ExternalLink } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import { fetchAstronomyPictureOfTheDay } from '../../api/nasaApodApi.js';
 import { MOCK_SATELLITES } from '../../data/mockSatellites.js';
@@ -77,17 +79,18 @@ export default function LookUpCard() {
 
   const [showNotesForm, setShowNotesForm] = useState(false);
   const [notesText, setNotesText] = useState('');
+  const [activeModal, setActiveModal] = useState(null); // null | 'fact' | 'apod' | 'sat'
 
   // 1. APOD state
   const [apodLoading, setApodLoading] = useState(false);
   const [apodError, setApodError] = useState(null);
-  const [expandApod, setExpandApod] = useState(false);
 
   useEffect(() => {
     if (!displayData && !apodData && !apodLoading) {
       setApodLoading(true);
       fetchAstronomyPictureOfTheDay()
         .then(data => {
+          console.log('[LookUpCard] Successfully fetched APOD:', data);
           actions.setApodData(data);
           setApodLoading(false);
         })
@@ -101,7 +104,6 @@ export default function LookUpCard() {
 
   // 2. Space Facts state
   const [factIndex, setFactIndex] = useState(0);
-  const [expandFact, setExpandFact] = useState(false);
 
   useEffect(() => {
     const rand = Math.floor(Math.random() * spaceFacts.length);
@@ -117,7 +119,6 @@ export default function LookUpCard() {
   };
 
   // 3. Satellite of the Day
-  const [expandSat, setExpandSat] = useState(false);
   const satelliteOfTheDay = useMemo(() => {
     if (MOCK_SATELLITES.length === 0) return null;
     const today = new Date();
@@ -134,8 +135,9 @@ export default function LookUpCard() {
   }, []);
 
   if (!displayData) {
+    console.log('[LookUpCard] Rendering Celestial Dashboard. APOD Data:', apodData);
     return (
-      <div className="flex flex-col gap-5 p-4 h-full overflow-y-auto">
+      <div className="flex flex-col gap-5 p-4">
         {/* Header */}
         <div className="flex items-center gap-2 pb-2 border-b border-border">
           <Compass className="w-5 h-5 text-cyan animate-pulse" />
@@ -144,8 +146,8 @@ export default function LookUpCard() {
 
         {/* Space Fun Fact */}
         <div 
-          onClick={() => setExpandFact(!expandFact)}
-          className="glass-panel p-4 glow-cyan flex flex-col gap-2 relative overflow-hidden transition-all duration-300 hover:border-cyan-dim cursor-pointer select-none"
+          onClick={() => setActiveModal('fact')}
+          className="glass-panel p-4 glow-cyan flex flex-col gap-2 relative overflow-hidden transition-all duration-300 hover:border-cyan hover:shadow-lg cursor-pointer hover:scale-[1.01]"
         >
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono text-cyan tracking-[0.2em] uppercase font-bold text-glow-cyan flex items-center gap-1">
@@ -153,7 +155,7 @@ export default function LookUpCard() {
             </span>
             <button 
               onClick={(e) => {
-                e.stopPropagation();
+                e.stopPropagation(); // prevent modal opening
                 handleNextFact();
               }}
               className="p-1 rounded text-muted hover:text-cyan transition-colors"
@@ -162,21 +164,18 @@ export default function LookUpCard() {
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div 
-            className="pr-1 mt-1"
-            style={expandFact ? { maxHeight: '160px', overflowY: 'auto' } : { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
-          >
-            <p className="text-sm font-crimson text-text leading-relaxed text-left">
+          <div className="mt-1">
+            <p className="text-sm font-crimson text-text leading-relaxed text-left line-clamp-3">
               "{spaceFacts[factIndex]}"
             </p>
           </div>
-          <span className="text-[9px] text-cyan/70 font-mono mt-1 text-left">
-            {expandFact ? "Click to collapse" : "Click to expand fact"}
-          </span>
         </div>
 
         {/* NASA Astronomy Picture of the Day */}
-        <div className="glass-panel overflow-hidden border border-border flex flex-col transition-all duration-300">
+        <div 
+          onClick={() => setActiveModal('apod')}
+          className="glass-panel overflow-hidden border border-border flex flex-col transition-all duration-300 hover:border-amber hover:shadow-lg cursor-pointer hover:scale-[1.01]"
+        >
           <div className="p-3 border-b border-border bg-navy/30 flex items-center justify-between">
             <span className="text-[10px] font-mono text-amber tracking-[0.2em] uppercase font-bold text-glow-amber flex items-center gap-1">
               📷 NASA APOD
@@ -204,36 +203,13 @@ export default function LookUpCard() {
                   alt={apodData.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-space via-transparent to-transparent opacity-80" />
+                <div className="absolute inset-0 bg-gradient-to-t from-space via-transparent to-transparent opacity-85" />
                 <div className="absolute bottom-2 left-3 right-3 text-left">
                   <h3 className="text-sm font-playfair font-bold text-white truncate">{apodData.title}</h3>
                   {apodData.copyright && (
                     <p className="text-[9px] text-gray-300 font-mono">© {apodData.copyright}</p>
                   )}
                 </div>
-              </div>
-
-              {/* Collapsible Explanation */}
-              <div 
-                onClick={() => setExpandApod(!expandApod)}
-                className="p-3 bg-panel/50 cursor-pointer border-t border-border/20 hover:bg-panel/75 transition-colors select-none"
-              >
-                <div className="w-full flex items-center justify-between text-xs font-crimson text-cyan hover:text-cyan-dim transition-colors">
-                  <span>{expandApod ? "Hide Explanation" : "Read Scientific Explanation"}</span>
-                  {expandApod ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                </div>
-  
-                {expandApod && (
-                  <div 
-                    className="overflow-y-auto pr-1 mt-2 text-left" 
-                    style={{ maxHeight: '320px' }}
-                    onClick={(e) => e.stopPropagation()} // prevent collapsing when scrolling text
-                  >
-                    <p className="text-xs font-crimson text-muted-light leading-relaxed">
-                      {apodData.explanation}
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
           )}
@@ -242,8 +218,8 @@ export default function LookUpCard() {
         {/* Satellite of the Day */}
         {satelliteOfTheDay && (
           <div 
-            onClick={() => setExpandSat(!expandSat)}
-            className="glass-panel p-4 border border-border flex flex-col gap-3 relative overflow-hidden transition-all duration-300 hover:border-amber-dim hover:shadow-[0_0_15px_rgba(245,158,11,0.1)] cursor-pointer select-none"
+            onClick={() => setActiveModal('sat')}
+            className="glass-panel p-4 border border-border flex flex-col gap-3 relative overflow-hidden transition-all duration-300 hover:border-amber hover:shadow-lg cursor-pointer hover:scale-[1.01]"
           >
             <div className="absolute top-0 right-0 p-2 opacity-5">
               <Compass className="w-24 h-24 text-amber" />
@@ -261,23 +237,16 @@ export default function LookUpCard() {
               <p className="text-[10px] font-mono text-muted">
                 Launched: {satelliteOfTheDay.launchDate} · Altitude: {satelliteOfTheDay.satalt} km
               </p>
-              <div 
-                className="pr-1 mt-2"
-                style={expandSat ? { maxHeight: '200px', overflowY: 'auto' } : { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
-                onClick={(e) => { if (expandSat) e.stopPropagation(); }} // prevent collapsing when scrolling text
-              >
-                <p className="text-xs font-crimson text-muted-light leading-relaxed">
+              <div className="mt-2">
+                <p className="text-xs font-crimson text-muted-light leading-relaxed line-clamp-3">
                   {satelliteOfTheDay.description}
                 </p>
               </div>
-              <span className="text-[9px] text-amber/80 font-mono mt-1">
-                {expandSat ? "Click to collapse" : "Click to expand description"}
-              </span>
             </div>
 
             <button
               onClick={(e) => {
-                e.stopPropagation();
+                e.stopPropagation(); // prevent modal opening
                 actions.setViewMode('satellites');
                 actions.selectSatellite(satelliteOfTheDay);
               }}
@@ -286,6 +255,174 @@ export default function LookUpCard() {
               <span>Track on Map 🔭</span>
             </button>
           </div>
+        )}
+
+        {/* Modals */}
+        {typeof document !== 'undefined' && createPortal(
+          <AnimatePresence>
+            {activeModal === 'fact' && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-space/85 backdrop-blur-md"
+                onClick={() => setActiveModal(null)}
+              >
+                <motion.div
+                  initial={{ scale: 0.95, y: 15 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.95, y: 15 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+                  className="relative w-full max-w-lg bg-panel border border-border rounded-2xl p-6 shadow-2xl flex flex-col gap-4 scanlines"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-muted hover:text-text transition-colors">
+                    <X className="w-4 h-4" />
+                  </button>
+                  <span className="text-[10px] font-mono text-cyan tracking-[0.2em] uppercase font-bold text-glow-cyan">
+                    ✨ Space Fact
+                  </span>
+                  <div className="overflow-y-auto pr-1 flex-1 max-h-[60vh]">
+                    <p className="text-base md:text-lg font-crimson text-text leading-relaxed italic text-left">
+                      "{spaceFacts[factIndex]}"
+                    </p>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+
+            {activeModal === 'apod' && apodData && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-space/85 backdrop-blur-md"
+                onClick={() => setActiveModal(null)}
+              >
+                <motion.div
+                  initial={{ scale: 0.95, y: 15 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.95, y: 15 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+                  className="relative w-full max-w-3xl bg-panel border border-border rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] scanlines"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 z-50 p-1.5 rounded-full bg-space/60 border border-border/40 text-muted hover:text-text transition-colors shadow-md">
+                    <X className="w-4 h-4" />
+                  </button>
+                  
+                  {/* Full Image */}
+                  <div className="relative w-full flex-1 bg-space flex items-center justify-center min-h-[300px]">
+                    <img 
+                      src={apodData.url} 
+                      alt={apodData.title}
+                      className="w-full h-full object-contain max-h-[80vh]" 
+                    />
+                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-panel via-panel/85 to-transparent pointer-events-none" />
+                    <div className="absolute bottom-4 left-6 right-6 text-left z-10">
+                      <span className="text-[10px] font-mono text-amber tracking-[0.2em] uppercase font-bold text-glow-amber">
+                        NASA APOD
+                      </span>
+                      <h3 className="text-xl font-playfair font-bold text-text mt-1">{apodData.title}</h3>
+                      <div className="text-[10px] text-muted font-mono mt-1 flex items-center gap-2 flex-wrap">
+                        <span>Date: {apodData.date}</span>
+                        {apodData.copyright && <span>· Copyright: {apodData.copyright}</span>}
+                        {apodData.hdurl && (
+                          <a 
+                            href={apodData.hdurl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-cyan hover:underline inline-flex items-center gap-0.5 ml-1 pointer-events-auto"
+                          >
+                            View HD <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+
+            {activeModal === 'sat' && satelliteOfTheDay && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-space/85 backdrop-blur-md"
+                onClick={() => setActiveModal(null)}
+              >
+                <motion.div
+                  initial={{ scale: 0.95, y: 15 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.95, y: 15 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+                  className="relative w-full max-w-lg bg-panel border border-border rounded-2xl p-6 shadow-2xl flex flex-col gap-4 scanlines"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-muted hover:text-text transition-colors">
+                    <X className="w-4 h-4" />
+                  </button>
+
+                  <span className="text-[10px] font-mono text-amber tracking-[0.2em] uppercase font-bold text-glow-amber">
+                    🛰️ Satellite of the Day
+                  </span>
+
+                  <div className="flex flex-col gap-1 text-left border-b border-border/40 pb-3 shrink-0">
+                    <h3 className="text-xl font-playfair font-bold text-text">{satelliteOfTheDay.satname}</h3>
+                    <p className="text-xs font-mono text-muted">
+                      NORAD ID: {satelliteOfTheDay.satid} · Launch Date: {satelliteOfTheDay.launchDate}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 bg-navy/40 p-4 rounded-xl border border-border/60 text-left text-xs font-crimson shrink-0">
+                    <div>
+                      <span className="text-muted text-[10px] uppercase block tracking-wider">Operational Type</span>
+                      <span className="text-text font-mono font-bold capitalize">{satelliteOfTheDay.type?.replace('-', ' ')}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted text-[10px] uppercase block tracking-wider">Orbital Altitude</span>
+                      <span className="text-text font-mono font-bold">{satelliteOfTheDay.satalt} km</span>
+                    </div>
+                    <div>
+                      <span className="text-muted text-[10px] uppercase block tracking-wider">Orbital Velocity</span>
+                      <span className="text-text font-mono font-bold">{satelliteOfTheDay.velocity} km/s</span>
+                    </div>
+                    <div>
+                      <span className="text-muted text-[10px] uppercase block tracking-wider">Int. Designator</span>
+                      <span className="text-text font-mono font-bold">{satelliteOfTheDay.intDesignator}</span>
+                    </div>
+                  </div>
+
+                  <div className="text-left flex-1 overflow-hidden flex flex-col gap-2 min-h-[150px]">
+                    <h4 className="text-xs font-mono text-cyan tracking-wider uppercase font-bold border-b border-border/20 pb-1 shrink-0">Description</h4>
+                    <div className="overflow-y-auto pr-1 flex-1">
+                      <p className="text-sm font-crimson text-muted-light leading-relaxed">
+                        {satelliteOfTheDay.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 mt-2 shrink-0">
+                    <button
+                      onClick={() => {
+                        actions.setViewMode('satellites');
+                        actions.selectSatellite(satelliteOfTheDay);
+                        setActiveModal(null);
+                      }}
+                      className="flex-1 py-2.5 bg-amber border border-amber text-xs font-crimson font-bold text-navy rounded-lg hover:bg-transparent hover:text-amber hover:border-amber transition-all text-center flex items-center justify-center gap-1.5 shadow-md uppercase tracking-wider"
+                    >
+                      <span>Track on Map 🔭</span>
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
         )}
       </div>
     );
@@ -399,8 +536,8 @@ export default function LookUpCard() {
       <div className="flex justify-center">
         <svg width="180" height="180" viewBox="0 0 180 180" className="overflow-visible">
           {/* Outer ring */}
-          <circle cx="90" cy="90" r="80" fill="none" stroke="#1e3a5f" strokeWidth="1" />
-          <circle cx="90" cy="90" r="80" fill="rgba(13,27,42,0.6)" />
+          <circle cx="90" cy="90" r="80" fill="none" stroke="#2a174d" strokeWidth="1" />
+          <circle cx="90" cy="90" r="80" fill="rgba(19,9,36,0.6)" />
 
           {/* Degree ticks */}
           {Array.from({ length: 36 }, (_, i) => {
@@ -412,17 +549,17 @@ export default function LookUpCard() {
             const y2 = 90 + (isMajor ? 66 : 71) * Math.sin(angle);
             return (
               <line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
-                stroke={isMajor ? '#2d5a8e' : '#1e3a5f'} strokeWidth={isMajor ? 1.5 : 0.5}
+                stroke={isMajor ? '#3d266a' : '#2a174d'} strokeWidth={isMajor ? 1.5 : 0.5}
               />
             );
           })}
 
           {/* Cardinal labels */}
           {[
-            { label: 'N', angle: -90, color: '#ef4444' },
-            { label: 'E', angle: 0, color: '#94a3b8' },
-            { label: 'S', angle: 90, color: '#94a3b8' },
-            { label: 'W', angle: 180, color: '#94a3b8' },
+            { label: 'N', angle: -90, color: '#ff6b6b' },
+            { label: 'E', angle: 0, color: '#a3aed0' },
+            { label: 'S', angle: 90, color: '#a3aed0' },
+            { label: 'W', angle: 180, color: '#a3aed0' },
           ].map(({ label, angle, color }) => {
             const rad = angle * (Math.PI / 180);
             const x = 90 + 58 * Math.cos(rad);
@@ -436,29 +573,29 @@ export default function LookUpCard() {
           })}
 
           {/* Inner circles */}
-          <circle cx="90" cy="90" r="45" fill="none" stroke="#1e3a5f" strokeWidth="0.5" strokeDasharray="3,3" />
-          <circle cx="90" cy="90" r="20" fill="rgba(0,212,255,0.05)" stroke="#00d4ff" strokeWidth="0.5" />
+          <circle cx="90" cy="90" r="45" fill="none" stroke="#2a174d" strokeWidth="0.5" strokeDasharray="3,3" />
+          <circle cx="90" cy="90" r="20" fill="rgba(232, 181, 104, 0.05)" stroke="#e8b568" strokeWidth="0.5" />
 
           {/* Compass needle */}
           <line
             x1="90" y1="90" x2={nx} y2={ny}
-            stroke="#00d4ff" strokeWidth="2.5" strokeLinecap="round"
-            style={{ filter: 'drop-shadow(0 0 4px rgba(0,212,255,0.8))' }}
+            stroke="#e8b568" strokeWidth="2.5" strokeLinecap="round"
+            style={{ filter: 'drop-shadow(0 0 4px rgba(232, 181, 104, 0.8))' }}
           />
           <line
             x1="90" y1="90"
             x2={90 - (nx - 90) * 0.35}
             y2={90 - (ny - 90) * 0.35}
-            stroke="#1e3a5f" strokeWidth="1.5" strokeLinecap="round"
+            stroke="#2a174d" strokeWidth="1.5" strokeLinecap="round"
           />
 
           {/* Center dot */}
-          <circle cx="90" cy="90" r="5" fill="#00d4ff"
-            style={{ filter: 'drop-shadow(0 0 6px rgba(0,212,255,1))' }}
+          <circle cx="90" cy="90" r="5" fill="#e8b568"
+            style={{ filter: 'drop-shadow(0 0 6px rgba(232, 181, 104, 1))' }}
           />
 
           {/* Azimuth label */}
-          <text x="90" y="165" textAnchor="middle" fill="#00d4ff" fontSize="11" fontWeight="700">
+          <text x="90" y="165" textAnchor="middle" fill="#e8b568" fontSize="11" fontWeight="700">
             <tspan fontFamily="Space Mono, monospace">{az.toFixed(0)}°</tspan>
             <tspan fontFamily="Crimson Text, Georgia, serif" dx="4">{compass}</tspan>
           </text>
@@ -584,24 +721,24 @@ function ElevationArc({ elevation }) {
   return (
     <svg width="140" height="85" viewBox="0 0 140 85">
       {/* Horizon line */}
-      <line x1="10" y1="75" x2="130" y2="75" stroke="#1e3a5f" strokeWidth="1" />
-      <text x="135" y="78" fontSize="9" fill="#64748b" fontFamily="Space Mono, monospace">0°</text>
+      <line x1="10" y1="75" x2="130" y2="75" stroke="#2a174d" strokeWidth="1" />
+      <text x="135" y="78" fontSize="9" fill="#a3aed0" fontFamily="Space Mono, monospace">0°</text>
 
       {/* Zenith label */}
-      <text x="70" y="8" textAnchor="middle" fontSize="9" fill="#64748b" fontFamily="Space Mono, monospace">90°</text>
-      <text x="70" y="17" textAnchor="middle" fontSize="7" fill="#64748b" fontFamily="Crimson Text, Georgia, serif">zenith</text>
+      <text x="70" y="8" textAnchor="middle" fontSize="9" fill="#a3aed0" fontFamily="Space Mono, monospace">90°</text>
+      <text x="70" y="17" textAnchor="middle" fontSize="7" fill="#a3aed0" fontFamily="Crimson Text, Georgia, serif">zenith</text>
 
       {/* Arc background (full half-circle) */}
       <path
         d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
-        fill="none" stroke="#1e3a5f" strokeWidth="1.5" strokeDasharray="3,3"
+        fill="none" stroke="#2a174d" strokeWidth="1.5" strokeDasharray="3,3"
       />
 
       {/* Elevation arc */}
       <path
         d={`M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`}
-        fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round"
-        style={{ filter: 'drop-shadow(0 0 4px rgba(245,158,11,0.7))' }}
+        fill="none" stroke="#e8b568" strokeWidth="2.5" strokeLinecap="round"
+        style={{ filter: 'drop-shadow(0 0 4px rgba(232, 181, 104, 0.7))' }}
       />
 
       {/* Angle tick marks */}
@@ -611,20 +748,20 @@ function ElevationArc({ elevation }) {
         const y = cy + r * Math.sin(a);
         return (
           <g key={deg}>
-            <line x1={cx} y1={cy} x2={x} y2={y} stroke="#1e3a5f" strokeWidth="0.5" strokeDasharray="2,2" />
-            <text x={x - 2} y={y - 3} fontSize="7" fill="#64748b" fontFamily="Space Mono, monospace">{deg}°</text>
+            <line x1={cx} y1={cy} x2={x} y2={y} stroke="#2a174d" strokeWidth="0.5" strokeDasharray="2,2" />
+            <text x={x - 2} y={y - 3} fontSize="7" fill="#a3aed0" fontFamily="Space Mono, monospace">{deg}°</text>
           </g>
         );
       })}
 
       {/* Satellite/Constellation dot */}
-      <circle cx={satX} cy={satY} r="5" fill="#f59e0b"
-        style={{ filter: 'drop-shadow(0 0 5px rgba(245,158,11,0.9))' }}
+      <circle cx={satX} cy={satY} r="5" fill="#e8b568"
+        style={{ filter: 'drop-shadow(0 0 5px rgba(232, 181, 104, 0.9))' }}
       />
 
       {/* Observer dot */}
-      <circle cx={cx} cy={cy} r="4" fill="#00d4ff"
-        style={{ filter: 'drop-shadow(0 0 5px rgba(0,212,255,0.9))' }}
+      <circle cx={cx} cy={cy} r="4" fill="#e8b568"
+        style={{ filter: 'drop-shadow(0 0 5px rgba(232, 181, 104, 0.9))' }}
       />
     </svg>
   );

@@ -45,7 +45,7 @@ export default function StarfieldCanvas() {
         '#c9e8ff', // blue-white
         '#ffe8c9', // yellow-white
         '#ffc9c9', // red-white
-        '#00d4ff', // cyan accent
+        '#ff007f', // Nebula magenta accent
       ];
       return palette[Math.floor(Math.random() * palette.length)];
     }
@@ -72,9 +72,9 @@ export default function StarfieldCanvas() {
         grad.addColorStop(0.5, '#e0f2fe'); // soft sky-100
         grad.addColorStop(1, '#dbeafe'); // pastel blue-100
       } else {
-        grad.addColorStop(0, '#0d1b2a');
-        grad.addColorStop(0.5, '#0a0a0f');
-        grad.addColorStop(1, '#050508');
+        grad.addColorStop(0, '#080414');
+        grad.addColorStop(0.5, '#0c061a');
+        grad.addColorStop(1, '#05030d');
       }
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, width, height);
@@ -85,9 +85,9 @@ export default function StarfieldCanvas() {
         drawNebula(ctx, width * 0.8, height * 0.6, 220, 'rgba(236, 72, 153, 0.04)'); // pastel pink
         drawNebula(ctx, width * 0.5, height * 0.8, 150, 'rgba(16, 185, 129, 0.04)'); // mint green
       } else {
-        drawNebula(ctx, width * 0.2, height * 0.3, 180, 'rgba(0, 100, 200, 0.04)');
-        drawNebula(ctx, width * 0.8, height * 0.6, 220, 'rgba(100, 0, 150, 0.03)');
-        drawNebula(ctx, width * 0.5, height * 0.8, 150, 'rgba(0, 200, 150, 0.03)');
+        drawNebula(ctx, width * 0.2, height * 0.3, 180, 'rgba(255, 0, 127, 0.04)'); // Nebula magenta
+        drawNebula(ctx, width * 0.8, height * 0.6, 220, 'rgba(181, 126, 220, 0.03)'); // Aurora lavender
+        drawNebula(ctx, width * 0.5, height * 0.8, 150, 'rgba(255, 107, 107, 0.03)'); // Comet coral
       }
 
       starsRef.current.forEach(star => {

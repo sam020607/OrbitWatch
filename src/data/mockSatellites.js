@@ -302,11 +302,11 @@ export const MOCK_METEOR_SHOWERS = [
  * Satellite type display config
  */
 export const SAT_TYPE_CONFIG = {
-  'space-station': { label: 'Station', color: '#00d4ff', badgeClass: 'badge-cyan' },
-  'weather':       { label: 'Weather', color: '#10b981', badgeClass: 'badge-green' },
-  'gps':           { label: 'GPS', badgeClass: 'badge-amber', color: '#f59e0b' },
-  'comms':         { label: 'Comms',   color: '#a78bfa', badgeClass: 'badge-amber' },
-  'tv':            { label: 'TV Sat',  color: '#ec4899', badgeClass: 'badge-pink' },
-  'earth-obs':     { label: 'EO Sat',  color: '#f59e0b', badgeClass: 'badge-amber' },
-  'debris':        { label: 'Debris',  color: '#ef4444', badgeClass: 'badge-red' },
+  'space-station': { label: 'Station', color: '#ff007f', badgeClass: 'badge-cyan' },
+  'weather':       { label: 'Weather', color: '#b57edc', badgeClass: 'badge-pink' },
+  'gps':           { label: 'GPS', badgeClass: 'badge-amber', color: '#ffdf00' },
+  'comms':         { label: 'Comms',   color: '#ff6b6b', badgeClass: 'badge-red' },
+  'tv':            { label: 'TV Sat',  color: '#b57edc', badgeClass: 'badge-pink' },
+  'earth-obs':     { label: 'EO Sat',  color: '#ffdf00', badgeClass: 'badge-amber' },
+  'debris':        { label: 'Debris',  color: '#7a7f9a', badgeClass: 'badge-red' },
 };

@@ -53,8 +53,8 @@ function FallbackEarth({ onClick }) {
     <mesh rotation={[0, Math.PI, 0]} onClick={onClick}>
       <sphereGeometry args={[EARTH_RADIUS, 32, 32]} />
       <meshPhongMaterial
-        color="#0d1b2a"
-        emissive="#0a0a0f"
+        color="#130924"
+        emissive="#05020c"
         shininess={10}
         flatShading
       />
@@ -239,17 +239,17 @@ function SceneContent() {
 
       {/* ── Country Borders ── */}
       <lineSegments geometry={borderGeometry} raycast={() => null}>
-        <lineBasicMaterial color="#00d4ff" opacity={0.35} transparent={true} />
+        <lineBasicMaterial color="#b57edc" opacity={0.3} transparent={true} />
       </lineSegments>
 
       {/* ── Glowing Atmospheric Grid Overlay ── */}
       <mesh raycast={() => null}>
         <sphereGeometry args={[EARTH_RADIUS + 0.008, 32, 32]} />
         <meshBasicMaterial
-          color="#00d4ff"
+          color="#b57edc"
           wireframe
           transparent
-          opacity={0.12}
+          opacity={0.08}
         />
       </mesh>
 
@@ -259,11 +259,11 @@ function SceneContent() {
           {/* Glowing Beacon */}
           <mesh raycast={() => null}>
             <sphereGeometry args={[0.035, 16, 16]} />
-            <meshBasicMaterial color="#f59e0b" />
+            <meshBasicMaterial color="#ffdf00" />
           </mesh>
           <mesh raycast={() => null}>
             <ringGeometry args={[0.05, 0.06, 32]} />
-            <meshBasicMaterial color="#f59e0b" side={THREE.DoubleSide} transparent opacity={0.6} />
+            <meshBasicMaterial color="#ffdf00" side={THREE.DoubleSide} transparent opacity={0.6} />
           </mesh>
           {/* Label */}
           <Html distanceFactor={6}>
@@ -281,7 +281,7 @@ function SceneContent() {
           {trailPoints.length > 1 && (
             <Line
               points={trailPoints}
-              color="#00d4ff"
+              color="#ff007f"
               lineWidth={1.5}
               dashed
               dashSize={0.08}
@@ -295,12 +295,12 @@ function SceneContent() {
             <group position={issPos}>
               <mesh onClick={handleIssClick}>
                 <sphereGeometry args={[0.045, 16, 16]} />
-                <meshBasicMaterial color="#00d4ff" />
+                <meshBasicMaterial color="#ff007f" />
               </mesh>
               {/* Pulsing halo */}
               <mesh onClick={handleIssClick}>
                 <sphereGeometry args={[0.07, 16, 16]} />
-                <meshBasicMaterial color="#00d4ff" transparent opacity={0.2} />
+                <meshBasicMaterial color="#ff007f" transparent opacity={0.2} />
               </mesh>
               {/* HTML Hover Label */}
               <Html distanceFactor={6}>
@@ -315,7 +315,7 @@ function SceneContent() {
           {orbitPoints.length > 1 && (
             <Line
               points={orbitPoints}
-              color="#00d4ff"
+              color="#ff007f"
               lineWidth={2}
               raycast={() => null}
             />
@@ -326,7 +326,7 @@ function SceneContent() {
             const isSelected = selectedSatellite?.satid === sat.satid;
             const radius = EARTH_RADIUS + (sat.satalt / 40000) * 0.4 + 0.05;
             const satPos = latLonToVector3(sat.satlat, sat.satlon, radius);
-            const color = isSelected ? '#00d4ff' : (SAT_TYPE_CONFIG[sat.type]?.color || '#f59e0b');
+            const color = isSelected ? '#ff007f' : (SAT_TYPE_CONFIG[sat.type]?.color || '#ffdf00');
 
             const handleSatClick = (e) => {
               e.stopPropagation();
@@ -346,7 +346,7 @@ function SceneContent() {
                   <>
                     <mesh onClick={handleSatClick}>
                       <sphereGeometry args={[0.06, 16, 16]} />
-                      <meshBasicMaterial color="#00d4ff" transparent opacity={0.25} />
+                      <meshBasicMaterial color="#ff007f" transparent opacity={0.25} />
                     </mesh>
                     <Html distanceFactor={6}>
                       <div className="bg-panel/95 border border-cyan rounded px-2 py-1 text-[9px] text-text font-crimson font-bold select-none shadow-xl -translate-x-1/2 -translate-y-8 select-none">
@@ -369,7 +369,7 @@ function SceneContent() {
           {asteroid3DPath.length > 1 && (
             <Line
               points={asteroid3DPath}
-              color={selectedAsteroid.is_potentially_hazardous ? '#ef4444' : '#f59e0b'}
+              color={selectedAsteroid.is_potentially_hazardous ? '#ff6b6b' : '#ffdf00'}
               lineWidth={1.5}
               dashed
               dashSize={0.08}
@@ -383,7 +383,7 @@ function SceneContent() {
             const isSelected = selectedAsteroid?.id === ast.id;
             const radius = EARTH_RADIUS + 0.3 + Math.min(2.5, ast.miss_distance_ld * 0.1);
             const astPos = latLonToVector3(ast.lat, ast.lon, radius);
-            const color = isSelected ? '#00d4ff' : (ast.is_potentially_hazardous ? '#ef4444' : '#f59e0b');
+            const color = isSelected ? '#ff007f' : (ast.is_potentially_hazardous ? '#ff6b6b' : '#ffdf00');
 
             const handleAsteroidClick = (e) => {
               e.stopPropagation();
@@ -429,7 +429,7 @@ function SceneContent() {
             return (
               <Line
                 points={[observerPos, astPos]}
-                color="#00d4ff"
+                color="#ff007f"
                 lineWidth={1}
                 dashed
                 dashSize={0.06}
@@ -467,7 +467,7 @@ function SceneContent() {
                 <Line
                   key={`3d-line-${constell.id}-${lineIdx}`}
                   points={[p1, p2]}
-                  color={isSelected ? '#f59e0b' : '#00d4ff'}
+                  color={isSelected ? '#ffdf00' : '#ff007f'}
                   lineWidth={isSelected ? 1.8 : 0.8}
                   opacity={isSelected ? 1.0 : 0.3}
                   transparent
@@ -480,7 +480,7 @@ function SceneContent() {
             {starPoints3D.map((pt, idx) => (
               <mesh key={`3d-star-${constell.id}-${idx}`} position={pt} raycast={() => null}>
                 <sphereGeometry args={[isSelected ? 0.018 : 0.01, 8, 8]} />
-                <meshBasicMaterial color={isSelected ? '#ffffff' : '#a5f3fc'} />
+                <meshBasicMaterial color={isSelected ? '#ffffff' : '#e6d5fa'} />
               </mesh>
             ))}
 
@@ -488,7 +488,7 @@ function SceneContent() {
             <group position={centerPos}>
               <mesh onClick={handleConstellClick}>
                 <sphereGeometry args={[0.024, 8, 8]} />
-                <meshBasicMaterial color={isSelected ? '#f59e0b' : '#00d4ff'} />
+                <meshBasicMaterial color={isSelected ? '#ffdf00' : '#ff007f'} />
               </mesh>
               
               {/* Selected tooltip banner */}
@@ -496,7 +496,7 @@ function SceneContent() {
                 <>
                   <mesh onClick={handleConstellClick}>
                     <sphereGeometry args={[0.05, 8, 8]} />
-                    <meshBasicMaterial color="#f59e0b" transparent opacity={0.3} />
+                    <meshBasicMaterial color="#ffdf00" transparent opacity={0.3} />
                   </mesh>
                   <Html distanceFactor={6}>
                     <div className="bg-panel/95 border border-amber/60 rounded px-2 py-1 text-[9px] text-text font-crimson font-bold select-none shadow-xl -translate-x-1/2 -translate-y-8 select-none">
@@ -512,7 +512,7 @@ function SceneContent() {
             {isSelected && observerPos && (
               <Line
                 points={[observerPos, centerPos]}
-                color="#f59e0b"
+                color="#ffdf00"
                 lineWidth={1}
                 dashed
                 dashSize={0.06}

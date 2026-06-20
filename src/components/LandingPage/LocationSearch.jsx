@@ -119,7 +119,7 @@ export default function LocationSearch({ onLocationSelect }) {
                      text-text placeholder-muted font-sans text-base
                      focus:outline-none focus:border-cyan focus:ring-1 focus:ring-cyan/50
                      backdrop-blur-md transition-all duration-200"
-          style={{ caretColor: '#00d4ff' }}
+          style={{ caretColor: '#ff007f' }}
           autoComplete="off"
           aria-label="Location search"
           aria-autocomplete="list"
