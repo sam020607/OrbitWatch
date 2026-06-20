@@ -612,7 +612,7 @@ export default function Dashboard({ onReset }) {
             {/* Right Sidebar Edge Handle Toggle */}
             <button
               onClick={toggleRightPanel}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-[1000] w-8 h-20 bg-surface border border-r-0 border-surface-border rounded-l-md flex items-center justify-center text-muted hover:text-text-primary transition-all shadow-md cursor-pointer group"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-[1000] w-8 h-20 bg-surface rounded-l-md flex items-center justify-center text-muted hover:text-text-primary transition-all shadow-md cursor-pointer group focus:outline-none border-0"
               title={rightPanelOpen ? "Collapse Sidebar Info" : "Expand Sidebar Info"}
             >
               <Compass className="w-4 h-4 text-text-secondary group-hover:text-text-primary transition-colors" />
