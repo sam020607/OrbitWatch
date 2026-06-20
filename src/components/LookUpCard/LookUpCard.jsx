@@ -73,20 +73,6 @@ export default function LookUpCard() {
       type: 'satellite'
     };
     title = 'Satellite Direction';
-  } else if (issNextPasses.length > 0) {
-    // Show the next ISS pass peak direction
-    const nextPass = issNextPasses.find(p => p.endUTC > now);
-    if (nextPass) {
-      displayData = {
-        az: nextPass.maxAz,
-        el: nextPass.maxEl,
-        name: 'ISS',
-        id: '25544',
-        type: 'satellite',
-        passTime: nextPass.maxUTC,
-      };
-      title = 'ISS Peak Direction';
-    }
   }
 
   const [showNotesForm, setShowNotesForm] = useState(false);
