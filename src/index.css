@@ -20,25 +20,19 @@
   --color-muted: #7a7f9a;        /* Moon mist (darker) */
   --color-muted-light: #a3aed0;  /* Moon mist (lighter) */
   --color-pink: #b57edc;         /* Aurora lavender */
-}
 
-html.light, .light {
-  --color-space: #f1f5f9; /* morning blue-sky pastel background */
-  --color-navy: #e2e8f0;  /* clean pastel blue/slate */
-  --color-panel: #ffffff; /* soft white panel */
-  --color-panel-light: #f8fafc;
-  --color-border: #cbd5e1; /* soft slate border */
-  --color-border-light: #94a3b8;
-  --color-cyan: #d97706;  /* warm gold highlight */
-  --color-cyan-dim: #b45309;
-  --color-amber: #ea580c; /* warm solar amber */
-  --color-amber-dim: #c2410c;
-  --color-success: #059669;
-  --color-danger: #dc2626;
-  --color-text: #0f172a;  /* dark slate text for contrast */
-  --color-muted: #64748b;
-  --color-muted-light: #475569;
-  --color-pink: #db2777;
+  /* Cinematic Theme Custom Properties - Dark Mode */
+  --bg: #070a12;
+  --surface: rgba(20, 30, 50, 0.45);
+  --surface-border: rgba(255, 255, 255, 0.12);
+  --accent: #3a7bd9;
+  --accent-glow: rgba(58, 123, 217, 0.4);
+  --text-primary: #f5f7fa;
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --headline-glow: 0 0 80px rgba(127, 179, 224, 0.35), 0 0 40px rgba(127, 179, 224, 0.15);
+  --subline-glow: 0 0 20px rgba(255, 255, 255, 0.15);
+  --headline-color: #f5f7fa;
+  --headline-shadow: 0 0 80px rgba(127, 179, 224, 0.35), 0 0 40px rgba(127, 179, 224, 0.15);
 }
 
 *, *::before, *::after {
@@ -54,7 +48,6 @@ html, body, #root {
   font-family: 'Crimson Text', Georgia, serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1, h2, h3, h4, h5, h6 {

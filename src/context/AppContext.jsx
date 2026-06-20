@@ -133,23 +133,14 @@ export function checkNewAchievements(allLogs, newLog) {
   return unlocked;
 }
 
-// Load theme and apply to root element
-const loadTheme = () => {
+// Always dark mode — apply once on load
+(() => {
   try {
-    const saved = localStorage.getItem('orbitwatch_theme');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialTheme = saved || (systemPrefersDark ? 'dark' : 'light');
-    
-    if (initialTheme === 'light') {
-      document.documentElement.classList.add('light');
-    } else {
-      document.documentElement.classList.remove('light');
-    }
-    return initialTheme;
-  } catch (e) {
-    return 'dark';
-  }
-};
+    document.documentElement.removeAttribute('data-theme');
+    document.documentElement.classList.remove('light');
+    localStorage.removeItem('orbitwatch_theme');
+  } catch (_) {}
+})();
 
 /** ─── Initial State ─────────────────────────────────────────────────────── */
 const initialState = {
@@ -190,9 +181,6 @@ const initialState = {
   observedLog: loadObservedLog(),
   unlockedAchievements: loadUnlockedAchievements(),
   newUnlockedAchievements: [], // Achievements queue for modal/toast celebrations
-
-  // Theme Toggle
-  theme: loadTheme(),
 
   // NASA APOD Cache
   apodData: null,
@@ -304,19 +292,7 @@ function appReducer(state, action) {
     case 'DISMISS_ACHIEVEMENT_TOAST':
       return { ...state, newUnlockedAchievements: [] };
 
-    case 'TOGGLE_THEME': {
-      const nextTheme = state.theme === 'light' ? 'dark' : 'light';
-      localStorage.setItem('orbitwatch_theme', nextTheme);
-      
-      if (nextTheme === 'light') {
-        document.documentElement.classList.add('light');
-      } else {
-        document.documentElement.classList.remove('light');
-      }
-      return { ...state, theme: nextTheme };
-    }
 
-    case 'SET_APOD_DATA':
       return { ...state, apodData: action.payload };
 
     case 'RESET':
@@ -358,7 +334,6 @@ export function AppProvider({ children }) {
     logObservation: (obs) => dispatch({ type: 'LOG_OBSERVATION', payload: obs }),
     deleteObservation: (id) => dispatch({ type: 'DELETE_OBSERVATION', payload: id }),
     dismissAchievementToast: () => dispatch({ type: 'DISMISS_ACHIEVEMENT_TOAST' }),
-    toggleTheme: () => dispatch({ type: 'TOGGLE_THEME' }),
     setApodData: (data) => dispatch({ type: 'SET_APOD_DATA', payload: data }),
     reset: () => dispatch({ type: 'RESET' }),
   }), [dispatch]);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Moon, Sun, MapPin, Globe } from 'lucide-react';
+import { MapPin, Globe } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { reverseGeocode } from '../../api/geocodeApi.js';
@@ -77,13 +77,15 @@ function GlobeController({ onInteraction, center }) {
  */
 export default function LandingPage({ onLocationSet }) {
   const { state, actions } = useApp();
-  const { theme } = state;
   const [mounted, setMounted] = useState(false);
   const [method, setMethod] = useState('search'); // 'search' | 'globe'
   const [clickedCoords, setClickedCoords] = useState(null); // { lat, lon }
   const [resolvingName, setResolvingName] = useState(false);
   const [resolvedName, setResolvedName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Always dark mode — single Earth image
+  const earthImg = '/earth_view_from_space.png';
 
   // Auto-rotation state
   const [globeCenter, setGlobeCenter] = useState([10, 0]);
@@ -139,22 +141,11 @@ export default function LandingPage({ onLocationSet }) {
   }
 
   return (
-    <div className="w-full min-h-screen bg-[#070a12] text-[#f5f7fa] overflow-y-auto overflow-x-hidden scroll-smooth">
+    <div className="w-full min-h-screen bg-[var(--bg)] text-[var(--text-primary)] transition-colors duration-300 overflow-y-auto overflow-x-hidden scroll-smooth">
       
-      {/* Hero Section Container (Dynamic height with min-height 85vh to prevent large gaps) */}
-      <div id="hero-section" className="relative w-full min-h-[85vh] pt-16 pb-24 flex flex-col justify-start items-center overflow-hidden border-b border-white/5 bg-[#070a12]">
+      {/* Hero Section */}
+      <div id="hero-section" className="relative w-full min-h-[85vh] pt-16 pb-24 flex flex-col justify-start items-center overflow-hidden border-b border-[var(--surface-border)] bg-[var(--bg)] transition-colors duration-300">
         
-        {/* Theme toggle in top-right */}
-        <div className="absolute top-4 right-4 z-[100]">
-          <button
-            onClick={actions.toggleTheme}
-            className="p-2 rounded-full border border-white/10 bg-[#0d1320]/80 text-slate-400 hover:text-[#f5f7fa] hover:border-white/20 transition-all shadow-md"
-            title="Toggle space theme"
-          >
-            {theme === 'light' ? <Moon className="w-4 h-4 text-blue-400" /> : <Sun className="w-4 h-4 text-slate-300" />}
-          </button>
-        </div>
-
         {/* Content Container (Tightened pb) */}
         <div className="relative w-full max-w-4xl flex-1 flex flex-col items-center justify-center px-4 pt-8 pb-16 z-10">
           
@@ -166,10 +157,8 @@ export default function LandingPage({ onLocationSet }) {
             className="text-center mb-6 select-none"
           >
             <h1 
-              className="text-5xl md:text-7xl font-playfair font-normal text-[#f5f7fa] tracking-tight leading-[1.15]"
-              style={{
-                textShadow: '0 0 80px rgba(127, 179, 224, 0.35), 0 0 40px rgba(127, 179, 224, 0.15)'
-              }}
+              className="text-5xl md:text-7xl font-playfair font-normal text-[var(--text-primary)] tracking-tight leading-[1.15]"
+              style={{ textShadow: 'var(--headline-glow)' }}
             >
               <div>Know what's</div>
               <div className="italic font-normal">overhead.</div>
@@ -177,15 +166,14 @@ export default function LandingPage({ onLocationSet }) {
 
             {/* Project Zenith title and Celestial Eye subtext */}
             <div className="flex flex-col items-center gap-1.5 mt-5 select-none animate-fade-in">
-              <h2 className="text-3xl md:text-4xl font-playfair tracking-wide text-white font-semibold"
-                  style={{ textShadow: '0 0 20px rgba(255,255,255,0.15)' }}>
+              <h2 className="text-3xl md:text-4xl font-playfair tracking-wide text-[var(--text-primary)] font-semibold">
                 Project Zenith
               </h2>
-              <span className="text-xs font-sans tracking-[0.25em] uppercase text-slate-400 font-semibold">
+              <span className="text-xs font-sans tracking-[0.25em] uppercase text-[var(--text-secondary)] font-semibold">
                 The Celestial Eye
               </span>
-              <p className="text-slate-400 text-sm md:text-base font-light max-w-md mx-auto mt-1">
-                Real-time satellite tracking & personal sky visibility — anywhere on Earth
+              <p className="text-[var(--text-secondary)] text-sm md:text-base font-light max-w-md mx-auto mt-1">
+                Real-time satellite tracking &amp; personal sky visibility — anywhere on Earth
               </p>
             </div>
           </motion.div>
@@ -195,22 +183,20 @@ export default function LandingPage({ onLocationSet }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.35 }}
-            className="relative flex bg-[#0d1320]/50 border border-white/10 rounded-full p-1 mb-6 z-20"
+            className="relative flex bg-[var(--surface)] border border-[var(--surface-border)] rounded-full p-1 mb-6 z-20"
           >
             <button
               onClick={() => setMethod('search')}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-sans font-semibold transition-all
-                ${method === 'search' ? '' : 'text-slate-400 hover:text-[#f5f7fa]'}`}
-              style={method === 'search' ? { backgroundColor: '#f5f7fa', color: '#070a12' } : {}}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-sans font-semibold transition-all`}
+              style={method === 'search' ? { backgroundColor: 'var(--text-primary)', color: 'var(--bg)' } : { color: 'var(--text-secondary)' }}
             >
               <MapPin className="w-3.5 h-3.5" />
               <span>Text Search</span>
             </button>
             <button
               onClick={() => setMethod('globe')}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-sans font-semibold transition-all
-                ${method === 'globe' ? '' : 'text-slate-400 hover:text-[#f5f7fa]'}`}
-              style={method === 'globe' ? { backgroundColor: '#f5f7fa', color: '#070a12' } : {}}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-sans font-semibold transition-all`}
+              style={method === 'globe' ? { backgroundColor: 'var(--text-primary)', color: 'var(--bg)' } : { color: 'var(--text-secondary)' }}
             >
               <Globe className="w-3.5 h-3.5" />
               <span>Interactive Globe</span>
@@ -240,12 +226,12 @@ export default function LandingPage({ onLocationSet }) {
                     transition={{ duration: 0.3 }}
                     className="relative flex flex-wrap justify-center gap-2 mt-2 z-10"
                   >
-                    <span className="text-slate-500 text-xs self-center font-sans tracking-wider" style={{ fontSize: 10 }}>QUICK:</span>
+                    <span className="text-[var(--text-secondary)] text-xs self-center font-sans tracking-wider" style={{ fontSize: 10 }}>QUICK:</span>
                     {POPULAR_LOCATIONS.map(loc => (
                       <button
                         key={loc.name}
                         onClick={() => handleLocationSelect({ ...loc, name: loc.name, country: '' })}
-                        className="px-3 py-1 rounded-full text-xs border border-white/10 text-slate-300 bg-white/5 hover:bg-white/10 hover:border-white/30 transition-all duration-200"
+                        className="px-3 py-1 rounded-full text-xs border border-[var(--surface-border)] text-[var(--text-primary)] bg-[var(--surface)] hover:bg-[var(--text-primary)] hover:text-[var(--bg)] hover:border-[var(--text-primary)] transition-all duration-200 shadow-sm"
                       >
                         {loc.name}
                       </button>
@@ -256,7 +242,7 @@ export default function LandingPage({ onLocationSet }) {
             ) : (
               <div className="flex flex-col items-center gap-4 w-full">
                 {/* Circular Globe container */}
-                <div className="relative w-60 h-60 rounded-full overflow-hidden border border-white/10 bg-[#0d1320] shadow-[0_0_30px_rgba(58,123,217,0.25)] z-[10]">
+                <div className="relative w-60 h-60 rounded-full overflow-hidden border border-[var(--surface-border)] shadow-[0_0_30px_var(--accent-glow)] z-[10] transition-all duration-300" style={{ background: 'var(--bg)' }}>
                   {/* 3D Spherical Shading Overlay for globe effect */}
                   <div className="absolute inset-0 rounded-full pointer-events-none z-[400]"
                        style={{
@@ -272,16 +258,12 @@ export default function LandingPage({ onLocationSet }) {
                     center={[10, globeCenter[1]]}
                     zoom={1}
                     className="w-full h-full"
-                    style={{ background: 'rgba(7, 10, 18, 0.95)' }}
+                    style={{ background: 'var(--color-space)' }}
                     zoomControl={false}
                     attributionControl={false}
                   >
                     <TileLayer
-                      key={theme}
-                      url={theme === 'light'
-                        ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                        : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                      }
+                      url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                       maxZoom={10}
                       subdomains="abcd"
                     />
@@ -296,28 +278,28 @@ export default function LandingPage({ onLocationSet }) {
                 {/* Coordinates status & confirm */}
                 <div className="text-center h-14 flex flex-col justify-center items-center">
                   {resolvingName ? (
-                    <p className="text-xs font-sans font-semibold text-[#7fb3e0] animate-pulse">Resolving location coordinates...</p>
+                    <p className="text-xs font-sans font-semibold text-[var(--accent)] animate-pulse">Resolving location coordinates...</p>
                   ) : clickedCoords ? (
                     <div className="flex flex-col items-center gap-2">
-                      <p className="text-sm font-sans text-[#f5f7fa] font-bold truncate max-w-[320px]">
+                      <p className="text-sm font-sans text-[var(--text-primary)] font-bold truncate max-w-[320px]">
                         📍 {resolvedName}
                       </p>
                       <button
                         onClick={confirmGlobeLocation}
-                        className="px-4 py-1.5 rounded-full text-xs font-sans font-semibold bg-white/90 hover:bg-white text-[#070a12] transition-colors shadow-sm active:scale-95"
+                        className="px-4 py-1.5 rounded-full text-xs font-sans font-semibold bg-[var(--text-primary)] hover:opacity-90 text-[var(--bg)] transition-all shadow-sm active:scale-95"
                       >
                         Confirm Observer Location
                       </button>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-1">
-                      <p className="text-xs font-sans text-slate-400 max-w-[280px]">
+                      <p className="text-xs font-sans text-[var(--text-secondary)] max-w-[280px]">
                         Click anywhere on the rotating globe to select your coordinate location
                       </p>
                       {!isRotating && (
                         <button
                           onClick={() => setIsRotating(true)}
-                          className="text-[10px] font-sans text-[#7fb3e0] hover:underline"
+                          className="text-[10px] font-sans text-[var(--accent)] hover:underline"
                         >
                           Resume Auto-Rotation 🔄
                         </button>
@@ -330,7 +312,7 @@ export default function LandingPage({ onLocationSet }) {
           </motion.div>
         </div>
 
-        {/* Earth image: large, bottom-center, cropped to top ~40-50% bleeding off the bottom */}
+        {/* Earth image: large, bottom-center, day-side in light theme, night-side in dark theme */}
         {mounted && (
           <motion.div
             initial={{ opacity: 0, y: 200 }}
@@ -340,19 +322,19 @@ export default function LandingPage({ onLocationSet }) {
           >
             <div className="relative w-full h-full rounded-full"
                  style={{
-                   boxShadow: '0 -40px 100px rgba(58, 123, 217, 0.45), inset 0 20px 50px rgba(58, 123, 217, 0.15)'
+                   boxShadow: '0 -40px 100px var(--accent-glow), inset 0 20px 50px var(--accent-glow)'
                  }}
             >
               <img 
-                src="/earth_view_from_space.png" 
+                src={earthImg} 
                 alt="Earth view from space" 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-all duration-500"
               />
             </div>
           </motion.div>
         )}
 
-        {/* Scroll cue indicator */}
+        {/* Scroll cue indicator (Subtle opacity adjustment matching themes) */}
         <motion.div 
           className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1 cursor-pointer select-none"
           animate={{ 
@@ -375,9 +357,9 @@ export default function LandingPage({ onLocationSet }) {
             }
           }}
         >
-          <span className="text-[10px] font-sans tracking-[0.25em] uppercase text-white/40 mb-0.5">explore the data</span>
+          <span className="text-[10px] font-sans tracking-[0.25em] uppercase text-[var(--text-secondary)] opacity-60 mb-0.5">explore the data</span>
           <svg 
-            className="w-4 h-4 text-white/50" 
+            className="w-4 h-4 text-[var(--text-secondary)] opacity-75" 
             fill="none" 
             stroke="currentColor" 
             strokeWidth="2.5" 
@@ -389,7 +371,7 @@ export default function LandingPage({ onLocationSet }) {
       </div>
 
       {/* 6-Card Feature Grid Section (Expanded real features list) */}
-      <section className="relative w-full py-16 bg-[#070a12] border-b border-white/5 px-6 flex justify-center items-center z-10">
+      <section className="relative w-full py-16 bg-[var(--bg)] border-b border-[var(--surface-border)] px-6 flex justify-center items-center z-10 transition-colors duration-300">
         <div className="w-full max-w-4xl">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             
@@ -399,11 +381,11 @@ export default function LandingPage({ onLocationSet }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: 0.05 }}
-              className="p-5 border border-white/10 rounded-[18px] backdrop-blur-[20px] hover:border-white/20 transition-colors"
-              style={{ backgroundColor: 'rgba(20, 30, 50, 0.45)' }}
+              className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px] hover:border-[var(--text-secondary)] transition-all duration-300 shadow-sm"
+              style={{ backgroundColor: 'var(--surface)' }}
             >
-              <h4 className="text-white font-bold text-sm font-sans mb-1">Live Tracking</h4>
-              <p className="text-white/70 text-xs font-sans leading-relaxed">
+              <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1">Live Tracking</h4>
+              <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
                 Track satellites, constellations (Starlink etc.), and near-Earth asteroids in real time.
               </p>
             </motion.div>
@@ -414,11 +396,11 @@ export default function LandingPage({ onLocationSet }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="p-5 border border-white/10 rounded-[18px] backdrop-blur-[20px] hover:border-white/20 transition-colors"
-              style={{ backgroundColor: 'rgba(20, 30, 50, 0.45)' }}
+              className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px] hover:border-[var(--text-secondary)] transition-all duration-300 shadow-sm"
+              style={{ backgroundColor: 'var(--surface)' }}
             >
-              <h4 className="text-white font-bold text-sm font-sans mb-1">Real-Time Telemetry</h4>
-              <p className="text-white/70 text-xs font-sans leading-relaxed">
+              <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1">Real-Time Telemetry</h4>
+              <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
                 Access actual altitude, speed, and positioning details for every tracked object.
               </p>
             </motion.div>
@@ -429,11 +411,11 @@ export default function LandingPage({ onLocationSet }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: 0.15 }}
-              className="p-5 border border-white/10 rounded-[18px] backdrop-blur-[20px] hover:border-white/20 transition-colors"
-              style={{ backgroundColor: 'rgba(20, 30, 50, 0.45)' }}
+              className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px] hover:border-[var(--text-secondary)] transition-all duration-300 shadow-sm"
+              style={{ backgroundColor: 'var(--surface)' }}
             >
-              <h4 className="text-white font-bold text-sm font-sans mb-1">Space Fact of the Moment</h4>
-              <p className="text-white/70 text-xs font-sans leading-relaxed">
+              <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1">Space Fact of the Moment</h4>
+              <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
                 Discover fascinating cosmic trivia with our rotating space facts database.
               </p>
             </motion.div>
@@ -444,11 +426,11 @@ export default function LandingPage({ onLocationSet }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="p-5 border border-white/10 rounded-[18px] backdrop-blur-[20px] hover:border-white/20 transition-colors"
-              style={{ backgroundColor: 'rgba(20, 30, 50, 0.45)' }}
+              className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px] hover:border-[var(--text-secondary)] transition-all duration-300 shadow-sm"
+              style={{ backgroundColor: 'var(--surface)' }}
             >
-              <h4 className="text-white font-bold text-sm font-sans mb-1">NASA APOD Feature</h4>
-              <p className="text-white/70 text-xs font-sans leading-relaxed">
+              <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1">NASA APOD Feature</h4>
+              <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
                 View the daily featured scientific image complete with official NASA explanations.
               </p>
             </motion.div>
@@ -459,11 +441,11 @@ export default function LandingPage({ onLocationSet }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: 0.25 }}
-              className="p-5 border border-white/10 rounded-[18px] backdrop-blur-[20px] hover:border-white/20 transition-colors"
-              style={{ backgroundColor: 'rgba(20, 30, 50, 0.45)' }}
+              className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px] hover:border-[var(--text-secondary)] transition-all duration-300 shadow-sm"
+              style={{ backgroundColor: 'var(--surface)' }}
             >
-              <h4 className="text-white font-bold text-sm font-sans mb-1">What's Visible Tonight</h4>
-              <p className="text-white/70 text-xs font-sans leading-relaxed">
+              <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1">What's Visible Tonight</h4>
+              <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
                 Check moon phases, upcoming satellite passes, and planet visibilities for your location.
               </p>
             </motion.div>
@@ -474,11 +456,11 @@ export default function LandingPage({ onLocationSet }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="p-5 border border-white/10 rounded-[18px] backdrop-blur-[20px] hover:border-white/20 transition-colors"
-              style={{ backgroundColor: 'rgba(20, 30, 50, 0.45)' }}
+              className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px] hover:border-[var(--text-secondary)] transition-all duration-300 shadow-sm"
+              style={{ backgroundColor: 'var(--surface)' }}
             >
-              <h4 className="text-white font-bold text-sm font-sans mb-1">Observer Journal</h4>
-              <p className="text-white/70 text-xs font-sans leading-relaxed">
+              <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1">Observer Journal</h4>
+              <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
                 Log your real-world sky sightings, raise your observer rank, and unlock achievements.
               </p>
             </motion.div>
@@ -487,23 +469,23 @@ export default function LandingPage({ onLocationSet }) {
         </div>
       </section>
 
-      {/* SECTION 1 — Statement (Padding Tightened to 64px) */}
-      <section className="relative w-full py-16 bg-[#070a12] border-b border-white/5 px-6 flex justify-center items-center">
+      {/* SECTION 1 — Statement */}
+      <section className="relative w-full py-16 bg-[var(--bg)] border-b border-[var(--surface-border)] px-6 flex justify-center items-center transition-colors duration-300">
         <div className="w-full max-w-[900px] text-center">
           <motion.h2 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.8 }}
-            className="text-4xl md:text-5xl lg:text-[52px] font-playfair font-normal text-[#f5f7fa] leading-[1.15] tracking-tight"
+            className="text-4xl md:text-5xl lg:text-[52px] font-playfair font-normal text-[var(--text-primary)] leading-[1.15] tracking-tight"
           >
             Real skies, read in <span className="italic font-normal">real time</span>, for anyone who's ever looked up and <span className="italic font-normal">wondered</span> what that was.
           </motion.h2>
         </div>
       </section>
 
-      {/* SECTION 2 — "Precision x Wonder" (Padding Tightened to 64px, left col updated with precision real features) */}
-      <section className="relative w-full py-16 bg-[#070a12] px-6 flex justify-center items-center">
+      {/* SECTION 2 — "Precision x Wonder" */}
+      <section className="relative w-full py-16 bg-[var(--bg)] px-6 flex justify-center items-center transition-colors duration-300">
         <div className="w-full max-w-4xl flex flex-col items-start">
           
           {/* Section Header with Duplicate/Offset Glitch look */}
@@ -514,15 +496,15 @@ export default function LandingPage({ onLocationSet }) {
             transition={{ duration: 0.6 }}
             className="relative mb-10 h-[45px] md:h-[55px] w-full"
           >
-            {/* Back Copy (Offset in blue) */}
+            {/* Back Copy (Offset in accent blue) */}
             <div 
-              className="absolute top-[5px] left-[5px] text-3xl md:text-[40px] font-bold font-sans tracking-tight text-[#3a7bd9] opacity-40 select-none pointer-events-none"
+              className="absolute top-[5px] left-[5px] text-3xl md:text-[40px] font-bold font-sans tracking-tight text-[var(--accent)] opacity-40 select-none pointer-events-none"
             >
               Precision x Wonder
             </div>
-            {/* Front Copy (Solid white) */}
+            {/* Front Copy (Solid text-primary) */}
             <div 
-              className="absolute top-0 left-0 text-3xl md:text-[40px] font-bold font-sans tracking-tight text-white"
+              className="absolute top-0 left-0 text-3xl md:text-[40px] font-bold font-sans tracking-tight text-[var(--text-primary)]"
             >
               Precision x Wonder
             </div>
@@ -541,39 +523,39 @@ export default function LandingPage({ onLocationSet }) {
             >
               {/* Card 1: Live Tracking */}
               <div 
-                className="p-5 border border-white/10 rounded-[18px] backdrop-blur-[20px]"
-                style={{ backgroundColor: 'rgba(20, 30, 50, 0.45)' }}
+                className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px]"
+                style={{ backgroundColor: 'var(--surface)' }}
               >
-                <h4 className="text-white font-bold text-sm font-sans mb-1.5">
+                <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1.5">
                   Live Tracking
                 </h4>
-                <p className="text-white/70 text-xs font-sans leading-relaxed">
+                <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
                   Track satellites, constellations (Starlink etc.), and near-Earth asteroids in real time.
                 </p>
               </div>
 
               {/* Card 2: Real-time Telemetry */}
               <div 
-                className="p-5 border border-white/10 rounded-[18px] backdrop-blur-[20px]"
-                style={{ backgroundColor: 'rgba(20, 30, 50, 0.45)' }}
+                className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px]"
+                style={{ backgroundColor: 'var(--surface)' }}
               >
-                <h4 className="text-white font-bold text-sm font-sans mb-1.5">
+                <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1.5">
                   Real-Time Telemetry
                 </h4>
-                <p className="text-white/70 text-xs font-sans leading-relaxed">
+                <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
                   Access actual altitude, speed, and positioning details for every tracked object.
                 </p>
               </div>
 
               {/* Card 3: What's Visible Tonight */}
               <div 
-                className="p-5 border border-white/10 rounded-[18px] backdrop-blur-[20px]"
-                style={{ backgroundColor: 'rgba(20, 30, 50, 0.45)' }}
+                className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px]"
+                style={{ backgroundColor: 'var(--surface)' }}
               >
-                <h4 className="text-white font-bold text-sm font-sans mb-1.5">
+                <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1.5">
                   What's Visible Tonight
                 </h4>
-                <p className="text-white/70 text-xs font-sans leading-relaxed">
+                <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
                   Check moon phases, upcoming satellite passes, and planet visibilities for your location.
                 </p>
               </div>
@@ -587,7 +569,7 @@ export default function LandingPage({ onLocationSet }) {
               transition={{ duration: 0.8, delay: 0.25 }}
               className="w-full lg:w-[53%] mt-2"
             >
-              <p className="text-[15px] md:text-[16px] text-white/70 leading-[1.65] font-sans">
+              <p className="text-[15px] md:text-[16px] text-[var(--text-secondary)] leading-[1.65] font-sans">
                 Every satellite tracked by Project Zenith uses real-time, high-precision orbital element data (TLEs) fetched directly from global ephemeris networks. Rather than rendering generalized path approximations, the platform runs active mathematical calculations to compute the exact position, altitude, and velocity of each spacecraft relative to your coordinates. What you witness on your screen is not just a mockup—it is the actual object's actual position in real time as it orbits the Earth.
               </p>
             </motion.div>
