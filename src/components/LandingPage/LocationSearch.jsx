@@ -7,8 +7,9 @@ import { useApp } from '../../context/AppContext.jsx';
  * Location search bar with autocomplete suggestions.
  * Supports city names, addresses, and "lat,lon" coordinate pairs.
  */
-export default function LocationSearch({ onLocationSelect }) {
+export default function LocationSearch({ onLocationSelect, variant, onQueryChange }) {
   const { state } = useApp();
+  const isHero = variant === 'hero';
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -17,6 +18,13 @@ export default function LocationSearch({ onLocationSelect }) {
   const debounceRef = useRef(null);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
+
+  // Notify parent of query changes
+  useEffect(() => {
+    if (onQueryChange) {
+      onQueryChange(query);
+    }
+  }, [query, onQueryChange]);
 
   // Debounced search
   useEffect(() => {
@@ -99,12 +107,14 @@ export default function LocationSearch({ onLocationSelect }) {
     <div className="relative w-full max-w-xl mx-auto">
       {/* Search Input */}
       <div className="relative flex items-center">
-        <div className="absolute left-4 text-cyan">
-          {isSearching
-            ? <Loader2 className="w-5 h-5 animate-spin" />
-            : <Search className="w-5 h-5" />
-          }
-        </div>
+        {!isHero && (
+          <div className="absolute left-4 text-cyan">
+            {isSearching
+              ? <Loader2 className="w-5 h-5 animate-spin" />
+              : <Search className="w-5 h-5" />
+            }
+          </div>
+        )}
 
         <input
           ref={inputRef}
@@ -115,11 +125,12 @@ export default function LocationSearch({ onLocationSelect }) {
           onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setShowDropdown(true)}
           placeholder="Enter city, country, or lat,lon coordinates..."
-          className="w-full pl-12 pr-24 py-4 bg-navy/80 border border-border rounded-2xl
-                     text-text placeholder-muted font-sans text-base
-                     focus:outline-none focus:border-cyan focus:ring-1 focus:ring-cyan/50
-                     backdrop-blur-md transition-all duration-200"
-          style={{ caretColor: '#ff007f' }}
+          className={`w-full py-4 text-text placeholder-muted font-sans text-base backdrop-blur-md transition-all duration-200 focus:outline-none
+            ${isHero 
+              ? 'pl-6 pr-32 bg-[#0d1320]/70 border border-white/15 rounded-full focus:border-white/30 focus:ring-1 focus:ring-white/10' 
+              : 'pl-12 pr-24 bg-navy/80 border border-border rounded-2xl focus:border-cyan focus:ring-1 focus:ring-cyan/50'
+            }`}
+          style={{ caretColor: isHero ? '#7fb3e0' : '#ff007f' }}
           autoComplete="off"
           aria-label="Location search"
           aria-autocomplete="list"
@@ -127,7 +138,7 @@ export default function LocationSearch({ onLocationSelect }) {
         />
 
         {/* Buttons */}
-        <div className="absolute right-2 flex items-center gap-1">
+        <div className="absolute right-2 flex items-center gap-1.5">
           {query && (
             <button
               onClick={() => { setQuery(''); setResults([]); setShowDropdown(false); }}
@@ -137,14 +148,51 @@ export default function LocationSearch({ onLocationSelect }) {
               <X className="w-4 h-4" />
             </button>
           )}
-          <button
-            onClick={handleGeolocation}
-            className="p-2 text-cyan hover:text-white transition-colors"
-            title="Use my current location"
-            aria-label="Use current location"
-          >
-            <MapPin className="w-5 h-5" />
-          </button>
+          
+          {isHero ? (
+            <>
+              <button
+                onClick={handleGeolocation}
+                className="p-2 text-slate-400 hover:text-white transition-colors"
+                title="Use my current location"
+                aria-label="Use current location"
+              >
+                <MapPin className="w-5 h-5" />
+              </button>
+              
+              <button
+                onClick={() => {
+                  if (results.length > 0) {
+                    handleSelect(results[0]);
+                  } else if (query.trim()) {
+                    geocodeSearch(query).then(found => {
+                      if (found && found.length > 0) {
+                        handleSelect(found[0]);
+                      }
+                    });
+                  }
+                }}
+                className="w-9 h-9 rounded-full bg-[#f5f7fa]/90 hover:bg-white text-[#070a12] flex items-center justify-center transition-all duration-200 shadow-sm active:scale-95 shrink-0"
+                title="Submit Search"
+                aria-label="Submit search"
+              >
+                {isSearching ? (
+                  <Loader2 className="w-4.5 h-4.5 animate-spin" />
+                ) : (
+                  <Search className="w-4.5 h-4.5" />
+                )}
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={handleGeolocation}
+              className="p-2 text-cyan hover:text-white transition-colors"
+              title="Use my current location"
+              aria-label="Use current location"
+            >
+              <MapPin className="w-5 h-5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -159,7 +207,7 @@ export default function LocationSearch({ onLocationSelect }) {
           ref={dropdownRef}
           id="location-dropdown"
           role="listbox"
-          className="absolute top-full left-0 right-0 mt-2 glass-panel border border-border overflow-hidden z-50"
+          className="absolute top-full left-0 right-0 mt-2 glass-panel border border-border overflow-hidden z-50 rounded-xl"
         >
           {results.map((result, idx) => (
             <button
@@ -168,7 +216,7 @@ export default function LocationSearch({ onLocationSelect }) {
               onClick={() => handleSelect(result)}
               className="w-full flex items-start gap-3 px-4 py-3 hover:bg-panel-light transition-colors text-left group"
             >
-              <MapPin className="w-4 h-4 text-cyan mt-0.5 shrink-0 group-hover:text-white transition-colors" />
+              <MapPin className={`w-4 h-4 mt-0.5 shrink-0 group-hover:text-white transition-colors ${isHero ? 'text-[#7fb3e0]' : 'text-cyan'}`} />
               <div className="min-w-0">
                 <p className="text-text text-sm font-medium truncate">
                   {result.name || result.display_name.split(',')[0]}
