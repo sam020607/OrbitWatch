@@ -18,6 +18,77 @@ export default function LookUpCard() {
   const { selectedSatellite, selectedConstellation, selectedAsteroid, viewMode, issNextPasses, location, observedLog = [], apodData } = state;
   const [now] = [Math.floor(Date.now() / 1000)];
 
+  // Determine what to show
+  let displayData = null;
+  let title = '';
+
+  if (viewMode === 'asteroids' && selectedAsteroid) {
+    const coords = location 
+      ? getLocalCoordinates(selectedAsteroid.ra, selectedAsteroid.dec, location.lat, location.lon)
+      : { az: 0, el: 0 };
+    displayData = {
+      az: coords.az,
+      el: coords.el,
+      name: selectedAsteroid.name,
+      id: selectedAsteroid.id,
+      diameter_min: selectedAsteroid.diameter_min,
+      diameter_max: selectedAsteroid.diameter_max,
+      velocity_kms: selectedAsteroid.velocity_kms,
+      miss_distance_ld: selectedAsteroid.miss_distance_ld,
+      miss_distance_km: selectedAsteroid.miss_distance_km,
+      is_potentially_hazardous: selectedAsteroid.is_potentially_hazardous,
+      nasa_jpl_url: selectedAsteroid.nasa_jpl_url,
+      ra: selectedAsteroid.ra,
+      dec: selectedAsteroid.dec,
+      type: 'asteroid'
+    };
+    title = 'Asteroid Direction';
+  } else if (viewMode === 'constellations' && selectedConstellation) {
+    const coords = location 
+      ? getLocalCoordinates(selectedConstellation.ra, selectedConstellation.dec, location.lat, location.lon)
+      : { az: 0, el: 0 };
+    displayData = {
+      az: coords.az,
+      el: coords.el,
+      name: selectedConstellation.name,
+      description: selectedConstellation.description,
+      abbr: selectedConstellation.abbr,
+      ra: selectedConstellation.ra,
+      dec: selectedConstellation.dec,
+      id: selectedConstellation.id,
+      type: 'constellation'
+    };
+    title = 'Constellation Direction';
+  } else if (selectedSatellite) {
+    // For a selected satellite, compute approximate elevation
+    const approxEl = Math.max(10, Math.min(85, 90 - (selectedSatellite.satalt / 450) * 50));
+    const approxAz = ((selectedSatellite.satlat * 3 + selectedSatellite.satlon + 180) % 360);
+    displayData = {
+      az: approxAz,
+      el: approxEl,
+      name: selectedSatellite.satname,
+      alt: selectedSatellite.satalt,
+      velocity: selectedSatellite.velocity,
+      id: selectedSatellite.satid,
+      type: 'satellite'
+    };
+    title = 'Satellite Direction';
+  } else if (issNextPasses.length > 0) {
+    // Show the next ISS pass peak direction
+    const nextPass = issNextPasses.find(p => p.endUTC > now);
+    if (nextPass) {
+      displayData = {
+        az: nextPass.maxAz,
+        el: nextPass.maxEl,
+        name: 'ISS',
+        id: '25544',
+        type: 'satellite',
+        passTime: nextPass.maxUTC,
+      };
+      title = 'ISS Peak Direction';
+    }
+  }
+
   const [showNotesForm, setShowNotesForm] = useState(false);
   const [notesText, setNotesText] = useState('');
 
@@ -73,78 +144,6 @@ export default function LookUpCard() {
       description: descInfo.description
     };
   }, []);
-
-  // Determine what to show
-  let displayData = null;
-  let title = '';
-
-  if (viewMode === 'asteroids' && selectedAsteroid) {
-    const coords = location 
-      ? getLocalCoordinates(selectedAsteroid.ra, selectedAsteroid.dec, location.lat, location.lon)
-      : { az: 0, el: 0 };
-    displayData = {
-      az: coords.az,
-      el: coords.el,
-      name: selectedAsteroid.name,
-      id: selectedAsteroid.id,
-      diameter_min: selectedAsteroid.diameter_min,
-      diameter_max: selectedAsteroid.diameter_max,
-      velocity_kms: selectedAsteroid.velocity_kms,
-      miss_distance_ld: selectedAsteroid.miss_distance_ld,
-      miss_distance_km: selectedAsteroid.miss_distance_km,
-      is_potentially_hazardous: selectedAsteroid.is_potentially_hazardous,
-      nasa_jpl_url: selectedAsteroid.nasa_jpl_url,
-      ra: selectedAsteroid.ra,
-      dec: selectedAsteroid.dec,
-      id: selectedAsteroid.id,
-      type: 'asteroid'
-    };
-    title = 'Asteroid Direction';
-  } else if (viewMode === 'constellations' && selectedConstellation) {
-    const coords = location 
-      ? getLocalCoordinates(selectedConstellation.ra, selectedConstellation.dec, location.lat, location.lon)
-      : { az: 0, el: 0 };
-    displayData = {
-      az: coords.az,
-      el: coords.el,
-      name: selectedConstellation.name,
-      description: selectedConstellation.description,
-      abbr: selectedConstellation.abbr,
-      ra: selectedConstellation.ra,
-      dec: selectedConstellation.dec,
-      id: selectedConstellation.id,
-      type: 'constellation'
-    };
-    title = 'Constellation Direction';
-  } else if (selectedSatellite) {
-    // For a selected satellite, compute approximate elevation
-    const approxEl = Math.max(10, Math.min(85, 90 - (selectedSatellite.satalt / 450) * 50));
-    const approxAz = ((selectedSatellite.satlat * 3 + selectedSatellite.satlon + 180) % 360);
-    displayData = {
-      az: approxAz,
-      el: approxEl,
-      name: selectedSatellite.satname,
-      alt: selectedSatellite.satalt,
-      velocity: selectedSatellite.velocity,
-      id: selectedSatellite.satid,
-      type: 'satellite'
-    };
-    title = 'Satellite Direction';
-  } else if (issNextPasses.length > 0) {
-    // Show the next ISS pass peak direction
-    const nextPass = issNextPasses.find(p => p.endUTC > now);
-    if (nextPass) {
-      displayData = {
-        az: nextPass.maxAz,
-        el: nextPass.maxEl,
-        name: 'ISS',
-        id: '25544',
-        type: 'satellite',
-        passTime: nextPass.maxUTC,
-      };
-      title = 'ISS Peak Direction';
-    }
-  }
 
   if (!displayData) {
     return (
