@@ -193,6 +193,9 @@ const initialState = {
 
   // Theme Toggle
   theme: loadTheme(),
+
+  // NASA APOD Cache
+  apodData: null,
 };
 
 /** ─── Reducer ───────────────────────────────────────────────────────────── */
@@ -313,6 +316,9 @@ function appReducer(state, action) {
       return { ...state, theme: nextTheme };
     }
 
+    case 'SET_APOD_DATA':
+      return { ...state, apodData: action.payload };
+
     case 'RESET':
       return { ...initialState };
 
@@ -353,6 +359,7 @@ export function AppProvider({ children }) {
     deleteObservation: (id) => dispatch({ type: 'DELETE_OBSERVATION', payload: id }),
     dismissAchievementToast: () => dispatch({ type: 'DISMISS_ACHIEVEMENT_TOAST' }),
     toggleTheme: () => dispatch({ type: 'TOGGLE_THEME' }),
+    setApodData: (data) => dispatch({ type: 'SET_APOD_DATA', payload: data }),
     reset: () => dispatch({ type: 'RESET' }),
   }), [dispatch]);
 

@@ -1,8 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../../context/AppContext.jsx';
 import { azimuthToCompass } from '../../utils/orbitMath.js';
 import { getLocalCoordinates } from '../../data/constellations.js';
-import { Compass, Target, X } from 'lucide-react';
+import { Compass, Target, X, RefreshCw, ChevronUp, ChevronDown } from 'lucide-react';
+
+import { fetchAstronomyPictureOfTheDay } from '../../api/nasaApodApi.js';
+import { MOCK_SATELLITES } from '../../data/mockSatellites.js';
+import satelliteDescriptions from '../../data/satelliteDescriptions.json';
+import spaceFacts from '../../data/spaceFacts.json';
 
 /**
  * LookUpCard — Compass rose + elevation arc for a selected satellite or constellation.
@@ -10,11 +15,64 @@ import { Compass, Target, X } from 'lucide-react';
  */
 export default function LookUpCard() {
   const { state, actions } = useApp();
-  const { selectedSatellite, selectedConstellation, selectedAsteroid, viewMode, issNextPasses, location, observedLog = [] } = state;
+  const { selectedSatellite, selectedConstellation, selectedAsteroid, viewMode, issNextPasses, location, observedLog = [], apodData } = state;
   const [now] = [Math.floor(Date.now() / 1000)];
 
   const [showNotesForm, setShowNotesForm] = useState(false);
   const [notesText, setNotesText] = useState('');
+
+  // 1. APOD state
+  const [apodLoading, setApodLoading] = useState(false);
+  const [apodError, setApodError] = useState(null);
+  const [expandApod, setExpandApod] = useState(false);
+
+  useEffect(() => {
+    if (!displayData && !apodData && !apodLoading) {
+      setApodLoading(true);
+      fetchAstronomyPictureOfTheDay()
+        .then(data => {
+          actions.setApodData(data);
+          setApodLoading(false);
+        })
+        .catch(err => {
+          console.error(err);
+          setApodError('Failed to load APOD');
+          setApodLoading(false);
+        });
+    }
+  }, [displayData, apodData]);
+
+  // 2. Space Facts state
+  const [factIndex, setFactIndex] = useState(0);
+
+  useEffect(() => {
+    const rand = Math.floor(Math.random() * spaceFacts.length);
+    setFactIndex(rand);
+  }, []);
+
+  const handleNextFact = () => {
+    let nextIndex = Math.floor(Math.random() * spaceFacts.length);
+    if (nextIndex === factIndex && spaceFacts.length > 1) {
+      nextIndex = (nextIndex + 1) % spaceFacts.length;
+    }
+    setFactIndex(nextIndex);
+  };
+
+  // 3. Satellite of the Day
+  const satelliteOfTheDay = useMemo(() => {
+    if (MOCK_SATELLITES.length === 0) return null;
+    const today = new Date();
+    const seed = today.getFullYear() * 1000 + (today.getMonth() + 1) * 31 + today.getDate();
+    const index = seed % MOCK_SATELLITES.length;
+    const sat = MOCK_SATELLITES[index];
+    const descInfo = satelliteDescriptions[String(sat.satid)] || {
+      description: "A research and observation platform operating in low Earth orbit."
+    };
+    return {
+      ...sat,
+      description: descInfo.description
+    };
+  }, []);
 
   // Determine what to show
   let displayData = null;
@@ -90,10 +148,125 @@ export default function LookUpCard() {
 
   if (!displayData) {
     return (
-      <div className="flex flex-col items-center justify-center p-6 text-center h-full">
-        <Compass className="w-10 h-10 text-muted mb-3 opacity-30" />
-        <p className="text-muted text-sm font-crimson">Select an object to track</p>
-        <p className="text-muted text-xs font-crimson mt-1">to see look-up coordinates</p>
+      <div className="flex flex-col gap-5 p-4 h-full overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center gap-2 pb-2 border-b border-border">
+          <Compass className="w-5 h-5 text-cyan animate-pulse" />
+          <h2 className="text-sm font-playfair font-bold text-text">Look Up Menu</h2>
+        </div>
+
+        {/* Space Fun Fact */}
+        <div className="glass-panel p-4 glow-cyan flex flex-col gap-2 relative overflow-hidden transition-all duration-300 hover:border-cyan-dim">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-mono text-cyan tracking-[0.2em] uppercase font-bold text-glow-cyan flex items-center gap-1">
+              ✨ Space Fact of the Moment
+            </span>
+            <button 
+              onClick={handleNextFact}
+              className="p-1 rounded text-muted hover:text-cyan transition-colors"
+              title="Next Fact"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <p className="text-sm font-crimson text-text leading-relaxed mt-1 text-left">
+            "{spaceFacts[factIndex]}"
+          </p>
+        </div>
+
+        {/* NASA Astronomy Picture of the Day */}
+        <div className="glass-panel overflow-hidden border border-border flex flex-col transition-all duration-300">
+          <div className="p-3 border-b border-border bg-navy/30 flex items-center justify-between">
+            <span className="text-[10px] font-mono text-amber tracking-[0.2em] uppercase font-bold text-glow-amber flex items-center gap-1">
+              📷 NASA APOD
+            </span>
+            {apodData && (
+              <span className="text-[9px] font-mono text-muted">{apodData.date}</span>
+            )}
+          </div>
+
+          {apodLoading ? (
+            <div className="p-6 flex flex-col items-center justify-center gap-2">
+              <div className="spinner border-top-color-amber w-8 h-8"></div>
+              <p className="text-xs text-muted font-crimson">Retrieving cosmic capture...</p>
+            </div>
+          ) : apodError || !apodData ? (
+            <div className="p-4 text-center">
+              <p className="text-xs text-danger font-crimson">Failed to load picture of the day.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col">
+              {/* Image Container */}
+              <div className="relative group overflow-hidden h-40 bg-space">
+                <img 
+                  src={apodData.url} 
+                  alt={apodData.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-space via-transparent to-transparent opacity-80" />
+                <div className="absolute bottom-2 left-3 right-3 text-left">
+                  <h3 className="text-sm font-playfair font-bold text-white truncate">{apodData.title}</h3>
+                  {apodData.copyright && (
+                    <p className="text-[9px] text-gray-300 font-mono">© {apodData.copyright}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Collapsible Explanation */}
+              <div className="p-3 bg-panel/50">
+                <button
+                  onClick={() => setExpandApod(!expandApod)}
+                  className="w-full flex items-center justify-between text-xs font-crimson text-cyan hover:text-cyan-dim transition-colors"
+                >
+                  <span>{expandApod ? "Hide Explanation" : "Read Scientific Explanation"}</span>
+                  {expandApod ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </button>
+
+                {expandApod && (
+                  <p className="text-xs font-crimson text-muted-light mt-2 leading-relaxed text-left max-h-48 overflow-y-auto pr-1">
+                    {apodData.explanation}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Satellite of the Day */}
+        {satelliteOfTheDay && (
+          <div className="glass-panel p-4 border border-border flex flex-col gap-3 relative overflow-hidden transition-all duration-300 hover:border-amber-dim hover:shadow-[0_0_15px_rgba(245,158,11,0.1)]">
+            <div className="absolute top-0 right-0 p-2 opacity-5">
+              <Compass className="w-24 h-24 text-amber" />
+            </div>
+
+            <div className="flex items-center justify-between border-b border-border/40 pb-2">
+              <span className="text-[10px] font-mono text-amber tracking-[0.2em] uppercase font-bold text-glow-amber">
+                🛰️ Satellite of the Day
+              </span>
+              <span className="text-[9px] font-mono text-muted">ID: {satelliteOfTheDay.satid}</span>
+            </div>
+
+            <div className="flex flex-col gap-1 z-10 text-left">
+              <h3 className="text-sm font-playfair font-bold text-text">{satelliteOfTheDay.satname}</h3>
+              <p className="text-[10px] font-mono text-muted">
+                Launched: {satelliteOfTheDay.launchDate} · Altitude: {satelliteOfTheDay.satalt} km
+              </p>
+              <p className="text-xs font-crimson text-muted-light mt-2 leading-relaxed">
+                {satelliteOfTheDay.description}
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                actions.setViewMode('satellites');
+                actions.selectSatellite(satelliteOfTheDay);
+              }}
+              className="mt-2 w-full py-2 bg-amber/15 border border-amber/40 hover:bg-amber hover:text-navy text-xs font-crimson font-bold text-amber rounded-lg transition-all text-center flex items-center justify-center gap-1.5 shadow-sm uppercase tracking-wider"
+            >
+              <span>Track on Map 🔭</span>
+            </button>
+          </div>
+        )}
       </div>
     );
   }

@@ -1,0 +1,70 @@
+{
+  "25544": {
+    "name": "ISS (ZARYA)",
+    "description": "The International Space Station is a microgravity research laboratory hosting astronauts conducting science experiments in physics, biology, and astronomy."
+  },
+  "48274": {
+    "name": "CSS (TIANHE)",
+    "description": "The Tiangong Space Station is China's permanently crewed space station in low Earth orbit, housing advanced research payloads for space physics."
+  },
+  "33591": {
+    "name": "NOAA 19",
+    "description": "A weather satellite operated by NOAA. It provides high-resolution data on atmospheric temperature, global moisture profiles, and sea-surface temperatures."
+  },
+  "25338": {
+    "name": "NOAA 15",
+    "description": "A long-serving polar-orbiting meteorological satellite monitoring Earth's atmosphere, climate trends, cloud cover, and ocean temperatures since 1998."
+  },
+  "44387": {
+    "name": "STARLINK-1007",
+    "description": "A satellite from SpaceX's Starlink constellation. It operates in low Earth orbit (LEO) to deliver global high-speed broadband internet."
+  },
+  "44390": {
+    "name": "STARLINK-1008",
+    "description": "Part of SpaceX's telecommunications mesh, providing high-bandwidth broadband services across remote areas of the Earth."
+  },
+  "44394": {
+    "name": "STARLINK-1009",
+    "description": "A Starlink satellite designed to supply internet connectivity in areas where ground networks are unreliable or non-existent."
+  },
+  "36516": {
+    "name": "GPS BIIR-17 (PRN 11)",
+    "description": "A global positioning system satellite operated by the U.S. Space Force, providing highly accurate navigation signals to users worldwide."
+  },
+  "38833": {
+    "name": "GPS BIIF-3 (PRN 24)",
+    "description": "An advanced GPS satellite featuring improved signal accuracy, robust security features, and a longer operational design life."
+  },
+  "39533": {
+    "name": "TERRA DEM-1",
+    "description": "An Earth observation platform generating digital elevation models and topographical profiles of global terrain features."
+  },
+  "27386": {
+    "name": "AQUA",
+    "description": "A scientific research satellite operated by NASA. Aqua studies Earth's water cycle, cloud patterns, sea ice dynamics, and global precipitation."
+  },
+  "25994": {
+    "name": "TERRA",
+    "description": "NASA's flagship Earth observation satellite. Terra monitors environmental trends, air pollution levels, carbon cycles, and volcanic eruptions."
+  },
+  "46826": {
+    "name": "ONEWEB-0178",
+    "description": "A communications satellite in a near-polar orbit, part of OneWeb's network offering enterprise and government global connectivity."
+  },
+  "43566": {
+    "name": "FENGYUN 3D",
+    "description": "A Chinese polar-orbiting meteorological satellite carrying advanced multi-spectral imagers for global climate modeling and disaster warning."
+  },
+  "40069": {
+    "name": "SJ-11-09",
+    "description": "A Chinese scientific research and technology demonstration satellite launched in 2014, operating in low Earth orbit."
+  },
+  "37820": {
+    "name": "SES-3",
+    "description": "A commercial geostationary communication satellite operated by SES, delivering television broadcasting and data services to North America."
+  },
+  "40982": {
+    "name": "EUTELSAT 8 WEST B",
+    "description": "A geostationary satellite providing high-definition television broadcast services and cellular backhaul connectivity across North Africa and the Middle East."
+  }
+}
