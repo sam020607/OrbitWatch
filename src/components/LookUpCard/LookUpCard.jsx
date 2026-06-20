@@ -101,6 +101,7 @@ export default function LookUpCard() {
 
   // 2. Space Facts state
   const [factIndex, setFactIndex] = useState(0);
+  const [expandFact, setExpandFact] = useState(false);
 
   useEffect(() => {
     const rand = Math.floor(Math.random() * spaceFacts.length);
@@ -116,6 +117,7 @@ export default function LookUpCard() {
   };
 
   // 3. Satellite of the Day
+  const [expandSat, setExpandSat] = useState(false);
   const satelliteOfTheDay = useMemo(() => {
     if (MOCK_SATELLITES.length === 0) return null;
     const today = new Date();
@@ -141,24 +143,36 @@ export default function LookUpCard() {
         </div>
 
         {/* Space Fun Fact */}
-        <div className="glass-panel p-4 glow-cyan flex flex-col gap-2 relative overflow-hidden transition-all duration-300 hover:border-cyan-dim">
+        <div 
+          onClick={() => setExpandFact(!expandFact)}
+          className="glass-panel p-4 glow-cyan flex flex-col gap-2 relative overflow-hidden transition-all duration-300 hover:border-cyan-dim cursor-pointer select-none"
+        >
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono text-cyan tracking-[0.2em] uppercase font-bold text-glow-cyan flex items-center gap-1">
               ✨ Space Fact of the Moment
             </span>
             <button 
-              onClick={handleNextFact}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNextFact();
+              }}
               className="p-1 rounded text-muted hover:text-cyan transition-colors"
               title="Next Fact"
             >
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div className="max-h-24 overflow-y-auto pr-1 mt-1">
+          <div 
+            className="pr-1 mt-1"
+            style={expandFact ? { maxHeight: '160px', overflowY: 'auto' } : { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+          >
             <p className="text-sm font-crimson text-text leading-relaxed text-left">
               "{spaceFacts[factIndex]}"
             </p>
           </div>
+          <span className="text-[9px] text-cyan/70 font-mono mt-1 text-left">
+            {expandFact ? "Click to collapse" : "Click to expand fact"}
+          </span>
         </div>
 
         {/* NASA Astronomy Picture of the Day */}
@@ -200,18 +214,22 @@ export default function LookUpCard() {
               </div>
 
               {/* Collapsible Explanation */}
-              <div className="p-3 bg-panel/50">
-                <button
-                  onClick={() => setExpandApod(!expandApod)}
-                  className="w-full flex items-center justify-between text-xs font-crimson text-cyan hover:text-cyan-dim transition-colors"
-                >
+              <div 
+                onClick={() => setExpandApod(!expandApod)}
+                className="p-3 bg-panel/50 cursor-pointer border-t border-border/20 hover:bg-panel/75 transition-colors select-none"
+              >
+                <div className="w-full flex items-center justify-between text-xs font-crimson text-cyan hover:text-cyan-dim transition-colors">
                   <span>{expandApod ? "Hide Explanation" : "Read Scientific Explanation"}</span>
                   {expandApod ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                </button>
-
+                </div>
+  
                 {expandApod && (
-                  <div className="max-h-40 overflow-y-auto pr-1 mt-2">
-                    <p className="text-xs font-crimson text-muted-light leading-relaxed text-left">
+                  <div 
+                    className="overflow-y-auto pr-1 mt-2 text-left" 
+                    style={{ maxHeight: '320px' }}
+                    onClick={(e) => e.stopPropagation()} // prevent collapsing when scrolling text
+                  >
+                    <p className="text-xs font-crimson text-muted-light leading-relaxed">
                       {apodData.explanation}
                     </p>
                   </div>
@@ -223,7 +241,10 @@ export default function LookUpCard() {
 
         {/* Satellite of the Day */}
         {satelliteOfTheDay && (
-          <div className="glass-panel p-4 border border-border flex flex-col gap-3 relative overflow-hidden transition-all duration-300 hover:border-amber-dim hover:shadow-[0_0_15px_rgba(245,158,11,0.1)]">
+          <div 
+            onClick={() => setExpandSat(!expandSat)}
+            className="glass-panel p-4 border border-border flex flex-col gap-3 relative overflow-hidden transition-all duration-300 hover:border-amber-dim hover:shadow-[0_0_15px_rgba(245,158,11,0.1)] cursor-pointer select-none"
+          >
             <div className="absolute top-0 right-0 p-2 opacity-5">
               <Compass className="w-24 h-24 text-amber" />
             </div>
@@ -240,15 +261,23 @@ export default function LookUpCard() {
               <p className="text-[10px] font-mono text-muted">
                 Launched: {satelliteOfTheDay.launchDate} · Altitude: {satelliteOfTheDay.satalt} km
               </p>
-              <div className="max-h-24 overflow-y-auto pr-1 mt-2">
+              <div 
+                className="pr-1 mt-2"
+                style={expandSat ? { maxHeight: '200px', overflowY: 'auto' } : { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                onClick={(e) => { if (expandSat) e.stopPropagation(); }} // prevent collapsing when scrolling text
+              >
                 <p className="text-xs font-crimson text-muted-light leading-relaxed">
                   {satelliteOfTheDay.description}
                 </p>
               </div>
+              <span className="text-[9px] text-amber/80 font-mono mt-1">
+                {expandSat ? "Click to collapse" : "Click to expand description"}
+              </span>
             </div>
 
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 actions.setViewMode('satellites');
                 actions.selectSatellite(satelliteOfTheDay);
               }}
