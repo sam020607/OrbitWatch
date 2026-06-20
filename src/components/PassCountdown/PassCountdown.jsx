@@ -96,7 +96,7 @@ export default function PassCountdown() {
           className="font-mono text-4xl font-bold tracking-wider"
           style={{
             color: '#3a7bd9',
-            textShadow: '0 0 20px rgba(58, 123, 217, 0.6)',
+            textShadow: '0 0 20px rgba(58, 123, 217, 0.55), 0 0 40px rgba(58, 123, 217, 0.25)',
             fontVariantNumeric: 'tabular-nums',
           }}
         >
@@ -115,7 +115,10 @@ export default function PassCountdown() {
       {/* Pass details grid */}
       <div className="grid grid-cols-2 gap-2">
         <StatCard icon={<Navigation className="w-3 h-3" />} label="Max Elevation">
-          <span className="font-mono text-lg font-bold text-cyan">{currentPass.maxEl}°</span>
+          <span
+            className="font-mono text-lg font-bold text-cyan"
+            style={{ textShadow: '0 0 16px rgba(58, 123, 217, 0.6), 0 0 32px rgba(58, 123, 217, 0.25)' }}
+          >{currentPass.maxEl}°</span>
         </StatCard>
         <StatCard icon={<Eye className="w-3 h-3" />} label="Peak Direction">
           <span className="font-mono text-lg font-bold text-cyan">{currentPass.maxAzCompass}</span>
@@ -184,7 +187,9 @@ export default function PassCountdown() {
 
 function StatCard({ icon, label, sub, children }) {
   return (
-    <div className="flex flex-col gap-1 px-3 py-2 rounded-lg bg-navy/40 border border-border">
+    <div className="flex flex-col gap-1 px-3 py-2 rounded-lg bg-navy/40 border border-border"
+      style={{ boxShadow: 'var(--card-inset)' }}
+    >
       <div className="flex items-center gap-1 text-muted" style={{ fontSize: 10 }}>
         {icon}
         <span className="font-crimson tracking-wide uppercase">{label}</span>

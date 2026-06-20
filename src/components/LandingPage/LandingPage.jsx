@@ -220,23 +220,60 @@ export default function LandingPage({ onLocationSet }) {
                 
                 {/* Popular locations quick-select */}
                 {!searchQuery && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="relative flex flex-wrap justify-center gap-2 mt-2 z-10"
-                  >
-                    <span className="text-[var(--text-secondary)] text-xs self-center font-sans tracking-wider" style={{ fontSize: 10 }}>QUICK:</span>
-                    {POPULAR_LOCATIONS.map(loc => (
-                      <button
-                        key={loc.name}
-                        onClick={() => handleLocationSelect({ ...loc, name: loc.name, country: '' })}
-                        className="px-3 py-1 rounded-full text-xs border border-[var(--surface-border)] text-[var(--text-primary)] bg-[var(--surface)] hover:bg-[var(--text-primary)] hover:text-[var(--bg)] hover:border-[var(--text-primary)] transition-all duration-200 shadow-sm"
+                  <div className="w-full flex flex-col items-center gap-6">
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="relative flex flex-wrap justify-center gap-2 mt-2 z-10"
+                    >
+                      <span className="text-[var(--text-secondary)] text-xs self-center font-sans tracking-wider" style={{ fontSize: 10 }}>QUICK:</span>
+                      {POPULAR_LOCATIONS.map(loc => (
+                        <button
+                          key={loc.name}
+                          onClick={() => handleLocationSelect({ ...loc, name: loc.name, country: '' })}
+                          className="px-3 py-1 rounded-full text-xs border border-[var(--surface-border)] text-[var(--text-primary)] bg-[var(--surface)] hover:bg-[var(--text-primary)] hover:text-[var(--bg)] hover:border-[var(--text-primary)] transition-all duration-200 shadow-sm"
+                        >
+                          {loc.name}
+                        </button>
+                      ))}
+                    </motion.div>
+
+                    {/* Scroll cue indicator right after the quick tab */}
+                    <motion.div 
+                      className="flex flex-col items-center gap-1 cursor-pointer select-none z-20"
+                      animate={{ 
+                        y: [0, 6, 0],
+                        opacity: [0.35, 0.8, 0.35]
+                      }}
+                      transition={{ 
+                        duration: 2.0,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                      onClick={() => {
+                        const heroEl = document.getElementById('hero-section');
+                        if (heroEl) {
+                          const rect = heroEl.getBoundingClientRect();
+                          window.scrollTo({
+                            top: window.scrollY + rect.height,
+                            behavior: 'smooth'
+                          });
+                        }
+                      }}
+                    >
+                      <span className="text-[10px] font-sans tracking-[0.25em] uppercase text-[var(--text-secondary)] opacity-60 mb-0.5">explore the data</span>
+                      <svg 
+                        className="w-4 h-4 text-[var(--text-secondary)] opacity-75" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2.5" 
+                        viewBox="0 0 24 24"
                       >
-                        {loc.name}
-                      </button>
-                    ))}
-                  </motion.div>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </motion.div>
+                  </div>
                 )}
               </div>
             ) : (
@@ -307,6 +344,41 @@ export default function LandingPage({ onLocationSet }) {
                     </div>
                   )}
                 </div>
+
+                {/* Scroll cue indicator right after globe controls */}
+                <motion.div 
+                  className="flex flex-col items-center gap-1 cursor-pointer select-none z-20 mt-2"
+                  animate={{ 
+                    y: [0, 6, 0],
+                    opacity: [0.35, 0.8, 0.35]
+                  }}
+                  transition={{ 
+                    duration: 2.0,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  onClick={() => {
+                    const heroEl = document.getElementById('hero-section');
+                    if (heroEl) {
+                      const rect = heroEl.getBoundingClientRect();
+                      window.scrollTo({
+                        top: window.scrollY + rect.height,
+                        behavior: 'smooth'
+                      });
+                    }
+                  }}
+                >
+                  <span className="text-[10px] font-sans tracking-[0.25em] uppercase text-[var(--text-secondary)] opacity-60 mb-0.5">explore the data</span>
+                  <svg 
+                    className="w-4 h-4 text-[var(--text-secondary)] opacity-75" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2.5" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </motion.div>
               </div>
             )}
           </motion.div>
@@ -333,41 +405,6 @@ export default function LandingPage({ onLocationSet }) {
             </div>
           </motion.div>
         )}
-
-        {/* Scroll cue indicator (Subtle opacity adjustment matching themes) */}
-        <motion.div 
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1 cursor-pointer select-none"
-          animate={{ 
-            y: [0, 6, 0],
-            opacity: [0.35, 0.8, 0.35]
-          }}
-          transition={{ 
-            duration: 2.0,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          onClick={() => {
-            const heroEl = document.getElementById('hero-section');
-            if (heroEl) {
-              const rect = heroEl.getBoundingClientRect();
-              window.scrollTo({
-                top: window.scrollY + rect.height,
-                behavior: 'smooth'
-              });
-            }
-          }}
-        >
-          <span className="text-[10px] font-sans tracking-[0.25em] uppercase text-[var(--text-secondary)] opacity-60 mb-0.5">explore the data</span>
-          <svg 
-            className="w-4 h-4 text-[var(--text-secondary)] opacity-75" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2.5" 
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-          </svg>
-        </motion.div>
       </div>
 
       {/* 6-Card Feature Grid Section (Expanded real features list) */}

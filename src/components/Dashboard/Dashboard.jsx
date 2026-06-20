@@ -139,7 +139,7 @@ export default function Dashboard({ onReset }) {
       <div className="flex-1 flex overflow-hidden">
 
         {/* ── Left Sidebar (desktop) ── */}
-        <aside className="hidden lg:flex flex-col w-72 border-r border-border bg-panel/80 shrink-0 overflow-hidden">
+        <aside className="hidden lg:flex flex-col w-72 border-r border-border bg-panel/80 shrink-0 overflow-hidden starfield shell-panel">
           <SatellitePanel />
         </aside>
 
@@ -189,7 +189,7 @@ export default function Dashboard({ onReset }) {
         </main>
 
         {/* ── Right Panel (desktop) ── */}
-        <aside className="hidden lg:flex flex-col w-80 border-l border-border bg-panel/80 shrink-0 overflow-hidden">
+        <aside className="hidden lg:flex flex-col w-80 border-l border-border bg-panel/80 shrink-0 overflow-hidden starfield shell-panel">
           {/* Panel tabs */}
           <div className="flex border-b border-border bg-navy/30 shrink-0">
             {rightTabs.map(({ id, label, icon: Icon }) => (
