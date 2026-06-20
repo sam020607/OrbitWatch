@@ -143,7 +143,7 @@ export default function LandingPage({ onLocationSet }) {
   }
 
   return (
-    <div className="w-full min-h-screen bg-[var(--bg)] text-[var(--text-primary)] transition-colors duration-300 overflow-y-auto overflow-x-hidden scroll-smooth">
+    <div className="w-full h-full bg-[var(--bg)] text-[var(--text-primary)] transition-colors duration-300 overflow-y-auto overflow-x-hidden scroll-smooth">
       
       {/* Floating Header */}
       <header className="absolute top-0 left-0 right-0 h-16 flex items-center justify-between px-6 z-30 pointer-events-none">
