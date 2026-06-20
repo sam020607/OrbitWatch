@@ -278,6 +278,26 @@ function MapController({ location }) {
   return null;
 }
 
+/** Map auto-resizer to fit container dynamically when sidebar collapses/expands */
+function ResizeController() {
+  const map = useMap();
+  useEffect(() => {
+    const container = map.getContainer();
+    if (!container) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      map.invalidateSize();
+    });
+
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [map]);
+  return null;
+}
+
 /**
  * GlobeMap — Leaflet map component.
  * Shows: ISS moving dot + trail, satellite markers, orbital arcs, cone of visibility, observer location.
@@ -384,6 +404,7 @@ export default function GlobeMap({ className = '' }) {
         </Pane>
 
         <MapController location={location} />
+        <ResizeController />
 
         {/* Faint Lat/Long Grid Overlay */}
         {GRID_LINES.map(line => (
