@@ -292,7 +292,7 @@ function appReducer(state, action) {
     case 'DISMISS_ACHIEVEMENT_TOAST':
       return { ...state, newUnlockedAchievements: [] };
 
-
+    case 'SET_APOD_DATA':
       return { ...state, apodData: action.payload };
 
     case 'RESET':
