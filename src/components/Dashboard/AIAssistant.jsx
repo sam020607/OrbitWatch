@@ -200,7 +200,7 @@ ${visibleSats || 'No satellites currently cataloged overhead.'}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="w-[360px] md:w-[380px] h-[480px] mb-4 glass-card border border-white/[0.08] shadow-2xl rounded-2xl flex flex-col overflow-hidden pointer-events-auto z-50"
+            className="w-[360px] md:w-[380px] h-[480px] max-h-[calc(100vh-100px)] mb-4 glass-card border border-white/[0.08] shadow-2xl rounded-2xl flex flex-col overflow-hidden pointer-events-auto z-50"
             style={{
               background: 'rgba(15, 22, 38, 0.72)',
               backdropFilter: 'blur(24px)',
