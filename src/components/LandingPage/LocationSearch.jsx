@@ -7,7 +7,7 @@ import { useApp } from '../../context/AppContext.jsx';
  * Location search bar with autocomplete suggestions.
  * Supports city names, addresses, and "lat,lon" coordinate pairs.
  */
-export default function LocationSearch({ onLocationSelect, variant, onQueryChange }) {
+export default function LocationSearch({ onLocationSelect, variant, onQueryChange, onCancel }) {
   const { state } = useApp();
   const isHero = variant === 'hero';
   const [query, setQuery] = useState('');
@@ -77,6 +77,9 @@ export default function LocationSearch({ onLocationSelect, variant, onQueryChang
   }
 
   function handleKeyDown(e) {
+    if (e.key === 'Escape' && onCancel) {
+      onCancel();
+    }
     if (e.key === 'Enter' && results.length > 0) {
       handleSelect(results[0]);
     }
@@ -100,6 +103,68 @@ export default function LocationSearch({ onLocationSelect, variant, onQueryChang
         setIsSearching(false);
       },
       { timeout: 8000 }
+    );
+  }
+
+  if (variant === 'header') {
+    return (
+      <div className="relative flex items-center shrink-0" ref={dropdownRef}>
+        <div className="relative flex items-center bg-surface/90 border border-cyan/40 rounded-lg px-2 py-1 shadow-lg text-[11px] font-sans font-semibold uppercase tracking-wider">
+          {isSearching ? (
+            <Loader2 className="w-3.5 h-3.5 text-cyan animate-spin mr-1.5 shrink-0" />
+          ) : (
+            <Search className="w-3.5 h-3.5 text-cyan mr-1.5 shrink-0" />
+          )}
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type new location..."
+            className="bg-transparent border-none outline-none text-text-primary text-[11px] font-semibold uppercase tracking-wider w-36 placeholder-white/30"
+            autoFocus
+            autoComplete="off"
+          />
+          <button
+            onClick={onCancel}
+            className="ml-1.5 p-0.5 rounded hover:bg-white/10 text-muted hover:text-text-primary transition-colors shrink-0"
+            title="Cancel"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+
+        {/* Header Results Dropdown */}
+        {showDropdown && results.length > 0 && (
+          <div
+            className="absolute top-full left-0 mt-1.5 w-72 glass-panel border border-surface-border overflow-hidden z-[500] rounded-lg shadow-2xl bg-surface/95 backdrop-blur-md"
+            role="listbox"
+          >
+            {results.map((result, idx) => (
+              <button
+                key={idx}
+                role="option"
+                onClick={() => handleSelect(result)}
+                className="w-full flex items-start gap-2.5 px-3 py-2 hover:bg-white/5 transition-colors text-left group border-b border-white/[0.03] last:border-b-0"
+              >
+                <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-cyan group-hover:text-white transition-colors" />
+                <div className="min-w-0">
+                  <p className="text-text-primary text-[10px] font-bold uppercase tracking-wider truncate">
+                    {result.name || result.display_name.split(',')[0]}
+                  </p>
+                  <p className="text-muted text-[8px] truncate uppercase tracking-wider mt-0.5">{result.display_name}</p>
+                </div>
+                <div className="ml-auto shrink-0">
+                  <span className="text-[9px] font-mono text-muted">
+                    {parseFloat(result.lat).toFixed(1)}°, {parseFloat(result.lon).toFixed(1)}°
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     );
   }
 

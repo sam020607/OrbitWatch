@@ -615,18 +615,27 @@ export default function Dashboard({ onReset }) {
             </span>
           </div>
 
-          {/* Location display */}
-          <div className="flex items-center gap-2 px-3 py-1 rounded-lg cursor-pointer hover:border-white/20 transition-colors glass-pill"
-            onClick={() => setShowSearch(s => !s)}
-          >
-            <div className="w-2 h-2 rounded-full bg-cyan animate-pulse" />
-            <span className="font-sans text-[11px] font-semibold text-text uppercase tracking-wider truncate max-w-[200px]">
-              {location?.name || 'No location'}
-            </span>
-            <span className="text-muted text-xs font-mono hidden md:block">
-              {location ? `${location.lat.toFixed(2)}°, ${location.lon.toFixed(2)}°` : ''}
-            </span>
-          </div>
+          {/* Location display or inline header search */}
+          {showSearch ? (
+            <LocationSearch
+              variant="header"
+              onLocationSelect={handleNewLocation}
+              onCancel={() => setShowSearch(false)}
+            />
+          ) : (
+            <div className="flex items-center gap-2 px-3 py-1 rounded-lg cursor-pointer hover:border-white/20 transition-colors glass-pill shrink-0"
+              onClick={() => setShowSearch(true)}
+              title="Click to search and change location"
+            >
+              <div className="w-2 h-2 rounded-full bg-cyan animate-pulse shrink-0" />
+              <span className="font-sans text-[11px] font-semibold text-text uppercase tracking-wider shrink-0 max-w-[250px] truncate">
+                {location?.name || 'No location'}
+              </span>
+              <span className="text-muted text-xs font-mono hidden md:block shrink-0">
+                {location ? `${location.lat.toFixed(2)}°, ${location.lon.toFixed(2)}°` : ''}
+              </span>
+            </div>
+          )}
 
           {/* ISS live indicator */}
           <div className="flex items-center gap-1.5 px-2 py-1 rounded-md glass-pill">
@@ -638,58 +647,43 @@ export default function Dashboard({ onReset }) {
 
           {/* Centered Legend Pill */}
           <div className="flex-1 flex justify-center items-center px-2">
-            <div className="glass-panel flex items-center gap-x-[12px] px-3 py-1 rounded-full bg-surface/90 backdrop-blur border border-surface-border shadow-md select-none shrink-0">
+            <div className="glass-panel flex items-center gap-x-[8px] px-2 py-1 rounded-full bg-surface/90 backdrop-blur border border-surface-border shadow-md select-none shrink-0">
               {/* Sats */}
-              <div className="flex items-center gap-1.5 group relative cursor-pointer" title="Sats">
-                <span className="w-2 h-2 rounded-full bg-[#4d8dff] shadow-[0_0_4px_#4d8dff80]" />
-                <span className="hidden lg:inline text-[11px] font-sans font-bold text-text-secondary uppercase tracking-wider">
-                  Sats
-                </span>
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-surface border border-surface-border text-[9px] font-sans font-bold uppercase text-text-primary rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 lg:hidden">
+              <div className="flex items-center gap-1 group relative cursor-pointer" title="Sats">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4d8dff] shadow-[0_0_3px_#4d8dff80] shrink-0" />
+                <span className="hidden xl:inline text-[9px] font-sans font-bold text-text-secondary uppercase tracking-wider">
                   Sats
                 </span>
               </div>
               
               {/* ISS */}
-              <div className="flex items-center gap-1.5 group relative cursor-pointer" title="ISS">
-                <span className="w-2 h-2 rounded-full bg-[#e0584f] shadow-[0_0_4px_#e0584f80]" />
-                <span className="hidden lg:inline text-[11px] font-sans font-bold text-text-secondary uppercase tracking-wider">
-                  ISS
-                </span>
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-surface border border-surface-border text-[9px] font-sans font-bold uppercase text-text-primary rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 lg:hidden">
+              <div className="flex items-center gap-1 group relative cursor-pointer" title="ISS">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#e0584f] shadow-[0_0_3px_#e0584f80] shrink-0" />
+                <span className="hidden xl:inline text-[9px] font-sans font-bold text-text-secondary uppercase tracking-wider">
                   ISS
                 </span>
               </div>
 
               {/* Starlink/Const */}
-              <div className="flex items-center gap-1.5 group relative cursor-pointer" title="Starlink/Const">
-                <span className="w-2 h-2 rounded-full bg-[#a06bd6] shadow-[0_0_4px_#a06bd680]" />
-                <span className="hidden lg:inline text-[11px] font-sans font-bold text-text-secondary uppercase tracking-wider">
-                  Starlink/Const
-                </span>
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-surface border border-surface-border text-[9px] font-sans font-bold uppercase text-text-primary rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 lg:hidden">
-                  Starlink/Const
+              <div className="flex items-center gap-1 group relative cursor-pointer" title="Starlink/Const">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#a06bd6] shadow-[0_0_3px_#a06bd680] shrink-0" />
+                <span className="hidden xl:inline text-[9px] font-sans font-bold text-text-secondary uppercase tracking-wider">
+                  Constell
                 </span>
               </div>
 
               {/* Weather */}
-              <div className="flex items-center gap-1.5 group relative cursor-pointer" title="Weather">
-                <span className="w-2 h-2 rounded-full bg-[#3fd6a0] shadow-[0_0_4px_#3fd6a080]" />
-                <span className="hidden lg:inline text-[11px] font-sans font-bold text-text-secondary uppercase tracking-wider">
-                  Weather
-                </span>
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-surface border border-surface-border text-[9px] font-sans font-bold uppercase text-text-primary rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 lg:hidden">
+              <div className="flex items-center gap-1 group relative cursor-pointer" title="Weather">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3fd6a0] shadow-[0_0_3px_#3fd6a080] shrink-0" />
+                <span className="hidden xl:inline text-[9px] font-sans font-bold text-text-secondary uppercase tracking-wider">
                   Weather
                 </span>
               </div>
 
               {/* Ground Stn */}
-              <div className="flex items-center gap-1.5 group relative cursor-pointer" title="Ground Stn">
-                <span className="w-2 h-2 rounded-full bg-[#e0a847] shadow-[0_0_4px_#e0a84780]" />
-                <span className="hidden lg:inline text-[11px] font-sans font-bold text-text-secondary uppercase tracking-wider">
-                  Ground Stn
-                </span>
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-surface border border-surface-border text-[9px] font-sans font-bold uppercase text-text-primary rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 lg:hidden">
+              <div className="flex items-center gap-1 group relative cursor-pointer" title="Ground Stn">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#e0a847] shadow-[0_0_3px_#e0a84780] shrink-0" />
+                <span className="hidden xl:inline text-[9px] font-sans font-bold text-text-secondary uppercase tracking-wider">
                   Ground Stn
                 </span>
               </div>
@@ -758,19 +752,7 @@ export default function Dashboard({ onReset }) {
           </div>
         </header>
 
-        {/* Location search dropdown */}
-        <AnimatePresence>
-          {showSearch && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="absolute top-14 left-0 right-0 z-[200] p-4 bg-navy/95 border-b border-border backdrop-blur-md"
-            >
-              <LocationSearch onLocationSelect={handleNewLocation} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Location search dropdown (replaced by inline header input) */}
 
         {/* ── Main Content Area ── */}
         <div className="flex-1 flex overflow-hidden">
