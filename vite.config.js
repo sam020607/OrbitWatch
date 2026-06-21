@@ -30,6 +30,12 @@ export default defineConfig({
         target: 'https://celestrak.org',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/celestrak/, ''),
+      },
+      // Proxy Space-Track API calls
+      '/api/spacetrack': {
+        target: 'https://www.space-track.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/spacetrack/, ''),
       }
     }
   }

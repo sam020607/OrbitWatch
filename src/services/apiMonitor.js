@@ -60,6 +60,13 @@ export const API_SOURCES = {
     staleAfterMs: 24 * 60 * 60 * 1000, // 24 hours
     downAfterMs:  72 * 60 * 60 * 1000, // 72 hours
   },
+  'spacetrack': {
+    id: 'spacetrack',
+    label: 'Space-Track (TLEs)',
+    description: 'Space-Track TLE database — primary/fallback backup',
+    staleAfterMs: 24 * 60 * 60 * 1000,
+    downAfterMs:  72 * 60 * 60 * 1000,
+  },
   'pollux-iss-passes': {
     id: 'pollux-iss-passes',
     label: 'Pollux ISS Passes',

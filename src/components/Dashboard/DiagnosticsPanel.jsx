@@ -8,6 +8,7 @@ import {
   TLE_THRESHOLDS
 } from '../../services/apiMonitor.js';
 import { Activity, Shield, RefreshCw, Terminal, Clock, Server } from 'lucide-react';
+import { getN2YOKeyStatus } from '../../api/n2yoApi.js';
 
 export default function DiagnosticsPanel() {
   const [telemetry, setTelemetry] = useState(() => ({
@@ -17,14 +18,28 @@ export default function DiagnosticsPanel() {
   }));
 
   useEffect(() => {
+    const handleSettingsChange = () => {
+      setTelemetry({
+        sources: getAllSourceSnapshots(),
+        tle: getTLEFreshness(),
+        log: getEventLog(),
+      });
+    };
+    window.addEventListener('orbitwatch-settings-changed', handleSettingsChange);
+
     // Subscribe to real-time apiMonitor updates
-    return subscribe(() => {
+    const unsubscribeMonitor = subscribe(() => {
       setTelemetry({
         sources: getAllSourceSnapshots(),
         tle: getTLEFreshness(),
         log: getEventLog(),
       });
     });
+
+    return () => {
+      window.removeEventListener('orbitwatch-settings-changed', handleSettingsChange);
+      unsubscribeMonitor();
+    };
   }, []);
 
   const getStatusColorClass = (status) => {
@@ -135,6 +150,11 @@ export default function DiagnosticsPanel() {
                          )}
                        </span>
                        <span className="text-[9px] text-muted">{src.description}</span>
+                       {src.id === 'n2yo' && (
+                         <span className="text-[8px] font-mono text-cyan bg-cyan/10 px-1.5 py-0.5 mt-1 rounded border border-cyan/20 w-fit">
+                           {getN2YOKeyStatus()}
+                         </span>
+                       )}
                      </div>
                     
                     <div className="flex items-center gap-2 bg-black/25 px-2.5 py-1 rounded-full border border-white/[0.04]">

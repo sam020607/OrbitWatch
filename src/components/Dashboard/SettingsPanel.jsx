@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { User, LogOut, Sliders, Settings, Info } from 'lucide-react';
+import { User, LogOut, Sliders, Settings, Info, Shield } from 'lucide-react';
 
 /* ─── Animated Toggle Switch ─────────────────────────────────────────────── */
 function Toggle({ checked, onChange, id }) {
@@ -33,6 +33,17 @@ export default function SettingsPanel() {
   const [showCities, setShowCities] = useState(() => localStorage.getItem('orbitwatch_settings_show_cities') !== 'false');
   const [globeRotate, setGlobeRotate] = useState(() => localStorage.getItem('orbitwatch_settings_globe_rotate') !== 'false');
   const [globeSpeed, setGlobeSpeed] = useState(() => parseFloat(localStorage.getItem('orbitwatch_settings_globe_speed') || '0.3'));
+
+  const [n2yoPrimary, setN2yoPrimary] = useState(() => localStorage.getItem('orbitwatch_n2yo_key_primary') || '');
+  const [n2yoSecondary, setN2yoSecondary] = useState(() => localStorage.getItem('orbitwatch_n2yo_key_fallback') || '');
+  const [spaceTrackUser, setSpaceTrackUser] = useState(() => localStorage.getItem('orbitwatch_spacetrack_user') || '');
+  const [spaceTrackPass, setSpaceTrackPass] = useState(() => localStorage.getItem('orbitwatch_spacetrack_password') || '');
+
+  const updateCredential = (key, value, setter) => {
+    setter(value);
+    localStorage.setItem(key, value);
+    window.dispatchEvent(new Event('orbitwatch-settings-changed'));
+  };
 
   // Trigger storage sync and event dispatch
   const updateSetting = (key, value, setter) => {
@@ -266,6 +277,74 @@ export default function SettingsPanel() {
                   </button>
                 ))}
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── SECTION 4: API CREDENTIALS ── */}
+        <section className="space-y-2.5">
+          <div className="flex items-center gap-2 text-[10px] font-sans font-bold uppercase tracking-wider text-muted px-1">
+            <Shield className="w-3.5 h-3.5" />
+            <span>API Credentials</span>
+          </div>
+
+          <div
+            className="p-4 flex flex-col gap-3.5"
+            style={{
+              background: 'rgba(15, 22, 38, 0.55)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.03)',
+              borderRadius: '16px',
+              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.02)',
+            }}
+          >
+            {/* N2YO Primary */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-text-primary">N2YO Primary API Key</label>
+              <input
+                type="password"
+                value={n2yoPrimary}
+                onChange={(e) => updateCredential('orbitwatch_n2yo_key_primary', e.target.value, setN2yoPrimary)}
+                placeholder="VITE_N2YO_API_KEY value"
+                className="w-full px-3 py-1.5 rounded bg-black/45 border border-white/10 text-xs font-mono text-text-primary focus:outline-none focus:border-accent/50"
+              />
+            </div>
+
+            {/* N2YO Secondary */}
+            <div className="flex flex-col gap-1.5 border-t border-white/[0.04] pt-3">
+              <label className="text-xs font-semibold text-text-primary">N2YO Fallback API Key</label>
+              <input
+                type="password"
+                value={n2yoSecondary}
+                onChange={(e) => updateCredential('orbitwatch_n2yo_key_fallback', e.target.value, setN2yoSecondary)}
+                placeholder="Fallback key when limit exhausted"
+                className="w-full px-3 py-1.5 rounded bg-black/45 border border-white/10 text-xs font-mono text-text-primary focus:outline-none focus:border-accent/50"
+              />
+            </div>
+
+            {/* Space-Track Username */}
+            <div className="flex flex-col gap-1.5 border-t border-white/[0.04] pt-3">
+              <label className="text-xs font-semibold text-text-primary">Space-Track Username (Email)</label>
+              <input
+                type="text"
+                value={spaceTrackUser}
+                onChange={(e) => updateCredential('orbitwatch_spacetrack_user', e.target.value, setSpaceTrackUser)}
+                placeholder="email@example.com"
+                className="w-full px-3 py-1.5 rounded bg-black/45 border border-white/10 text-xs text-text-primary focus:outline-none focus:border-accent/50"
+              />
+            </div>
+
+            {/* Space-Track Password */}
+            <div className="flex flex-col gap-1.5 border-t border-white/[0.04] pt-3">
+              <label className="text-xs font-semibold text-text-primary">Space-Track Password</label>
+              <input
+                type="password"
+                value={spaceTrackPass}
+                onChange={(e) => updateCredential('orbitwatch_spacetrack_password', e.target.value, setSpaceTrackPass)}
+                placeholder="password"
+                className="w-full px-3 py-1.5 rounded bg-black/45 border border-white/10 text-xs text-text-primary focus:outline-none focus:border-accent/50"
+              />
             </div>
           </div>
         </section>

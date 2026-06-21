@@ -17,9 +17,37 @@ import { MOCK_SATELLITES, MOCK_PASSES } from '../data/mockSatellites.js';
 import { azimuthToCompass } from '../utils/orbitMath.js';
 import { recordSuccess, recordFailure, recordRetry, recordTLESync } from '../services/apiMonitor.js';
 
-// TODO: Replace with your N2YO API key
-const N2YO_API_KEY = import.meta.env.VITE_N2YO_API_KEY ?? '';
-const USE_MOCK = !N2YO_API_KEY;
+// Helper to get configured primary and fallback N2YO API keys dynamically
+export function getAPIKeys() {
+  const primary = localStorage.getItem('orbitwatch_n2yo_key_primary') || import.meta.env.VITE_N2YO_API_KEY || '';
+  const fallback = localStorage.getItem('orbitwatch_n2yo_key_fallback') || import.meta.env.VITE_N2YO_API_KEY_SECONDARY || '';
+  return { primary, fallback };
+}
+
+let primaryKeyFailed = false;
+
+// Reset failure status periodically (every 1 hour) in case quota resets or user configures new keys
+setInterval(() => {
+  primaryKeyFailed = false;
+}, 3600000);
+
+// Helper to determine if we should fall back to mock data
+function isMockEnabled() {
+  const { primary, fallback } = getAPIKeys();
+  const activeKey = (primaryKeyFailed && fallback) ? fallback : primary;
+  return !activeKey;
+}
+
+export function getN2YOKeyStatus() {
+  const { primary, fallback } = getAPIKeys();
+  if (primaryKeyFailed) {
+    if (fallback) return `Running on Fallback Key (${fallback.slice(0, 4)}...)`;
+    return 'Primary Key Failed (Mock Mode)';
+  }
+  if (primary) return `Running on Primary Key (${primary.slice(0, 4)}...)`;
+  if (fallback) return `Running on Fallback Key (${fallback.slice(0, 4)}...)`;
+  return 'Mock Mode (No keys configured)';
+}
 
 // Satellites above the observer within 90° elevation
 const BASE_URL = '/api/n2yo/rest/v1/satellite';
@@ -92,7 +120,7 @@ function enrichSatelliteData(sat) {
  * @returns {Promise<Array>} Array of satellite objects
  */
 export async function fetchAboveSatellites(lat, lon, alt = 0) {
-  if (USE_MOCK) {
+  if (isMockEnabled()) {
     console.info('[N2YO] Using mock satellite data. Set N2YO_API_KEY to use live data.');
     recordSuccess('n2yo', 12, { isLiveData: false });
     recordTLESync({ source: 'Mock N2YO', count: MOCK_SATELLITES.length });
@@ -104,22 +132,42 @@ export async function fetchAboveSatellites(lat, lon, alt = 0) {
     }));
   }
 
+  const { primary, fallback } = getAPIKeys();
+  const activeKey = (primaryKeyFailed && fallback) ? fallback : primary;
   const t0 = Date.now();
+
   try {
     const radius = 70; // degrees search radius
     const category = 0; // all
-    const url = `${BASE_URL}/above/${lat}/${lon}/${alt}/${radius}/${category}/&apiKey=${N2YO_API_KEY}`;
+    const url = `${BASE_URL}/above/${lat}/${lon}/${alt}/${radius}/${category}/&apiKey=${activeKey}`;
     const response = await axios.get(url, { timeout: 10000 });
+    
+    if (response.data?.error) {
+      throw new Error(`N2YO API Error: ${response.data.error}`);
+    }
+
     const above = response.data.above || [];
     const durationMs = Date.now() - t0;
     recordSuccess('n2yo', durationMs, { isLiveData: true });
-    recordTLESync({ source: 'N2YO Above API', count: above.length });
+    recordTLESync({ source: (primaryKeyFailed && fallback) ? 'N2YO (Fallback Key)' : 'N2YO (Primary Key)', count: above.length });
     return above.map(enrichSatelliteData);
   } catch (error) {
     const statusCode = error.response?.status;
-    recordFailure('n2yo', error.message, { statusCode, fallbackUsed: true });
     console.error('[N2YO] fetchAboveSatellites failed:', error.message);
-    return MOCK_SATELLITES;
+    
+    if (!primaryKeyFailed && fallback) {
+      console.warn('[N2YO] Primary API key failed. Swapping to fallback key...');
+      primaryKeyFailed = true;
+      // Retry immediately
+      return fetchAboveSatellites(lat, lon, alt);
+    }
+
+    recordFailure('n2yo', error.message, { statusCode, fallbackUsed: true });
+    return MOCK_SATELLITES.map(sat => ({
+      ...sat,
+      satlat: lat + sat._latOffset,
+      satlon: lon + sat._lonOffset,
+    }));
   }
 }
 
@@ -191,18 +239,26 @@ export async function fetchSatellitePasses(satId, lat, lon, alt = 0) {
   }
 
   // ── Non-ISS satellites: N2YO (primary) → mock (fallback) ──────────────────
-  if (USE_MOCK) {
+  if (isMockEnabled()) {
     const passes = MOCK_PASSES[satId] || MOCK_PASSES[25544];
     recordSuccess('n2yo', 8, { isLiveData: false });
     return adjustPassTimesToNow(passes);
   }
 
+  const { primary, fallback } = getAPIKeys();
+  const activeKey = (primaryKeyFailed && fallback) ? fallback : primary;
   const t0 = Date.now();
+
   try {
     const days = 10;
     const minElevation = 10;
-    const url = `${BASE_URL}/radiopasses/${satId}/${lat}/${lon}/${alt}/${days}/${minElevation}/&apiKey=${N2YO_API_KEY}`;
+    const url = `${BASE_URL}/radiopasses/${satId}/${lat}/${lon}/${alt}/${days}/${minElevation}/&apiKey=${activeKey}`;
     const response = await axios.get(url, { timeout: 10000 });
+
+    if (response.data?.error) {
+      throw new Error(`N2YO API Error: ${response.data.error}`);
+    }
+
     const passes = response.data.passes || [];
     const durationMs = Date.now() - t0;
     recordSuccess('n2yo', durationMs, { isLiveData: true });
@@ -214,8 +270,15 @@ export async function fetchSatellitePasses(satId, lat, lon, alt = 0) {
     }));
   } catch (error) {
     const statusCode = error.response?.status;
-    recordFailure('n2yo', error.message, { statusCode, fallbackUsed: true });
     console.error('[N2YO] fetchSatellitePasses failed:', error.message);
+
+    if (!primaryKeyFailed && fallback) {
+      console.warn('[N2YO] Primary API key failed. Swapping to fallback key...');
+      primaryKeyFailed = true;
+      return fetchSatellitePasses(satId, lat, lon, alt);
+    }
+
+    recordFailure('n2yo', error.message, { statusCode, fallbackUsed: true });
     return adjustPassTimesToNow(MOCK_PASSES[satId] || MOCK_PASSES[25544]);
   }
 }
@@ -245,14 +308,30 @@ function adjustPassTimesToNow(passes) {
  * @returns {Promise<{line1: string, line2: string}>}
  */
 export async function fetchTLE(satId) {
-  if (USE_MOCK) return getMockTLE(satId);
+  if (isMockEnabled()) return getMockTLE(satId);
+
+  const { primary, fallback } = getAPIKeys();
+  const activeKey = (primaryKeyFailed && fallback) ? fallback : primary;
+
   try {
-    const url = `${BASE_URL}/tle/${satId}&apiKey=${N2YO_API_KEY}`;
+    const url = `${BASE_URL}/tle/${satId}&apiKey=${activeKey}`;
     const response = await axios.get(url, { timeout: 10000 });
+    
+    if (response.data?.error) {
+      throw new Error(`N2YO API Error: ${response.data.error}`);
+    }
+
     const { line1, line2 } = response.data.tle ? parseTLEString(response.data.tle) : {};
     return { line1, line2 };
   } catch (error) {
     console.error('[N2YO] fetchTLE failed:', error.message);
+
+    if (!primaryKeyFailed && fallback) {
+      console.warn('[N2YO] Primary API key failed. Swapping to fallback key...');
+      primaryKeyFailed = true;
+      return fetchTLE(satId);
+    }
+
     return getMockTLE(satId);
   }
 }

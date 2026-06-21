@@ -175,6 +175,17 @@ export async function fetchCelesTrakTLE(satId = 25544) {
           // ignore
         }
         
+        // ── Try Space-Track as secondary backup/fallback ──
+        try {
+          const spaceTrackTle = await fetchSpaceTrackTLE(satId);
+          if (spaceTrackTle) {
+            console.info(`[CelesTrak API] Successfully fetched TLE from Space-Track for ${satId}`);
+            return spaceTrackTle;
+          }
+        } catch (stErr) {
+          console.warn('[CelesTrak API] Space-Track fallback failed:', stErr.message);
+        }
+
         // Hardcoded default fallback for ISS
         if (satId === 25544) {
           console.warn('[CelesTrak API] Returning hardcoded default ISS TLE.');
@@ -193,4 +204,70 @@ export async function fetchCelesTrakTLE(satId = 25544) {
     }
   }
   return null;
+}
+
+/**
+ * Fetch TLE from Space-Track using credentials.
+ */
+export async function fetchSpaceTrackTLE(satId) {
+  const username = localStorage.getItem('orbitwatch_spacetrack_user') || import.meta.env.VITE_SPACETRACK_USER || '';
+  const password = localStorage.getItem('orbitwatch_spacetrack_password') || import.meta.env.VITE_SPACETRACK_PASSWORD || '';
+  
+  if (!username || !password) {
+    console.info('[Space-Track API] Credentials not configured. Skipping Space-Track query.');
+    return null;
+  }
+  
+  const t0 = Date.now();
+  try {
+    console.log(`[Space-Track API] Authenticating for user ${username}...`);
+    const isProd = import.meta.env.PROD;
+    const authUrl = isProd ? 'https://www.space-track.org/ajaxauth/login' : '/api/spacetrack/ajaxauth/login';
+    
+    // Space-Track login endpoint requires standard URLencoded credentials
+    const params = new URLSearchParams();
+    params.append('identity', username);
+    params.append('password', password);
+
+    await axios.post(authUrl, params, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      timeout: 12000,
+      withCredentials: true
+    });
+    
+    console.log(`[Space-Track API] Authentication successful. Fetching TLE for ${satId}...`);
+    const queryUrl = isProd 
+      ? `https://www.space-track.org/basicspacedata/query/class/tle_latest/NORAD_CAT_ID/${satId}/orderby/EPOCH desc/limit/1/format/tle`
+      : `/api/spacetrack/basicspacedata/query/class/tle_latest/NORAD_CAT_ID/${satId}/orderby/EPOCH desc/limit/1/format/tle`;
+      
+    const response = await axios.get(queryUrl, {
+      timeout: 10000,
+      withCredentials: true
+    });
+    
+    const tleText = response.data;
+    if (tleText && typeof tleText === 'string' && tleText.includes(String(satId))) {
+      const durationMs = Date.now() - t0;
+      recordSuccess('spacetrack', durationMs, { isLiveData: true });
+      recordTLESync({ source: 'Space-Track API', count: 1 });
+      
+      // Cache the result
+      const cacheKey = `orbitwatch_tle_cache_${satId}`;
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify({
+          tleText,
+          timestamp: Date.now()
+        }));
+      } catch (saveErr) {}
+      
+      return tleText;
+    } else {
+      throw new Error('Space-Track returned invalid TLE format');
+    }
+  } catch (error) {
+    const statusCode = error.response?.status;
+    recordFailure('spacetrack', error.message, { statusCode });
+    console.error('[Space-Track API] TLE fetch failed:', error.message);
+    return null;
+  }
 }
