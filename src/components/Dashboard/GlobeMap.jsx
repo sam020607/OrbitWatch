@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, Fragment, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Polyline, Polygon, Circle, useMap, Popup, Pane, GeoJSON } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Polyline, Polygon, Circle, useMap, Popup, Pane, GeoJSON, FeatureGroup } from 'react-leaflet';
 import L from 'leaflet';
 import { Database, Globe, Radio, MapPin, X, Activity } from 'lucide-react';
 import { useApp } from '../../context/AppContext.jsx';
@@ -525,40 +525,48 @@ export default function GlobeMap({ className = '' }) {
         <ResizeController />
 
         {/* Faint Lat/Long Grid Overlay */}
-        {mapSettings.showGrid && GRID_LINES.map(line => (
-          <Polyline
-            key={line.id}
-            positions={line.positions}
-            color="rgba(77, 141, 255, 0.06)"
-            weight={0.75}
-            dashArray="2, 5"
-            interactive={false}
-          />
-        ))}
+        {mapSettings.showGrid && (
+          <FeatureGroup>
+            {GRID_LINES.map(line => (
+              <Polyline
+                key={line.id}
+                positions={line.positions}
+                color="rgba(77, 141, 255, 0.06)"
+                weight={0.75}
+                dashArray="2, 5"
+                interactive={false}
+              />
+            ))}
+          </FeatureGroup>
+        )}
 
         {/* Ambient Stars in Oceans */}
-        {mapSettings.showStars && GENERATED_OCEAN_STARS.map((star) => {
-          const starIcon = L.divIcon({
-            className: 'ambient-star',
-            html: `<div class="star-sparkle" style="
-              width: ${star.size};
-              height: ${star.size};
-              animation-delay: ${star.delay};
-              box-shadow: 0 0 3px #ffffff, 0 0 6px #ffffff;
-            "></div>`,
-            iconSize: [6, 6],
-            iconAnchor: [3, 3]
-          });
-          return (
-            <Marker
-              key={star.id}
-              position={star.coords}
-              icon={starIcon}
-              interactive={false}
-              zIndexOffset={-400}
-            />
-          );
-        })}
+        {mapSettings.showStars && (
+          <FeatureGroup>
+            {GENERATED_OCEAN_STARS.map((star) => {
+              const starIcon = L.divIcon({
+                className: 'ambient-star',
+                html: `<div class="star-sparkle" style="
+                  width: ${star.size};
+                  height: ${star.size};
+                  animation-delay: ${star.delay};
+                  box-shadow: 0 0 3px #ffffff, 0 0 6px #ffffff;
+                "></div>`,
+                iconSize: [6, 6],
+                iconAnchor: [3, 3]
+              });
+              return (
+                <Marker
+                  key={star.id}
+                  position={star.coords}
+                  icon={starIcon}
+                  interactive={false}
+                  zIndexOffset={-400}
+                />
+              );
+            })}
+          </FeatureGroup>
+        )}
 
         {/* Radar sweep at user location */}
         {location && mapSettings.showRadar && (
@@ -572,23 +580,27 @@ export default function GlobeMap({ className = '' }) {
         )}
 
         {/* Ambient City Lights Glow Overlay */}
-        {mapSettings.showCities && CITY_LIGHTS.map((coords, idx) => {
-          const cityIcon = L.divIcon({
-            className: 'city-glow-dot',
-            html: '<div style="width: 2.5px; height: 2.5px; background: rgba(255, 180, 90, 0.45); border-radius: 50%; box-shadow: 0 0 3px rgba(255, 180, 90, 0.65);"></div>',
-            iconSize: [3, 3],
-            iconAnchor: [1.5, 1.5],
-          });
-          return (
-            <Marker
-              key={`city-light-${idx}`}
-              position={coords}
-              icon={cityIcon}
-              interactive={false}
-              zIndexOffset={-450}
-            />
-          );
-        })}
+        {mapSettings.showCities && (
+          <FeatureGroup>
+            {CITY_LIGHTS.map((coords, idx) => {
+              const cityIcon = L.divIcon({
+                className: 'city-glow-dot',
+                html: '<div style="width: 2.5px; height: 2.5px; background: rgba(255, 180, 90, 0.45); border-radius: 50%; box-shadow: 0 0 3px rgba(255, 180, 90, 0.65);"></div>',
+                iconSize: [3, 3],
+                iconAnchor: [1.5, 1.5],
+              });
+              return (
+                <Marker
+                  key={`city-light-${idx}`}
+                  position={coords}
+                  icon={cityIcon}
+                  interactive={false}
+                  zIndexOffset={-450}
+                />
+              );
+            })}
+          </FeatureGroup>
+        )}
 
         {/* Observer location marker */}
         {location && (
