@@ -266,6 +266,7 @@ function SceneContent() {
   // Filter based on active selection
   const filteredSatellites = useMemo(() => {
     return satellites.filter(sat => {
+      if (sat.satid === 25544) return false; // Filter out duplicate ISS marker
       if (satelliteFilter === 'all') return true;
       if (satelliteFilter === 'major') {
         return sat.type === 'space-station' || sat.type === 'weather' || sat.type === 'earth-obs' || sat.type === 'gps';

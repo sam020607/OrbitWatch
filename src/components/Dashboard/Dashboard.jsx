@@ -16,6 +16,7 @@ import LocationSearch from '../LandingPage/LocationSearch.jsx';
 import JournalPanel from '../JournalPanel/JournalPanel.jsx';
 import DiagnosticsPanel from './DiagnosticsPanel.jsx';
 import SettingsPanel from './SettingsPanel.jsx';
+import AIAssistant from './AIAssistant.jsx';
 import { CONSTELLATIONS, getLocalCoordinates } from '../../data/constellations.js';
 import {
   Map, List, Star, Compass, Radio, RotateCcw,
@@ -887,6 +888,9 @@ export default function Dashboard({ onReset }) {
             </div>
           );
         })()}
+
+        {/* Onboard AI Assistant Chatbot */}
+        <AIAssistant />
       </div>
     </div>
   );

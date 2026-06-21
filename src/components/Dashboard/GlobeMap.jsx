@@ -252,19 +252,33 @@ const GENERATED_OCEAN_STARS = (() => {
   
   // Ocean coordinate boundary bounding boxes [minLat, maxLat, minLon, maxLon]
   const oceanBoxes = [
-    [-55, -5, -170, -90],  // South Pacific
-    [10, 50, -175, -125],   // North Pacific
-    [-35, 15, 150, 178],   // West Pacific / Coral Sea
-    [-45, -5, -30, 5],     // South Atlantic
-    [15, 55, -55, -20],     // North Atlantic
-    [-45, -5, 55, 95],      // Indian Ocean
-    [-70, -55, -180, 180],  // Southern Ocean
+    // ─── North Pacific ───
+    [10, 55, 140, 178],     // North West Pacific (East of Japan)
+    [10, 55, -178, -125],    // North East Pacific (West of US)
+    
+    // ─── South Pacific ───
+    [-55, -5, 150, 178],     // South West Pacific (East of Australia)
+    [-55, -5, -178, -85],    // South East Pacific (West of South America)
+    
+    // ─── Atlantic Ocean ───
+    [10, 60, -60, -25],      // North Atlantic (between Americas and Europe/Africa)
+    [-50, -5, -35, 10],      // South Atlantic (between South America and Africa)
+    
+    // ─── Indian Ocean ───
+    [-45, -5, 40, 105],      // Indian Ocean (between Africa and Australia)
+    
+    // ─── Southern Ocean ───
+    [-75, -55, -180, 180],   // Southern Ocean (around Antarctica)
+    
+    // ─── Seas ───
+    [5, 22, 55, 95],         // Arabian Sea & Bay of Bengal (India)
+    [30, 45, -5, 30],        // Mediterranean Sea (Europe/Africa)
   ];
 
   oceanBoxes.forEach((box, boxIdx) => {
     const [minLat, maxLat, minLon, maxLon] = box;
     const area = (maxLat - minLat) * (maxLon - minLon);
-    const starCount = Math.max(12, Math.floor(area / 110)); 
+    const starCount = Math.max(10, Math.floor(area / 160)); 
     
     for (let i = 0; i < starCount; i++) {
       const lat = minLat + seededRandom(seed++) * (maxLat - minLat);
@@ -443,6 +457,7 @@ export default function GlobeMap({ className = '' }) {
 
   // Filter based on active selection
   const filteredSatellites = satellites.filter(sat => {
+    if (sat.satid === 25544) return false; // Filter out duplicate ISS marker
     if (satelliteFilter === 'all') return true;
     if (satelliteFilter === 'major') {
       return sat.type === 'space-station' || sat.type === 'weather' || sat.type === 'earth-obs' || sat.type === 'gps';

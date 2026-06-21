@@ -125,10 +125,17 @@ export default function DiagnosticsPanel() {
                 >
                   {/* Title & Status Row */}
                   <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-text-primary">{src.label}</span>
-                      <span className="text-[9px] text-muted">{src.description}</span>
-                    </div>
+                     <div className="flex flex-col">
+                       <span className="text-xs font-bold text-text-primary flex items-center gap-1.5">
+                         {src.label}
+                         {src.isFallback && (
+                           <span className="text-[8px] font-sans font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1 py-0.2 rounded uppercase tracking-wider scale-90 origin-left">
+                             Mock/Cache
+                           </span>
+                         )}
+                       </span>
+                       <span className="text-[9px] text-muted">{src.description}</span>
+                     </div>
                     
                     <div className="flex items-center gap-2 bg-black/25 px-2.5 py-1 rounded-full border border-white/[0.04]">
                       <span className={`w-1.5 h-1.5 rounded-full ${getStatusColorClass(src.status)}`} />

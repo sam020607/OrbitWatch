@@ -4,9 +4,13 @@ import { recordSuccess, recordFailure, recordRetry, recordTLESync } from '../ser
 const SOURCE = 'celestrak';
 const MAX_RETRIES = 1;
 
+// Realistic hardcoded ISS TLE as final fallback
+const DEFAULT_ISS_TLE = `ISS (ZARYA)
+1 25544U 98067A   26170.83410214  .00008787  00000+0  16559-3 0  9997
+2 25544  51.6327 286.9925 0004571 206.3214 153.7542 15.49322400572160`;
+
 /**
- * Fetch ISS TLE from CelesTrak.
- * CelesTrak GP data endpoint. No key required.
+ * Fetch ISS TLE from Where The ISS At or CelesTrak.
  * @param {number} satId NORAD ID for ISS is 25544
  * @returns {Promise<string|null>} Raw TLE string
  */
@@ -32,18 +36,26 @@ export async function fetchCelesTrakTLE(satId = 25544) {
           return tleText;
         }
       }
+      
+      // Serve hardcoded fallback if ISS
+      if (satId === 25544) {
+        console.warn(`[CelesTrak API] Serving hardcoded fallback TLE during backoff window.`);
+        recordSuccess(SOURCE, 0, { isLiveData: false, cached: true, note: 'Backoff hardcoded fallback' });
+        recordTLESync({ source: 'Hardcoded Fallback', count: 1 });
+        return DEFAULT_ISS_TLE;
+      }
       return null;
     }
   } catch (blockErr) {
     console.warn('[CelesTrak API] Failed to check block status:', blockErr.message);
   }
 
-  // 2. Try loading from localStorage cache first if it's fresh
+  // 2. Try loading from localStorage cache first if it's fresh (24 hours cache)
   try {
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       const { tleText, timestamp } = JSON.parse(cached);
-      const isFresh = Date.now() - timestamp < 2 * 60 * 60 * 1000; // 2 hours
+      const isFresh = Date.now() - timestamp < 24 * 60 * 60 * 1000; // 24 hours
       if (isFresh && tleText) {
         console.log(`[CelesTrak API] Serving fresh TLE for ${satId} from local cache.`);
         recordSuccess(SOURCE, 0, { isLiveData: true, cached: true });
@@ -55,9 +67,44 @@ export async function fetchCelesTrakTLE(satId = 25544) {
     console.warn('[CelesTrak API] Failed to parse TLE cache:', cacheErr.message);
   }
 
+  const t0 = Date.now();
+
+  // 3. Try CORS-friendly Where The ISS At API first (for ISS NORAD 25544)
+  if (satId === 25544) {
+    try {
+      console.log('[CelesTrak API] Fetching ISS TLE from CORS-friendly wheretheiss.at endpoint...');
+      const wtiaUrl = 'https://api.wheretheiss.at/v1/satellites/25544/tles';
+      const response = await axios.get(wtiaUrl, { timeout: 8000 });
+      const data = response.data;
+      if (data && data.line1 && data.line2) {
+        const tleText = `${data.header || 'ISS (ZARYA)'}\n${data.line1}\n${data.line2}`;
+        const durationMs = Date.now() - t0;
+        
+        recordSuccess(SOURCE, durationMs, { isLiveData: true });
+        recordTLESync({ source: 'Where The ISS At (CORS-friendly)', count: 1 });
+        
+        // Save to cache
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify({
+            tleText,
+            timestamp: Date.now()
+          }));
+          localStorage.removeItem(blockKey);
+        } catch (saveErr) {
+          console.warn('[CelesTrak API] Failed to save TLE cache:', saveErr.message);
+        }
+        
+        return tleText;
+      }
+    } catch (wtiaErr) {
+      console.warn('[CelesTrak API] Where The ISS At TLE fetch failed, falling back to CelesTrak...', wtiaErr.message);
+    }
+  }
+
+  // 4. Fallback to CelesTrak (for other satellites or as secondary backup)
   let lastError;
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
-    const t0 = Date.now();
+    const tStart = Date.now();
     try {
       if (attempt > 1) recordRetry(SOURCE, attempt - 1);
       
@@ -75,7 +122,7 @@ export async function fetchCelesTrakTLE(satId = 25544) {
         usedProxy = false;
       }
       
-      const durationMs = Date.now() - t0;
+      const durationMs = Date.now() - tStart;
       const tleText = response.data;
       if (tleText && typeof tleText === 'string' && tleText.includes(String(satId))) {
         recordSuccess(SOURCE, durationMs, { isLiveData: true });
@@ -104,11 +151,11 @@ export async function fetchCelesTrakTLE(satId = 25544) {
         recordFailure(SOURCE, error.message, { statusCode, fallbackUsed: true });
         console.warn('[CelesTrak API] Failed to fetch TLE:', error.message);
         
-        // If we got a 403 (Forbidden) indicating rate limiting or IP block, set the block status for 2 hours
+        // If we got a 403 (Forbidden) indicating rate limiting or IP block, set the block status for 12 hours
         if (statusCode === 403) {
           try {
-            console.warn('[CelesTrak API] 403 Forbidden detected. Caching block status for 2 hours to cease excessive requests.');
-            localStorage.setItem(blockKey, String(Date.now() + 2 * 60 * 60 * 1000));
+            console.warn('[CelesTrak API] 403 Forbidden detected. Caching block status for 12 hours to cease excessive requests.');
+            localStorage.setItem(blockKey, String(Date.now() + 12 * 60 * 60 * 1000));
           } catch (saveBlockErr) {
             // ignore
           }
@@ -126,6 +173,19 @@ export async function fetchCelesTrakTLE(satId = 25544) {
           }
         } catch (failoverErr) {
           // ignore
+        }
+        
+        // Hardcoded default fallback for ISS
+        if (satId === 25544) {
+          console.warn('[CelesTrak API] Returning hardcoded default ISS TLE.');
+          try {
+            localStorage.setItem(cacheKey, JSON.stringify({
+              tleText: DEFAULT_ISS_TLE,
+              timestamp: Date.now()
+            }));
+          } catch (e) {}
+          recordTLESync({ source: 'Hardcoded Fallback', count: 1 });
+          return DEFAULT_ISS_TLE;
         }
         
         return null;

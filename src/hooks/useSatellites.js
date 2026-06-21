@@ -2,7 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { useApp } from '../context/AppContext.jsx';
 import { fetchAboveSatellites } from '../api/n2yoApi.js';
 
-const REFRESH_INTERVAL_MS = 60 * 1000; // refresh satellite list every 60s
+const REFRESH_INTERVAL_MS = 180 * 1000; // refresh satellite list every 180s (3 minutes)
 
 /**
  * Custom hook: fetches and refreshes satellites overhead for the observer.

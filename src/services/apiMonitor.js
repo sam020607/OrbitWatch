@@ -35,9 +35,9 @@ export const API_SOURCES = {
   'n2yo': {
     id: 'n2yo',
     label: 'N2YO Satellites',
-    description: 'Overhead satellite catalogue — refreshed every 60 s',
-    staleAfterMs: 90_000,   // DEGRADED if not refreshed in 90 s
-    downAfterMs:  300_000,  // DOWN after 5 min
+    description: 'Overhead satellite catalogue — refreshed every 180 s',
+    staleAfterMs: 270_000,  // DEGRADED if not refreshed in 4.5 min
+    downAfterMs:  600_000,  // DOWN after 10 min
   },
   'nasa-neo': {
     id: 'nasa-neo',
@@ -57,8 +57,8 @@ export const API_SOURCES = {
     id: 'celestrak',
     label: 'CelesTrak (TLEs)',
     description: 'Two-Line Element orbit data — fetched on load',
-    staleAfterMs: 2 * 60 * 60 * 1000, // 2 hours
-    downAfterMs:  24 * 60 * 60 * 1000, // 24 hours
+    staleAfterMs: 24 * 60 * 60 * 1000, // 24 hours
+    downAfterMs:  72 * 60 * 60 * 1000, // 72 hours
   },
   'pollux-iss-passes': {
     id: 'pollux-iss-passes',
@@ -81,8 +81,8 @@ export const API_SOURCES = {
 // Since we serve mock TLEs (no live CelesTrak call) unless N2YO key is set,
 // we track a "TLE last synced" timestamp updated whenever live orbital data arrives.
 export const TLE_THRESHOLDS = {
-  freshMs:   2 * 60 * 60 * 1000,   // green  within 2 h
-  staleMs:   24 * 60 * 60 * 1000,  // amber  within 24 h
+  freshMs:   24 * 60 * 60 * 1000,   // green  within 24 h
+  staleMs:   72 * 60 * 60 * 1000,   // amber  within 72 h
   // beyond staleMs → red
 };
 
@@ -142,7 +142,7 @@ export function recordSuccess(sourceId, durationMs, opts = {}) {
   rec.lastSuccessAt = now;
   rec.lastAttemptAt = now;
   rec.lastResponseMs = durationMs;
-  rec.isFallback = false;
+  rec.isFallback = opts.isLiveData === false;
   rec.errorMessage = null;
   rec.totalCalls++;
 
