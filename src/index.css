@@ -110,6 +110,10 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 4px 0 0 0;
 }
 .leaflet-control-attribution a { color: var(--color-cyan) !important; }
+.leaflet-top.leaflet-left {
+  top: 40px !important;
+}
+
 .leaflet-control-zoom a {
   background: var(--color-panel) !important;
   color: var(--color-text) !important;
