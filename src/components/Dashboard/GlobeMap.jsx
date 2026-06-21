@@ -240,12 +240,49 @@ function SmoothISSMarker({ issPosition, selectedSatellite, actions }) {
   );
 }
 
-const OCEAN_STARS = [
-  [0, -140], [20, -160], [-20, -120], [-40, -140], [40, -170],
-  [25, -40], [-20, -25], [45, -30], [-40, -30],
-  [-10, 70], [-30, 80], [-20, 60],
-  [-60, 0], [-65, 90], [-60, -90], [-60, 150]
-];
+// Seeded pseudo-random number generator to place ambient stars deterministically in ocean regions
+function seededRandom(seed) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+const GENERATED_OCEAN_STARS = (() => {
+  const stars = [];
+  let seed = 100;
+  
+  // Ocean coordinate boundary bounding boxes [minLat, maxLat, minLon, maxLon]
+  const oceanBoxes = [
+    [-55, -5, -170, -90],  // South Pacific
+    [10, 50, -175, -125],   // North Pacific
+    [-35, 15, 150, 178],   // West Pacific / Coral Sea
+    [-45, -5, -30, 5],     // South Atlantic
+    [15, 55, -55, -20],     // North Atlantic
+    [-45, -5, 55, 95],      // Indian Ocean
+    [-70, -55, -180, 180],  // Southern Ocean
+  ];
+
+  oceanBoxes.forEach((box, boxIdx) => {
+    const [minLat, maxLat, minLon, maxLon] = box;
+    const area = (maxLat - minLat) * (maxLon - minLon);
+    const starCount = Math.max(12, Math.floor(area / 110)); 
+    
+    for (let i = 0; i < starCount; i++) {
+      const lat = minLat + seededRandom(seed++) * (maxLat - minLat);
+      const lon = minLon + seededRandom(seed++) * (maxLon - minLon);
+      const delay = (seededRandom(seed++) * 4).toFixed(1);
+      const size = (1.2 + seededRandom(seed++) * 1.8).toFixed(1);
+      
+      stars.push({
+        id: `star-${boxIdx}-${i}`,
+        coords: [lat, lon],
+        delay: `${delay}s`,
+        size: `${size}px`
+      });
+    }
+  });
+
+  return stars;
+})();
 
 const GRID_LINES = (() => {
   const lines = [];
@@ -499,18 +536,23 @@ export default function GlobeMap({ className = '' }) {
           />
         ))}
 
-        {/* Sparse Ambient Stars in Oceans */}
-        {mapSettings.showStars && OCEAN_STARS.map((coords, idx) => {
+        {/* Ambient Stars in Oceans */}
+        {mapSettings.showStars && GENERATED_OCEAN_STARS.map((star) => {
           const starIcon = L.divIcon({
             className: 'ambient-star',
-            html: '<div class="star-sparkle"></div>',
+            html: `<div class="star-sparkle" style="
+              width: ${star.size};
+              height: ${star.size};
+              animation-delay: ${star.delay};
+              box-shadow: 0 0 3px #ffffff, 0 0 6px #ffffff;
+            "></div>`,
             iconSize: [6, 6],
             iconAnchor: [3, 3]
           });
           return (
             <Marker
-              key={`star-${idx}`}
-              position={coords}
+              key={star.id}
+              position={star.coords}
               icon={starIcon}
               interactive={false}
               zIndexOffset={-400}
