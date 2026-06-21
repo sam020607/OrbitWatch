@@ -442,6 +442,16 @@ export default function GlobeMap({ className = '' }) {
     showCities: localStorage.getItem('orbitwatch_settings_show_cities') !== 'false',
   });
 
+  const [isChatOpen, setIsChatOpen] = useState(() => localStorage.getItem('orbitwatch_chat_open') === 'true');
+
+  useEffect(() => {
+    const handleChatToggle = () => {
+      setIsChatOpen(localStorage.getItem('orbitwatch_chat_open') === 'true');
+    };
+    window.addEventListener('orbitwatch-chat-toggle', handleChatToggle);
+    return () => window.removeEventListener('orbitwatch-chat-toggle', handleChatToggle);
+  }, []);
+
   useEffect(() => {
     const handleSettingsChange = () => {
       setMapSettings({
@@ -893,48 +903,50 @@ export default function GlobeMap({ className = '' }) {
       </div>
 
       {/* Target count & Filter badge */}
-      <div className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 px-2 py-1 rounded-md bg-panel border border-border shadow-lg">
-        {viewMode === 'constellations' ? (
-          <span className="text-cyan text-[10px] font-sans uppercase tracking-wider font-bold shrink-0">
-            <span className="font-mono">{visibleConstellations.length}</span> CONSTELLATIONS VISIBLE
-          </span>
-        ) : viewMode === 'asteroids' ? (
-          <>
-            <span className="text-cyan text-[10px] font-sans uppercase tracking-wider font-bold shrink-0 hidden sm:inline">
-              <span className="font-mono">{filteredAsteroids.length}/{asteroids.length}</span> ASTEROIDS
+      {!isChatOpen && (
+        <div className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 px-2 py-1 rounded-md bg-panel border border-border shadow-lg">
+          {viewMode === 'constellations' ? (
+            <span className="text-cyan text-[10px] font-sans uppercase tracking-wider font-bold shrink-0">
+              <span className="font-mono">{visibleConstellations.length}</span> CONSTELLATIONS VISIBLE
             </span>
-            <select
-              value={asteroidFilter}
-              onChange={(e) => actions.setAsteroidFilter(e.target.value)}
-              className="text-[10px] font-sans uppercase tracking-wider font-bold bg-panel border border-border rounded px-1 py-0.5 text-text focus:outline-none focus:border-cyan cursor-pointer transition-colors"
-            >
-              <option value="all">All NEAs</option>
-              <option value="phas">Hazardous (PHAs)</option>
-              <option value="close">Close Approaches</option>
-            </select>
-          </>
-        ) : (
-          <>
-            <span className="text-cyan text-[10px] font-sans uppercase tracking-wider font-bold shrink-0 hidden sm:inline">
-              <span className="font-mono">{filteredSatellites.length}/{satellites.length}</span> OVERHEAD
-            </span>
-            <select
-              value={satelliteFilter}
-              onChange={(e) => actions.setSatelliteFilter(e.target.value)}
-              className="text-[10px] font-sans uppercase tracking-wider font-bold bg-panel border border-border rounded px-1 py-0.5 text-text focus:outline-none focus:border-cyan cursor-pointer transition-colors"
-            >
-              <option value="major">Major</option>
-              <option value="space-station">Stations</option>
-              <option value="tv">TV Sats</option>
-              <option value="gps">GPS</option>
-              <option value="comms">Comms</option>
-              <option value="weather">Weather</option>
-              <option value="debris">Debris</option>
-              <option value="all">All</option>
-            </select>
-          </>
-        )}
-      </div>
+          ) : viewMode === 'asteroids' ? (
+            <>
+              <span className="text-cyan text-[10px] font-sans uppercase tracking-wider font-bold shrink-0 hidden sm:inline">
+                <span className="font-mono">{filteredAsteroids.length}/{asteroids.length}</span> ASTEROIDS
+              </span>
+              <select
+                value={asteroidFilter}
+                onChange={(e) => actions.setAsteroidFilter(e.target.value)}
+                className="text-[10px] font-sans uppercase tracking-wider font-bold bg-panel border border-border rounded px-1 py-0.5 text-text focus:outline-none focus:border-cyan cursor-pointer transition-colors"
+              >
+                <option value="all">All NEAs</option>
+                <option value="phas">Hazardous (PHAs)</option>
+                <option value="close">Close Approaches</option>
+              </select>
+            </>
+          ) : (
+            <>
+              <span className="text-cyan text-[10px] font-sans uppercase tracking-wider font-bold shrink-0 hidden sm:inline">
+                <span className="font-mono">{filteredSatellites.length}/{satellites.length}</span> OVERHEAD
+              </span>
+              <select
+                value={satelliteFilter}
+                onChange={(e) => actions.setSatelliteFilter(e.target.value)}
+                className="text-[10px] font-sans uppercase tracking-wider font-bold bg-panel border border-border rounded px-1 py-0.5 text-text focus:outline-none focus:border-cyan cursor-pointer transition-colors"
+              >
+                <option value="major">Major</option>
+                <option value="space-station">Stations</option>
+                <option value="tv">TV Sats</option>
+                <option value="gps">GPS</option>
+                <option value="comms">Comms</option>
+                <option value="weather">Weather</option>
+                <option value="debris">Debris</option>
+                <option value="all">All</option>
+              </select>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Category Legend pill row (now unified in top-left container) */}
 

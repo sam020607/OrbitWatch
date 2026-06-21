@@ -237,6 +237,16 @@ export default function Dashboard({ onReset }) {
     });
   };
 
+  const [isChatOpen, setIsChatOpen] = useState(() => localStorage.getItem('orbitwatch_chat_open') === 'true');
+
+  useEffect(() => {
+    const handleChatToggle = () => {
+      setIsChatOpen(localStorage.getItem('orbitwatch_chat_open') === 'true');
+    };
+    window.addEventListener('orbitwatch-chat-toggle', handleChatToggle);
+    return () => window.removeEventListener('orbitwatch-chat-toggle', handleChatToggle);
+  }, []);
+
   const handleNavClick = (itemId) => {
     if (itemId === 'report') {
       setIsTonightOpen(prev => {
@@ -709,32 +719,36 @@ export default function Dashboard({ onReset }) {
             )}
 
             {/* Right Sidebar Edge Handle Toggle */}
-            <button
-              onClick={toggleRightPanel}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-[1000] w-8 h-20 bg-surface rounded-l-md flex items-center justify-center text-muted hover:text-text-primary transition-all shadow-md cursor-pointer group focus:outline-none border-0"
-              title={rightPanelOpen ? "Collapse Sidebar Info" : "Expand Sidebar Info"}
-            >
-              <Compass className="w-4 h-4 text-text-secondary group-hover:text-text-primary transition-colors" />
-            </button>
+            {!isChatOpen && (
+              <button
+                onClick={toggleRightPanel}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-[1000] w-8 h-20 bg-surface rounded-l-md flex items-center justify-center text-muted hover:text-text-primary transition-all shadow-md cursor-pointer group focus:outline-none border-0"
+                title={rightPanelOpen ? "Collapse Sidebar Info" : "Expand Sidebar Info"}
+              >
+                <Compass className="w-4 h-4 text-text-secondary group-hover:text-text-primary transition-colors" />
+              </button>
+            )}
 
             {/* 3D Globe / 2D Map Toggle Button */}
-            <button
-              onClick={() => setIs3DMode(!is3DMode)}
-              className="absolute bottom-16 lg:bottom-5 right-5 z-[1000] flex items-center gap-2 px-3 py-2 rounded-lg bg-panel border border-border text-cyan hover:border-border-light text-[11px] font-sans uppercase tracking-wider transition-all"
-              title={is3DMode ? 'Switch to flat map' : 'Switch to 3D globe'}
-            >
-              {is3DMode ? (
-                <>
-                  <Map className="w-3.5 h-3.5" />
-                  <span>View Flat Map</span>
-                </>
-              ) : (
-                <>
-                  <Globe className="w-3.5 h-3.5" />
-                  <span>View on Globe</span>
-                </>
-              )}
-            </button>
+            {!isChatOpen && (
+              <button
+                onClick={() => setIs3DMode(!is3DMode)}
+                className="absolute bottom-16 lg:bottom-5 right-5 z-[1000] flex items-center gap-2 px-3 py-2 rounded-lg bg-panel border border-border text-cyan hover:border-border-light text-[11px] font-sans uppercase tracking-wider transition-all"
+                title={is3DMode ? 'Switch to flat map' : 'Switch to 3D globe'}
+              >
+                {is3DMode ? (
+                  <>
+                    <Map className="w-3.5 h-3.5" />
+                    <span>View Flat Map</span>
+                  </>
+                ) : (
+                  <>
+                    <Globe className="w-3.5 h-3.5" />
+                    <span>View on Globe</span>
+                  </>
+                )}
+              </button>
+            )}
 
             {/* Mobile: bottom tab bar */}
             <div className="lg:hidden absolute bottom-0 left-0 right-0 z-[1000]">

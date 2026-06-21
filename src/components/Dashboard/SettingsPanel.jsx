@@ -38,6 +38,7 @@ export default function SettingsPanel() {
   const [n2yoSecondary, setN2yoSecondary] = useState(() => localStorage.getItem('orbitwatch_n2yo_key_fallback') || '');
   const [spaceTrackUser, setSpaceTrackUser] = useState(() => localStorage.getItem('orbitwatch_spacetrack_user') || '');
   const [spaceTrackPass, setSpaceTrackPass] = useState(() => localStorage.getItem('orbitwatch_spacetrack_password') || '');
+  const [geminiKey, setGeminiKey] = useState(() => localStorage.getItem('orbitwatch_gemini_api_key') || '');
 
   const updateCredential = (key, value, setter) => {
     setter(value);
@@ -299,8 +300,20 @@ export default function SettingsPanel() {
               boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.02)',
             }}
           >
-            {/* N2YO Primary */}
+            {/* Gemini LLM Key */}
             <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-text-primary">Gemini API Key</label>
+              <input
+                type="password"
+                value={geminiKey}
+                onChange={(e) => updateCredential('orbitwatch_gemini_api_key', e.target.value, setGeminiKey)}
+                placeholder="Gemini API Key (Google AI Studio)"
+                className="w-full px-3 py-1.5 rounded bg-black/45 border border-white/10 text-xs font-mono text-text-primary focus:outline-none focus:border-accent/50"
+              />
+            </div>
+
+            {/* N2YO Primary */}
+            <div className="flex flex-col gap-1.5 border-t border-white/[0.04] pt-3">
               <label className="text-xs font-semibold text-text-primary">N2YO Primary API Key</label>
               <input
                 type="password"

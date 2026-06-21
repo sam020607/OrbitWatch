@@ -6,8 +6,9 @@ import { getAllSourceSnapshots } from '../../services/apiMonitor.js';
 import axios from 'axios';
 
 // Google Gemini API configuration
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? '';
-const USE_REAL_LLM = !!GEMINI_API_KEY;
+export function getGeminiKey() {
+  return localStorage.getItem('orbitwatch_gemini_api_key') || import.meta.env.VITE_GEMINI_API_KEY || '';
+}
 
 // Space facts for Guest Mode fallback
 const SPACE_FACTS = [
@@ -34,15 +35,31 @@ export default function AIAssistant() {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [isGuestMode, setIsGuestMode] = useState(!USE_REAL_LLM);
-  const [showConfigAlert, setShowConfigAlert] = useState(!USE_REAL_LLM);
+  const [isGuestMode, setIsGuestMode] = useState(() => !getGeminiKey());
+  const [showConfigAlert, setShowConfigAlert] = useState(() => !getGeminiKey());
 
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    const handleSettingsChange = () => {
+      const key = getGeminiKey();
+      setIsGuestMode(!key);
+      setShowConfigAlert(!key);
+    };
+    window.addEventListener('orbitwatch-settings-changed', handleSettingsChange);
+    return () => window.removeEventListener('orbitwatch-settings-changed', handleSettingsChange);
+  }, []);
 
   // Auto-scroll to the bottom of messages list
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
+
+  // Sync open state to localStorage for conditional map overlay hiding
+  useEffect(() => {
+    localStorage.setItem('orbitwatch_chat_open', isOpen.toString());
+    window.dispatchEvent(new Event('orbitwatch-chat-toggle'));
+  }, [isOpen]);
 
   // Build real-time context injected into LLM system instructions
   const buildSystemContext = () => {
@@ -134,7 +151,8 @@ ${visibleSats || 'No satellites currently cataloged overhead.'}
     } else {
       try {
         const contextPrompt = buildSystemContext();
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        const activeKey = getGeminiKey();
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
         
         // Format history for Gemini API contents parameter
         const history = messages.map(msg => ({
@@ -190,7 +208,7 @@ ${visibleSats || 'No satellites currently cataloged overhead.'}
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[999] flex flex-col items-end pointer-events-none">
+    <div className="fixed bottom-6 right-6 z-[2000] flex flex-col items-end pointer-events-none">
       
       {/* ── CHAT WINDOW OVERLAY ── */}
       <AnimatePresence>
