@@ -53,10 +53,24 @@ function getObjectColor(type, name) {
 }
 
 // ISS custom icon
-function createISSIcon() {
+function createISSIcon(selected = false) {
+  const reticleHtml = selected ? `
+    <svg viewBox="0 0 30 30" style="position: absolute; width: 36px; height: 36px; top: -8px; left: -8px; pointer-events: none; animation: reticleRotate 8s linear infinite;">
+      <path d="M 6 2 A 12 12 0 0 1 24 2" fill="none" stroke="#e0584f" stroke-width="0.75" stroke-dasharray="1.5, 1.5" />
+      <path d="M 24 28 A 12 12 0 0 1 6 28" fill="none" stroke="#e0584f" stroke-width="0.75" stroke-dasharray="1.5, 1.5" />
+      <line x1="2" y1="2" x2="6" y2="2" stroke="#e0584f" stroke-width="1.2" />
+      <line x1="2" y1="2" x2="2" y2="6" stroke="#e0584f" stroke-width="1.2" />
+      <line x1="28" y1="2" x2="24" y2="2" stroke="#e0584f" stroke-width="1.2" />
+      <line x1="28" y1="2" x2="28" y2="6" stroke="#e0584f" stroke-width="1.2" />
+      <line x1="2" y1="28" x2="6" y2="28" stroke="#e0584f" stroke-width="1.2" />
+      <line x1="2" y1="28" x2="2" y2="24" stroke="#e0584f" stroke-width="1.2" />
+      <line x1="28" y1="28" x2="24" y2="28" stroke="#e0584f" stroke-width="1.2" />
+      <line x1="28" y1="28" x2="28" y2="24" stroke="#e0584f" stroke-width="1.2" />
+    </svg>
+  ` : '';
   return L.divIcon({
     className: 'iss-marker-icon',
-    html: '<div class="iss-dot"></div>',
+    html: `<div class="iss-dot"></div>${reticleHtml}`,
     iconSize: [20, 20],
     iconAnchor: [10, 10],
     popupAnchor: [0, -12],
@@ -71,9 +85,24 @@ function createSatIcon(type, name, selected = false) {
     ? `box-shadow: 0 0 8px ${baseColor}, 0 0 16px ${baseColor}; border: 1.5px solid var(--text-primary);`
     : `box-shadow: 0 0 6px ${baseColor}bf, 0 0 14px ${baseColor}4d;`;
   
+  const reticleHtml = selected ? `
+    <svg viewBox="0 0 30 30" style="position: absolute; width: 36px; height: 36px; top: -11px; left: -11px; pointer-events: none; animation: reticleRotate 8s linear infinite;">
+      <path d="M 6 2 A 12 12 0 0 1 24 2" fill="none" stroke="${baseColor}" stroke-width="0.75" stroke-dasharray="1.5, 1.5" />
+      <path d="M 24 28 A 12 12 0 0 1 6 28" fill="none" stroke="${baseColor}" stroke-width="0.75" stroke-dasharray="1.5, 1.5" />
+      <line x1="2" y1="2" x2="6" y2="2" stroke="${baseColor}" stroke-width="1.2" />
+      <line x1="2" y1="2" x2="2" y2="6" stroke="${baseColor}" stroke-width="1.2" />
+      <line x1="28" y1="2" x2="24" y2="2" stroke="${baseColor}" stroke-width="1.2" />
+      <line x1="28" y1="2" x2="28" y2="6" stroke="${baseColor}" stroke-width="1.2" />
+      <line x1="2" y1="28" x2="6" y2="28" stroke="${baseColor}" stroke-width="1.2" />
+      <line x1="2" y1="28" x2="2" y2="24" stroke="${baseColor}" stroke-width="1.2" />
+      <line x1="28" y1="28" x2="24" y2="28" stroke="${baseColor}" stroke-width="1.2" />
+      <line x1="28" y1="28" x2="28" y2="24" stroke="${baseColor}" stroke-width="1.2" />
+    </svg>
+  ` : '';
+  
   return L.divIcon({
     className: 'sat-marker-icon',
-    html: `<div class="sat-dot${selected ? ' selected' : ''}" style="width:${size}px;height:${size}px;background:${baseColor};border-radius:50%;${shadowGlow}"></div>`,
+    html: `<div class="sat-dot${selected ? ' selected' : ''}" style="width:${size}px;height:${size}px;background:${baseColor};border-radius:50%;${shadowGlow}"></div>${reticleHtml}`,
     iconSize: [size + 4, size + 4],
     iconAnchor: [(size + 4) / 2, (size + 4) / 2],
     popupAnchor: [0, -8],
@@ -83,14 +112,19 @@ function createSatIcon(type, name, selected = false) {
 // Observer location icon
 function createObserverIcon() {
   return L.divIcon({
-    className: '',
-    html: `<div style="
-      width: 14px; height: 14px;
-      border-radius: 50%;
-      border: 2px solid #e0a847;
-      background: rgba(224, 168, 71, 0.3);
-      box-shadow: 0 0 8px #e0a847;
-    "></div>`,
+    className: 'observer-marker-container',
+    html: `
+      <div class="observer-pulse"></div>
+      <div style="
+        position: absolute;
+        inset: 2px;
+        border-radius: 50%;
+        border: 2px solid #e0a847;
+        background: rgba(224, 168, 71, 0.45);
+        box-shadow: 0 0 10px #e0a847;
+        z-index: 2;
+      "></div>
+    `,
     iconSize: [18, 18],
     iconAnchor: [9, 9],
   });
@@ -100,7 +134,19 @@ function createObserverIcon() {
 function createRadarIcon() {
   return L.divIcon({
     className: 'radar-sweep-container',
-    html: '<div class="radar-sweep-line"></div>',
+    html: `
+      <div class="radar-sweep-line"></div>
+      <svg viewBox="0 0 100 100" class="radar-scope-reticle" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;">
+        <circle cx="50" cy="50" r="48" stroke="rgba(224, 168, 71, 0.15)" stroke-width="0.5" fill="none" />
+        <circle cx="50" cy="50" r="25" stroke="rgba(224, 168, 71, 0.08)" stroke-width="0.5" fill="none" stroke-dasharray="2, 2" />
+        <line x1="50" y1="2" x2="50" y2="98" stroke="rgba(224, 168, 71, 0.08)" stroke-width="0.5" stroke-dasharray="2, 2" />
+        <line x1="2" y1="50" x2="98" y2="50" stroke="rgba(224, 168, 71, 0.08)" stroke-width="0.5" stroke-dasharray="2, 2" />
+        <text x="50" y="8" font-size="6" fill="rgba(224, 168, 71, 0.5)" font-family="monospace" text-anchor="middle" font-weight="bold">N</text>
+        <text x="50" y="96" font-size="6" fill="rgba(224, 168, 71, 0.5)" font-family="monospace" text-anchor="middle" font-weight="bold">S</text>
+        <text x="94" y="52" font-size="6" fill="rgba(224, 168, 71, 0.5)" font-family="monospace" text-anchor="middle" font-weight="bold">E</text>
+        <text x="6" y="52" font-size="6" fill="rgba(224, 168, 71, 0.5)" font-family="monospace" text-anchor="middle" font-weight="bold">W</text>
+      </svg>
+    `,
     iconSize: [150, 150],
     iconAnchor: [75, 75],
   });
@@ -111,8 +157,10 @@ function createRadarIcon() {
  * Uses requestAnimationFrame + Leaflet's imperative marker.setLatLng()
  * so React never re-renders per frame — pure DOM mutation.
  */
-function SmoothISSMarker({ issPosition, issIcon, selectedSatellite, actions, children }) {
+function SmoothISSMarker({ issPosition, selectedSatellite, actions }) {
   const markerRef = useRef(null);
+  const isIssSelected = selectedSatellite?.satid === 25544;
+  const issIcon = useMemo(() => createISSIcon(isIssSelected), [isIssSelected]);
 
   // Track prev/next waypoints and animation timing
   const animState = useRef({
@@ -169,7 +217,6 @@ function SmoothISSMarker({ issPosition, issIcon, selectedSatellite, actions, chi
   if (!issPosition) return null;
 
   // Initial position — rAF takes over immediately after mount
-  const isIssSelected = selectedSatellite?.satid === 25544;
   const issObj = {
     satname: 'ISS (ZARYA)',
     satid: 25544,
@@ -225,6 +272,21 @@ function createAsteroidIcon(isHazardous, selected = false) {
   const color = isHazardous ? 'var(--accent-alert)' : 'var(--accent-amber)';
   const size = selected ? 10 : 7;
   
+  const reticleHtml = selected ? `
+    <svg viewBox="0 0 30 30" style="position: absolute; width: 36px; height: 36px; top: -11px; left: -11px; pointer-events: none; animation: reticleRotate 8s linear infinite;">
+      <path d="M 6 2 A 12 12 0 0 1 24 2" fill="none" stroke="${color}" stroke-width="0.75" stroke-dasharray="1.5, 1.5" />
+      <path d="M 24 28 A 12 12 0 0 1 6 28" fill="none" stroke="${color}" stroke-width="0.75" stroke-dasharray="1.5, 1.5" />
+      <line x1="2" y1="2" x2="6" y2="2" stroke="${color}" stroke-width="1.2" />
+      <line x1="2" y1="2" x2="2" y2="6" stroke="${color}" stroke-width="1.2" />
+      <line x1="28" y1="2" x2="24" y2="2" stroke="${color}" stroke-width="1.2" />
+      <line x1="28" y1="2" x2="28" y2="6" stroke="${color}" stroke-width="1.2" />
+      <line x1="2" y1="28" x2="6" y2="28" stroke="${color}" stroke-width="1.2" />
+      <line x1="2" y1="28" x2="2" y2="24" stroke="${color}" stroke-width="1.2" />
+      <line x1="28" y1="28" x2="24" y2="28" stroke="${color}" stroke-width="1.2" />
+      <line x1="28" y1="28" x2="28" y2="24" stroke="${color}" stroke-width="1.2" />
+    </svg>
+  ` : '';
+
   return L.divIcon({
     className: 'ast-marker-icon',
     html: `<div style="
@@ -233,7 +295,7 @@ function createAsteroidIcon(isHazardous, selected = false) {
       border-radius: 50%;
       border: ${selected ? '1.5px solid var(--text-primary)' : '1px solid rgba(255,255,255,0.4)'};
       transition: all 0.2s;
-    "></div>`,
+    "></div>${reticleHtml}`,
     iconSize: [size + 4, size + 4],
     iconAnchor: [(size + 4) / 2, (size + 4) / 2],
     popupAnchor: [0, -8],
@@ -376,7 +438,6 @@ export default function GlobeMap({ className = '' }) {
     .filter(c => c.coords.el > 0);
   }, [location]);
 
-  const issIcon = useRef(createISSIcon()).current;
   const observerIcon = useRef(createObserverIcon()).current;
   const radarIcon = useRef(createRadarIcon()).current;
 
@@ -415,10 +476,10 @@ export default function GlobeMap({ className = '' }) {
             <GeoJSON
               data={worldData}
               style={() => ({
-                color: '#3a5a8a',
-                weight: 0.6,
-                opacity: 0.32,
-                fillOpacity: 0,
+                color: 'rgba(77, 141, 255, 0.22)',
+                weight: 0.8,
+                fillColor: 'rgba(15, 22, 35, 0.35)',
+                fillOpacity: 1,
               })}
             />
         </Pane>
@@ -431,8 +492,9 @@ export default function GlobeMap({ className = '' }) {
           <Polyline
             key={line.id}
             positions={line.positions}
-            color="rgba(255, 255, 255, 0.035)"
-            weight={1}
+            color="rgba(77, 141, 255, 0.06)"
+            weight={0.75}
+            dashArray="2, 5"
             interactive={false}
           />
         ))}
@@ -519,6 +581,7 @@ export default function GlobeMap({ className = '' }) {
                       color="var(--accent)"
                       weight={weight}
                       opacity={opacity}
+                      className="iss-trail-line"
                     />
                   );
                 })}
@@ -530,12 +593,12 @@ export default function GlobeMap({ className = '' }) {
               <Polygon
                 positions={issCone}
                 pathOptions={{
-                  color: 'rgba(255, 0, 127, 0.5)',
+                  color: 'rgba(255, 0, 127, 0.45)',
                   fillColor: 'rgba(255, 0, 127, 0.06)',
                   fillOpacity: 1,
-                  weight: 1.5,
-                  dashArray: '6, 4',
-                  className: 'cone-overlay',
+                  weight: 1.25,
+                  dashArray: '4, 4',
+                  className: 'cone-overlay glowing-cone-footprint',
                 }}
               />
             )}
@@ -543,7 +606,6 @@ export default function GlobeMap({ className = '' }) {
             {/* ISS marker — smooth gliding interpolation between API fixes */}
             <SmoothISSMarker
               issPosition={issPosition}
-              issIcon={issIcon}
               selectedSatellite={selectedSatellite}
               actions={actions}
             />
@@ -556,7 +618,8 @@ export default function GlobeMap({ className = '' }) {
                   positions={generateOrbitalArc(selectedSatellite.satlat, selectedSatellite.satlon)}
                   color={getObjectColor(selectedSatellite.type, selectedSatellite.satname)}
                   weight={1.5}
-                  opacity={0.4}
+                  opacity={0.65}
+                  className="glowing-orbit-line"
                 />
                 
                 {/* Cone overlay */}
@@ -565,10 +628,11 @@ export default function GlobeMap({ className = '' }) {
                     positions={calculateConeFootprint(selectedSatellite.satlat, selectedSatellite.satlon, selectedSatellite.satalt)}
                     pathOptions={{
                       color: getObjectColor(selectedSatellite.type, selectedSatellite.satname),
-                      fillColor: `${getObjectColor(selectedSatellite.type, selectedSatellite.satname)}1a`,
+                      fillColor: `${getObjectColor(selectedSatellite.type, selectedSatellite.satname)}10`,
                       fillOpacity: 1,
                       weight: 1,
-                      dashArray: '4, 4',
+                      dashArray: '3, 3',
+                      className: 'glowing-cone-footprint',
                     }}
                   />
                 )}
@@ -632,7 +696,7 @@ export default function GlobeMap({ className = '' }) {
                     fillOpacity: 1,
                     weight: 1.5,
                     dashArray: '6, 4',
-                    className: 'cone-overlay',
+                    className: 'cone-overlay glowing-cone-footprint',
                   }}
                 />
               )}
@@ -709,12 +773,10 @@ export default function GlobeMap({ className = '' }) {
             {selectedAsteroid && (
               <Polyline
                 positions={getAsteroidTrajectoryPoints(selectedAsteroid, Date.now())}
-                pathOptions={{
-                  color: selectedAsteroid.is_potentially_hazardous ? 'var(--accent-alert)' : 'var(--accent-amber)',
-                  weight: 2,
-                  opacity: 0.7,
-                  dashArray: '6, 6',
-                }}
+                color={selectedAsteroid.is_potentially_hazardous ? 'var(--accent-alert)' : 'var(--accent-amber)'}
+                weight={2}
+                opacity={0.8}
+                className="glowing-orbit-line"
               />
             )}
 
@@ -918,6 +980,26 @@ export default function GlobeMap({ className = '' }) {
       )}
 
       {/* Bottom Telemetry Stat Strip (now unified in top-left container) */}
+
+      {/* Corner HUD framing brackets */}
+      <div className="absolute inset-2 pointer-events-none z-[999] border border-white/[0.02] rounded-lg">
+        {/* Top Left Bracket */}
+        <div className="absolute top-0 left-0 w-3 h-3 border-t-[1.5px] border-l-[1.5px] border-cyan/30 rounded-tl" />
+        {/* Top Right Bracket */}
+        <div className="absolute top-0 right-0 w-3 h-3 border-t-[1.5px] border-r-[1.5px] border-cyan/30 rounded-tr" />
+        {/* Bottom Left Bracket */}
+        <div className="absolute bottom-0 left-0 w-3 h-3 border-b-[1.5px] border-l-[1.5px] border-cyan/30 rounded-bl" />
+        {/* Bottom Right Bracket */}
+        <div className="absolute bottom-0 right-0 w-3 h-3 border-b-[1.5px] border-r-[1.5px] border-cyan/30 rounded-br" />
+        
+        {/* Corner Status telemetry labels */}
+        <div className="absolute bottom-1.5 left-2 text-[6.5px] font-mono text-cyan/35 uppercase tracking-[0.15em]">
+          SYS_REF: WGS84 // GRID_SCALE: DYNAMIC
+        </div>
+        <div className="absolute bottom-1.5 right-2 text-[6.5px] font-mono text-cyan/35 uppercase tracking-[0.15em]">
+          ALT_REF: MSL // RADAR_RANGE: 150KM
+        </div>
+      </div>
 
       {/* Atmospheric Vignette Overlay */}
       <div 

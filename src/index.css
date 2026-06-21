@@ -215,6 +215,60 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* ─── HUD and Target reticles ─── */
+@keyframes reticleRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.glowing-orbit-line {
+  stroke-dasharray: 8, 8;
+  animation: orbitMove 30s linear infinite;
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.4));
+}
+
+@keyframes orbitMove {
+  from { stroke-dashoffset: 360; }
+  to { stroke-dashoffset: 0; }
+}
+
+.glowing-cone-footprint {
+  animation: footprintPulse 4s ease-in-out infinite;
+}
+
+@keyframes footprintPulse {
+  0%, 100% { fill-opacity: 0.05; stroke-opacity: 0.35; }
+  50% { fill-opacity: 0.12; stroke-opacity: 0.75; }
+}
+
+.iss-trail-line {
+  stroke-linecap: round;
+}
+
+.observer-marker-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.observer-pulse {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid #e0a847;
+  background: rgba(224, 168, 71, 0.05);
+  animation: observerPulseAnim 2.5s infinite ease-out;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes observerPulseAnim {
+  0% { transform: scale(0.3); opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
 /* ─── Ambient Oceans Star twinkling ──────────────────────────────────────── */
 .ambient-star {
   pointer-events: none;
