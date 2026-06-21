@@ -93,6 +93,12 @@ h1, h2, h3, h4, h5, h6 {
 ::-webkit-scrollbar-thumb:hover { background: var(--color-cyan)55; }
 
 /* ─── Leaflet Overrides ─────────────────────────────────────────────────── */
+.relocating-map .leaflet-container,
+.relocating-map .leaflet-grab,
+.relocating-map .leaflet-interactive {
+  cursor: crosshair !important;
+}
+
 .leaflet-container {
   background: var(--color-space) !important;
   font-family: 'Inter', sans-serif;

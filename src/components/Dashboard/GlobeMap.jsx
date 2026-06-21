@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback, Fragment, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Polyline, Polygon, Circle, useMap, Popup, Pane, GeoJSON, FeatureGroup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Polyline, Polygon, Circle, useMap, Popup, Pane, GeoJSON, FeatureGroup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
-import { Database, Globe, Radio, MapPin, X, Activity } from 'lucide-react';
+import { Database, Globe, Radio, MapPin, X, Activity, Navigation } from 'lucide-react';
 import { useApp } from '../../context/AppContext.jsx';
 import { generateOrbitalArc, calculateConeFootprint, azimuthToCompass } from '../../utils/orbitMath.js';
 import { SAT_TYPE_CONFIG } from '../../data/mockSatellites.js';
 import { CONSTELLATIONS, getSubStellarPoint, getLocalCoordinates, getConstellationShape, getGMST } from '../../data/constellations.js';
 import worldData from '../../data/world.json';
+import { reverseGeocode } from '../../api/geocodeApi.js';
 
 // Fix Leaflet default icon path issue with Vite
 delete L.Icon.Default.prototype._getIconUrl;
@@ -411,6 +412,18 @@ function ResizeController() {
   return null;
 }
 
+/** Map click listener for relocation mode */
+function GlobeMapClickLocator({ active, onMapClick }) {
+  useMapEvents({
+    click(e) {
+      if (active) {
+        onMapClick(e.latlng.lat, e.latlng.lng);
+      }
+    }
+  });
+  return null;
+}
+
 /**
  * GlobeMap — Leaflet map component.
  * Shows: ISS moving dot + trail, satellite markers, orbital arcs, cone of visibility, observer location.
@@ -434,6 +447,26 @@ export default function GlobeMap({ className = '' }) {
     theme,
     issNextPasses = []
   } = state;
+
+  const [isRelocating, setIsRelocating] = useState(false);
+  const [isResolving, setIsResolving] = useState(false);
+
+  const handleMapClick = useCallback(async (lat, lon) => {
+    if (isResolving) return;
+    setIsResolving(true);
+    try {
+      const name = await reverseGeocode(lat, lon);
+      actions.setLocation({ lat, lon });
+      actions.setLocationName(name);
+    } catch (err) {
+      console.error('[Relocate] Geocoding failed:', err);
+      actions.setLocation({ lat, lon });
+      actions.setLocationName(`${lat.toFixed(4)}°, ${lon.toFixed(4)}°`);
+    } finally {
+      setIsResolving(false);
+      setIsRelocating(false);
+    }
+  }, [actions, isResolving]);
 
   const [mapSettings, setMapSettings] = useState({
     showGrid: localStorage.getItem('orbitwatch_settings_show_grid') !== 'false',
@@ -512,7 +545,7 @@ export default function GlobeMap({ className = '' }) {
     : null;
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className} ${isRelocating ? 'relocating-map' : ''}`}>
       <MapContainer
         center={location ? [location.lat, location.lon] : [20, 0]}
         zoom={location ? 4 : 2}
@@ -548,6 +581,7 @@ export default function GlobeMap({ className = '' }) {
 
         <MapController location={location} />
         <ResizeController />
+        <GlobeMapClickLocator active={isRelocating} onMapClick={handleMapClick} />
 
         {/* Faint Lat/Long Grid Overlay */}
         {mapSettings.showGrid && (
@@ -889,6 +923,19 @@ export default function GlobeMap({ className = '' }) {
               <span>{location.name}</span>
             </div>
           )}
+
+          <button
+            onClick={() => setIsRelocating(prev => !prev)}
+            className={`glass-panel flex items-center gap-1.5 px-2 py-1 rounded-md bg-surface/90 backdrop-blur border transition-all text-[10px] font-sans font-bold uppercase tracking-wider shadow-lg pointer-events-auto hover:border-cyan
+              ${isRelocating 
+                ? 'border-accent-amber text-accent-amber animate-pulse' 
+                : 'border-surface-border text-text-secondary hover:text-text-primary'}`}
+            title="Click on the map to relocate observer"
+            disabled={isResolving}
+          >
+            <Globe className="w-3 h-3 text-cyan" />
+            <span>{isRelocating ? 'Click Map' : 'Relocate'}</span>
+          </button>
           
           {viewMode === 'satellites' && issPosition && (
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-panel border border-border shadow-lg">
@@ -1081,6 +1128,24 @@ export default function GlobeMap({ className = '' }) {
           ALT_REF: MSL // RADAR_RANGE: 150KM
         </div>
       </div>
+
+      {/* Relocate Mode Banner Overlay */}
+      {isRelocating && (
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-[1001] glass-panel px-4 py-2 rounded-lg bg-surface/95 border border-accent-amber shadow-2xl flex items-center gap-3 animate-fade-in pointer-events-auto">
+          <div className="w-2 h-2 rounded-full bg-accent-amber animate-ping" />
+          <span className="text-[10px] font-sans font-bold text-text-primary uppercase tracking-wider">
+            {isResolving ? 'Resolving new coordinates...' : 'Select Location: Click anywhere on the map'}
+          </span>
+          {!isResolving && (
+            <button
+              onClick={() => setIsRelocating(false)}
+              className="px-2 py-0.5 rounded bg-white/5 border border-white/10 hover:bg-white/10 text-[9px] font-sans font-bold uppercase tracking-wider transition-colors text-text"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Atmospheric Vignette Overlay */}
       <div 
