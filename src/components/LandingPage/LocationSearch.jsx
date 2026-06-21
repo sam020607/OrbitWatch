@@ -47,7 +47,7 @@ export default function LocationSearch({ onLocationSelect, variant, onQueryChang
       } finally {
         setIsSearching(false);
       }
-    }, 400);
+    }, 250);
 
     return () => clearTimeout(debounceRef.current);
   }, [query]);
@@ -121,6 +121,7 @@ export default function LocationSearch({ onLocationSelect, variant, onQueryChang
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
+            onFocus={() => results.length > 0 && setShowDropdown(true)}
             placeholder="Type new location..."
             className="bg-transparent border-none outline-none text-text-primary text-[11px] font-semibold uppercase tracking-wider w-36 placeholder-white/30"
             autoFocus

@@ -605,7 +605,7 @@ export default function Dashboard({ onReset }) {
       {/* ── Main Application Container (Header + Content) ── */}
       <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
         {/* ── Top Navigation Bar ── */}
-        <header className="flex items-center gap-3 px-4 py-2.5 shrink-0"
+        <header className="relative flex items-center gap-3 px-4 py-2.5 shrink-0"
           style={{ zIndex: 100, background: 'rgba(10,13,21,0.70)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           {/* Logo (hidden on desktop, since rail shows it) */}
           <div className="flex items-center gap-2 lg:hidden">
