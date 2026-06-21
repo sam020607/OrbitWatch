@@ -29,7 +29,7 @@ export default function AIAssistant() {
   const [messages, setMessages] = useState([
     {
       role: 'model',
-      content: "System initialized. I am your OrbitWatch onboard AI assistant. How can I help you analyze the skies today?",
+      content: "System initialized. I am your Project Zenith onboard AI assistant. How can I help you analyze the skies today?",
       timestamp: new Date()
     }
   ]);
@@ -80,7 +80,7 @@ export default function AIAssistant() {
       `- ${s.satname} (NORAD: ${s.satid}, Type: ${s.type}, Altitude: ${s.satalt.toFixed(1)} km, Vel: ${s.velocity.toFixed(2)} km/s)`
     ).join('\n');
 
-    return `You are the OrbitWatch onboard AI Assistant (version 1.0.4).
+    return `You are AURA — the Astronomical Universal Reconnaissance Assistant (Project Zenith onboard AI Assistant).
 You assist operators in a satellite tracking control room. 
 
 Here is the CURRENT REAL-TIME TELEMETRY STATE of the control room:
@@ -128,7 +128,7 @@ ${visibleSats || 'No satellites currently cataloged overhead.'}
       return `[Astronomical Fact] ${SPACE_FACTS[idx]}`;
     }
 
-    return "I am operating in Guest Mode (Simulated AI). To enable full generative LLM conversations, please add a VITE_GEMINI_API_KEY to your .env file. For now, you can ask me about 'ISS location', 'API health', 'overhead satellites', or request a 'space fact'!";
+    return "I am AURA, operating in Guest Mode (Simulated AI). To enable my full generative LLM capabilities, please add a VITE_GEMINI_API_KEY to your .env file. For now, you can ask me about 'ISS location', 'API health', 'overhead satellites', or request a 'space fact'!";
   };
 
   // Send message handler
@@ -152,7 +152,7 @@ ${visibleSats || 'No satellites currently cataloged overhead.'}
       try {
         const contextPrompt = buildSystemContext();
         const activeKey = getGeminiKey();
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
         
         // Format history for Gemini API contents parameter
         const history = messages.map(msg => ({
@@ -176,8 +176,12 @@ ${visibleSats || 'No satellites currently cataloged overhead.'}
             temperature: 0.6,
           }
         }, {
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-goog-api-key': activeKey
+          }
         });
+
 
         const replyText = response.data.candidates?.[0]?.content?.parts?.[0]?.text || "I was unable to compile a reply. Telemetry error.";
         
@@ -231,7 +235,7 @@ ${visibleSats || 'No satellites currently cataloged overhead.'}
               <div className="flex items-center gap-2">
                 <Terminal className="w-3.5 h-3.5 text-cyan" />
                 <span className="font-mono text-[10px] tracking-wider text-text uppercase font-semibold">
-                  Zenith Assistant [v1.0.4]
+                  AURA - Astronomical Universal Reconnaissance Assistant
                 </span>
                 <span className="flex items-center gap-1 bg-black/40 px-2 py-0.5 rounded-full border border-white/[0.04]">
                   <span className={`w-1 h-1 rounded-full ${isGuestMode ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400 shadow-[0_0_4px_#3fd6a0]'}`} />
@@ -328,7 +332,7 @@ ${visibleSats || 'No satellites currently cataloged overhead.'}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask Zenith Assistant..."
+                placeholder="Ask AURA..."
                 className="flex-1 glass-input px-3.5 py-2 text-xs font-sans text-text border border-white/[0.08] bg-black/40 rounded-xl focus:border-cyan/50 outline-none"
               />
               <button

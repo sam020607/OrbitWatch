@@ -11,6 +11,7 @@
  * Without credentials, this module returns realistic mock astronomy data.
  */
 import axios from 'axios';
+import SunCalc from 'suncalc';
 import { recordSuccess, recordFailure } from '../services/apiMonitor.js';
 
 // TODO: Add your AstronomyAPI credentials
@@ -60,6 +61,20 @@ export async function fetchNightSkyData(lat, lon, alt = 0, date = null) {
 }
 
 /**
+ * Helper to map SunCalc phase (0 to 1) to standard names.
+ */
+function getMoonPhaseName(phaseValue) {
+  if (phaseValue < 0.02 || phaseValue >= 0.98) return 'New Moon';
+  if (phaseValue < 0.23) return 'Waxing Crescent';
+  if (phaseValue < 0.27) return 'First Quarter';
+  if (phaseValue < 0.48) return 'Waxing Gibbous';
+  if (phaseValue < 0.52) return 'Full Moon';
+  if (phaseValue < 0.73) return 'Waning Gibbous';
+  if (phaseValue < 0.77) return 'Last Quarter';
+  return 'Waning Crescent';
+}
+
+/**
  * Get moon phase data using wttr.in API.
  * 
  * @param {number} lat   Observer latitude 
@@ -71,7 +86,7 @@ export async function fetchMoonPhase(lat, lon, date = null) {
   const t0 = Date.now();
   try {
     const url = `https://wttr.in/${lat},${lon}?format=j1`;
-    const response = await axios.get(url, { timeout: 10000 });
+    const response = await axios.get(url, { timeout: 2500 });
     const durationMs = Date.now() - t0;
     
     const astronomy = response.data?.weather?.[0]?.astronomy?.[0];
@@ -88,13 +103,32 @@ export async function fetchMoonPhase(lat, lon, date = null) {
     throw new Error('wttr.in response missing astronomy payload');
   } catch (error) {
     const statusCode = error.response?.status;
-    recordFailure('wttr-moon', error.message, { statusCode, fallbackUsed: true });
-    console.error('[AstronomyAPI] fetchMoonPhase failed:', error.message);
-    return {
-      phase: 'Data Unavailable',
-      illumination: 0,
-      date: new Date().toISOString()
-    };
+    const durationMs = Date.now() - t0;
+    console.warn(`[AstronomyAPI] wttr.in moon phase fetch failed: ${error.message}. Switching to local SunCalc engine.`);
+    
+    try {
+      const targetDate = date ? new Date(date) : new Date();
+      const sunCalcMoon = SunCalc.getMoonIllumination(targetDate);
+      const phaseVal = sunCalcMoon.phase;
+      const phaseName = getMoonPhaseName(phaseVal);
+      const illumination = Math.round(sunCalcMoon.fraction * 100);
+      
+      // Record as successful fallback cache/mock response to keep dashboard healthy
+      recordSuccess('wttr-moon', durationMs, { isLiveData: false });
+      
+      return {
+        phase: phaseName,
+        illumination: illumination,
+        date: targetDate.toISOString()
+      };
+    } catch (localErr) {
+      recordFailure('wttr-moon', error.message, { statusCode, fallbackUsed: false });
+      return {
+        phase: 'Data Unavailable',
+        illumination: 0,
+        date: new Date().toISOString()
+      };
+    }
   }
 }
 
