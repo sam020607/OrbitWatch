@@ -216,6 +216,50 @@ export default function Dashboard({ onReset }) {
 
   const [showTonightFlyout, setShowTonightFlyout] = useState(false);
 
+  const [timeState, setTimeState] = useState({
+    localTime: '',
+    localZone: '',
+    obsTime: '',
+    obsZone: ''
+  });
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      
+      // Local time and zone
+      const lTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+      const localOffsetMin = -now.getTimezoneOffset();
+      const localOffsetHrs = localOffsetMin / 60;
+      const localOffsetSign = localOffsetHrs >= 0 ? '+' : '';
+      const lZone = `UTC${localOffsetSign}${localOffsetHrs.toFixed(1).replace('.0', '')}`;
+      
+      // Observer time and zone based on longitude
+      let oTime = '--:--:--';
+      let oZone = 'UTC+0';
+      if (location) {
+        const offsetHours = location.lon / 15;
+        const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const obsDate = new Date(utcTime + (3600000 * offsetHours));
+        oTime = obsDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        
+        const obsOffsetSign = offsetHours >= 0 ? '+' : '';
+        oZone = `UTC${obsOffsetSign}${offsetHours.toFixed(1).replace('.0', '')}`;
+      }
+      
+      setTimeState({
+        localTime: lTime,
+        localZone: lZone,
+        obsTime: oTime,
+        obsZone: oZone
+      });
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, [location]);
+
   const toggleCollapsed = () => {
     setIsCollapsed(prev => {
       const next = !prev;
@@ -653,6 +697,26 @@ export default function Dashboard({ onReset }) {
           </div>
 
           <div className="ml-auto flex items-center gap-2">
+            {/* Control Clocks */}
+            <div className="hidden md:flex items-center gap-3 mr-2 border-r border-white/[0.08] pr-3 select-none">
+              <div className="flex flex-col items-end">
+                <span className="text-[7px] font-sans text-muted uppercase tracking-wider font-bold">
+                  LCL <span className="text-[6.5px] text-white/30">({timeState.localZone})</span>
+                </span>
+                <span className="font-mono text-[10.5px] font-bold text-text-primary tracking-wider tabular-nums mt-0.5">
+                  {timeState.localTime || '--:--:--'}
+                </span>
+              </div>
+              <div className="flex flex-col items-end">
+                <span className="text-[7px] font-sans text-muted uppercase tracking-wider font-bold">
+                  OBS <span className="text-[6.5px] text-cyan/50">({timeState.obsZone})</span>
+                </span>
+                <span className="font-mono text-[10.5px] font-bold text-cyan tracking-wider tabular-nums mt-0.5">
+                  {timeState.obsTime}
+                </span>
+              </div>
+            </div>
+
             {/* Cone toggle */}
             <button
               onClick={actions.toggleConeOverlay}
