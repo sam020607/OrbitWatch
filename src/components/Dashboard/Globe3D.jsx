@@ -7,62 +7,199 @@ import { generateOrbitalArc } from '../../utils/orbitMath.js';
 import { SAT_TYPE_CONFIG } from '../../data/mockSatellites.js';
 import { CONSTELLATIONS, getSubStellarPoint, getLocalCoordinates, getConstellationShape, getGMST } from '../../data/constellations.js';
 import worldData from '../../data/world.json';
+import { reverseGeocode } from '../../api/geocodeApi.js';
+import { MapPin, Globe, Loader2 } from 'lucide-react';
 
 /**
- * Animated ISS marker — pulses its outer halo scale 1→1.15→1 every 2s.
+ * Animated ISS marker — renders an HTML billboard dot that pulses and animates exactly like the flat map.
  */
-function AnimatedISSMarker({ position, onClick }) {
-  const haloRef = useRef();
-  useFrame(({ clock }) => {
-    if (haloRef.current) {
-      const t = (Math.sin(clock.getElapsedTime() * Math.PI) * 0.5 + 0.5); // 0→1→0
-      const s = 1 + t * 0.15;
-      haloRef.current.scale.setScalar(s);
-    }
+function AnimatedISSMarker({ position, onClick, isSelected }) {
+  const htmlRef = useRef(null);
+  const groupRef = useRef(null);
+
+  useFrame(({ camera }) => {
+    if (!groupRef.current || !htmlRef.current) return;
+    const worldPos = new THREE.Vector3();
+    groupRef.current.getWorldPosition(worldPos);
+    
+    // Calculate dot product to cull backface markers behind the earth
+    const camPos = camera.position;
+    const dot = worldPos.x * (camPos.x - worldPos.x) +
+                worldPos.y * (camPos.y - worldPos.y) +
+                worldPos.z * (camPos.z - worldPos.z);
+    const isFacing = dot > 0;
+    htmlRef.current.style.display = isFacing ? 'block' : 'none';
   });
+
   return (
-    <group position={position}>
-      {/* Core dot */}
-      <mesh onClick={onClick}>
-        <sphereGeometry args={[0.045, 16, 16]} />
-        <meshBasicMaterial color="#e0584f" />
-      </mesh>
-      {/* Inner glow halo */}
-      <mesh onClick={onClick}>
-        <sphereGeometry args={[0.07, 16, 16]} />
-        <meshBasicMaterial color="#e0584f" transparent opacity={0.7} />
-      </mesh>
-      {/* Pulsing outer halo */}
-      <mesh ref={haloRef} onClick={onClick}>
-        <sphereGeometry args={[0.095, 16, 16]} />
-        <meshBasicMaterial color="#e0584f" transparent opacity={0.3} />
-      </mesh>
+    <group ref={groupRef} position={position}>
+      <Html
+        ref={htmlRef}
+        center
+        distanceFactor={6}
+        style={{ pointerEvents: 'auto' }}
+      >
+        <div className="relative flex items-center justify-center">
+          <button
+            onClick={onClick}
+            className="iss-dot pointer-events-auto"
+            style={{ 
+              cursor: 'pointer',
+              border: isSelected ? '2px solid var(--text-primary)' : ''
+            }}
+          />
+          {isSelected && (
+            <svg viewBox="0 0 30 30" className="animate-spin-slow" style={{ position: 'absolute', width: '36px', height: '36px', pointerEvents: 'none' }}>
+              <path d="M 6 2 A 12 12 0 0 1 24 2" fill="none" stroke="#e0584f" strokeWidth="0.75" strokeDasharray="1.5, 1.5" />
+              <path d="M 24 28 A 12 12 0 0 1 6 28" fill="none" stroke="#e0584f" strokeWidth="0.75" strokeDasharray="1.5, 1.5" />
+              <line x1="2" y1="2" x2="6" y2="2" stroke="#e0584f" strokeWidth="1.2" />
+              <line x1="2" y1="2" x2="2" y2="6" stroke="#e0584f" strokeWidth="1.2" />
+              <line x1="28" y1="2" x2="24" y2="2" stroke="#e0584f" strokeWidth="1.2" />
+              <line x1="28" y1="2" x2="28" y2="6" stroke="#e0584f" strokeWidth="1.2" />
+              <line x1="2" y1="28" x2="6" y2="28" stroke="#e0584f" strokeWidth="1.2" />
+              <line x1="2" y1="28" x2="2" y2="24" stroke="#e0584f" strokeWidth="1.2" />
+              <line x1="28" y1="28" x2="24" y2="28" stroke="#e0584f" strokeWidth="1.2" />
+              <line x1="28" y1="28" x2="28" y2="24" stroke="#e0584f" strokeWidth="1.2" />
+            </svg>
+          )}
+        </div>
+      </Html>
     </group>
   );
 }
 
 /**
- * Satellite dot with a two-layer glow halo matching flat-map style.
+ * Satellite dot with flat CSS shadow-glow borders matching the flat-map.
  */
-function GlowDot({ position, color, glowColor, size, outerSize, innerOpacity, outerOpacity, onClick, children }) {
-  const finalGlowColor = glowColor || color;
+function GlowDot({ position, color, glowColor, onClick, children }) {
+  const htmlRef = useRef(null);
+  const groupRef = useRef(null);
+  const isSelected = color === '#ffffff'; // In SceneContent: color={isSelected ? '#ffffff' : color}
+  const dotColor = isSelected ? '#ffffff' : (glowColor || color);
+  const sizePx = isSelected ? 8 : 5;
+  const shadowColor = glowColor || color;
+
+  useFrame(({ camera }) => {
+    if (!groupRef.current || !htmlRef.current) return;
+    const worldPos = new THREE.Vector3();
+    groupRef.current.getWorldPosition(worldPos);
+
+    // Calculate dot product to cull backface markers behind the earth
+    const camPos = camera.position;
+    const dot = worldPos.x * (camPos.x - worldPos.x) +
+                worldPos.y * (camPos.y - worldPos.y) +
+                worldPos.z * (camPos.z - worldPos.z);
+    const isFacing = dot > 0;
+    htmlRef.current.style.display = isFacing ? 'block' : 'none';
+  });
+
   return (
-    <group position={position}>
-      {/* Core */}
-      <mesh onClick={onClick}>
-        <sphereGeometry args={[size, 8, 8]} />
-        <meshBasicMaterial color={color} />
-      </mesh>
-      {/* Inner glow */}
-      <mesh>
-        <sphereGeometry args={[outerSize * 0.65, 8, 8]} />
-        <meshBasicMaterial color={finalGlowColor} transparent opacity={innerOpacity} />
-      </mesh>
-      {/* Outer bloom */}
-      <mesh>
-        <sphereGeometry args={[outerSize, 8, 8]} />
-        <meshBasicMaterial color={finalGlowColor} transparent opacity={outerOpacity} />
-      </mesh>
+    <group ref={groupRef} position={position}>
+      <Html
+        ref={htmlRef}
+        center
+        distanceFactor={6}
+        style={{ pointerEvents: 'auto' }}
+      >
+        <div className="relative flex items-center justify-center">
+          <button
+            onClick={onClick}
+            className="relative transition-all duration-150 rounded-full focus:outline-none"
+            style={{
+              width: `${sizePx}px`,
+              height: `${sizePx}px`,
+              background: dotColor,
+              border: isSelected ? '1.5px solid var(--text-primary)' : 'none',
+              boxShadow: isSelected
+                ? `0 0 8px ${shadowColor}, 0 0 16px ${shadowColor}`
+                : `0 0 6px ${shadowColor}bf, 0 0 14px ${shadowColor}4d`,
+              cursor: 'pointer'
+            }}
+          />
+          {isSelected && (
+            <svg viewBox="0 0 30 30" className="animate-spin-slow" style={{ position: 'absolute', width: '36px', height: '36px', pointerEvents: 'none' }}>
+              <path d="M 6 2 A 12 12 0 0 1 24 2" fill="none" stroke={shadowColor} strokeWidth="0.75" strokeDasharray="1.5, 1.5" />
+              <path d="M 24 28 A 12 12 0 0 1 6 28" fill="none" stroke={shadowColor} strokeWidth="0.75" strokeDasharray="1.5, 1.5" />
+              <line x1="2" y1="2" x2="6" y2="2" stroke={shadowColor} strokeWidth="1.2" />
+              <line x1="2" y1="2" x2="2" y2="6" stroke={shadowColor} strokeWidth="1.2" />
+              <line x1="28" y1="2" x2="24" y2="2" stroke={shadowColor} strokeWidth="1.2" />
+              <line x1="28" y1="2" x2="28" y2="6" stroke={shadowColor} strokeWidth="1.2" />
+              <line x1="2" y1="28" x2="6" y2="28" stroke={shadowColor} strokeWidth="1.2" />
+              <line x1="2" y1="28" x2="2" y2="24" stroke={shadowColor} strokeWidth="1.2" />
+              <line x1="28" y1="28" x2="24" y2="28" stroke={shadowColor} strokeWidth="1.2" />
+              <line x1="28" y1="28" x2="28" y2="24" stroke={shadowColor} strokeWidth="1.2" />
+            </svg>
+          )}
+        </div>
+      </Html>
+      {children}
+    </group>
+  );
+}
+
+/**
+ * Asteroid dot with flat CSS shadow-glow borders matching the flat-map.
+ */
+function AsteroidHtmlMarker({ position, ast, isSelected, onClick, children }) {
+  const htmlRef = useRef(null);
+  const groupRef = useRef(null);
+  const color = ast.is_potentially_hazardous ? '#e0584f' : '#e0a847';
+  const dotColor = isSelected ? '#4d8dff' : color;
+  const sizePx = isSelected ? 8 : 5;
+
+  useFrame(({ camera }) => {
+    if (!groupRef.current || !htmlRef.current) return;
+    const worldPos = new THREE.Vector3();
+    groupRef.current.getWorldPosition(worldPos);
+
+    // Calculate dot product to cull backface markers behind the earth
+    const camPos = camera.position;
+    const dot = worldPos.x * (camPos.x - worldPos.x) +
+                worldPos.y * (camPos.y - worldPos.y) +
+                worldPos.z * (camPos.z - worldPos.z);
+    const isFacing = dot > 0;
+    htmlRef.current.style.display = isFacing ? 'block' : 'none';
+  });
+
+  return (
+    <group ref={groupRef} position={position}>
+      <Html
+        ref={htmlRef}
+        center
+        distanceFactor={6}
+        style={{ pointerEvents: 'auto' }}
+      >
+        <div className="relative flex items-center justify-center">
+          <button
+            onClick={onClick}
+            className="relative transition-all duration-150 rounded-full focus:outline-none"
+            style={{
+              width: `${sizePx}px`,
+              height: `${sizePx}px`,
+              background: dotColor,
+              border: isSelected ? '1.5px solid var(--text-primary)' : 'none',
+              boxShadow: isSelected
+                ? `0 0 8px ${dotColor}, 0 0 16px ${dotColor}`
+                : `0 0 6px ${color}bf, 0 0 14px ${color}4d`,
+              cursor: 'pointer'
+            }}
+          />
+          {isSelected && (
+            <svg viewBox="0 0 30 30" className="animate-spin-slow" style={{ position: 'absolute', width: '36px', height: '36px', pointerEvents: 'none' }}>
+              <path d="M 6 2 A 12 12 0 0 1 24 2" fill="none" stroke={dotColor} strokeWidth="0.75" strokeDasharray="1.5, 1.5" />
+              <path d="M 24 28 A 12 12 0 0 1 6 28" fill="none" stroke={dotColor} strokeWidth="0.75" strokeDasharray="1.5, 1.5" />
+              <line x1="2" y1="2" x2="6" y2="2" stroke={dotColor} strokeWidth="1.2" />
+              <line x1="2" y1="2" x2="2" y2="6" stroke={dotColor} strokeWidth="1.2" />
+              <line x1="28" y1="2" x2="24" y2="2" stroke={dotColor} strokeWidth="1.2" />
+              <line x1="28" y1="2" x2="28" y2="6" stroke={dotColor} strokeWidth="1.2" />
+              <line x1="2" y1="28" x2="6" y2="28" stroke={dotColor} strokeWidth="1.2" />
+              <line x1="2" y1="28" x2="2" y2="24" stroke={dotColor} strokeWidth="1.2" />
+              <line x1="28" y1="28" x2="24" y2="28" stroke={dotColor} strokeWidth="1.2" />
+              <line x1="28" y1="28" x2="28" y2="24" stroke={dotColor} strokeWidth="1.2" />
+            </svg>
+          )}
+        </div>
+      </Html>
       {children}
     </group>
   );
@@ -234,7 +371,7 @@ function ObserverPin({ position }) {
 /**
  * Interactive 3D scene elements.
  */
-function SceneContent() {
+function SceneContent({ isRelocating, setIsRelocating, isResolving, setIsResolving }) {
   const { state, actions } = useApp();
   const {
     location,
@@ -400,8 +537,42 @@ function SceneContent() {
     }
   });
 
-  const handleEarthClick = (e) => {
+  const handleEarthClick = async (e) => {
     e.stopPropagation();
+    if (isRelocating) {
+      if (isResolving) return;
+      // Ignore click if mouse dragged (e.g. rotating globe)
+      if (e.delta && e.delta > 5) return;
+      
+      setIsResolving(true);
+
+      let localPoint = e.point.clone();
+      if (earthRef.current) {
+        localPoint = earthRef.current.worldToLocal(localPoint);
+      }
+      
+      const { x, y, z } = localPoint;
+      const dist = Math.sqrt(x * x + y * y + z * z);
+      const phi = Math.acos(Math.max(-1, Math.min(1, y / dist)));
+      const lat = 90 - phi * (180 / Math.PI);
+      const theta = Math.atan2(x, z);
+      const lon = theta * (180 / Math.PI);
+      
+      try {
+        const name = await reverseGeocode(lat, lon);
+        actions.setLocation({ lat, lon });
+        actions.setLocationName(name);
+      } catch (err) {
+        console.error('[Relocate 3D] Geocoding failed:', err);
+        actions.setLocation({ lat, lon });
+        actions.setLocationName(`${lat.toFixed(4)}°, ${lon.toFixed(4)}°`);
+      } finally {
+        setIsResolving(false);
+        setIsRelocating(false);
+      }
+      return;
+    }
+
     if (viewMode === 'satellites') {
       actions.selectSatellite(null);
     } else if (viewMode === 'asteroids') {
@@ -482,7 +653,7 @@ function SceneContent() {
           {/* ISS Model Dot — animated pulse */}
           {issPos && (
             <>
-              <AnimatedISSMarker position={issPos} onClick={handleIssClick} />
+              <AnimatedISSMarker position={issPos} onClick={handleIssClick} isSelected={isIssSelected} />
               {/* HTML Hover Label positioned via a plain group */}
               <group position={issPos}>
                 <Html distanceFactor={6}>
@@ -574,19 +745,13 @@ function SceneContent() {
             };
 
             return (
-              <group key={ast.id} position={astPos}>
-                {/* Node */}
-                <mesh onClick={handleAsteroidClick}>
-                  <sphereGeometry args={[isSelected ? 0.04 : 0.025, 8, 8]} />
-                  <meshBasicMaterial color={color} />
-                </mesh>
-
-                {/* Pulsing halo */}
-                <mesh onClick={handleAsteroidClick}>
-                  <sphereGeometry args={[isSelected ? 0.08 : 0.05, 8, 8]} />
-                  <meshBasicMaterial color={color} transparent opacity={0.2} />
-                </mesh>
-
+              <AsteroidHtmlMarker
+                key={ast.id}
+                position={astPos}
+                ast={ast}
+                isSelected={isSelected}
+                onClick={handleAsteroidClick}
+              >
                 {/* HTML Hover/Select Tooltip */}
                 {isSelected && (
                   <Html distanceFactor={6}>
@@ -601,7 +766,7 @@ function SceneContent() {
                     </div>
                   </Html>
                 )}
-              </group>
+              </AsteroidHtmlMarker>
             );
           })}
 
@@ -716,10 +881,14 @@ function SceneContent() {
 export default function Globe3D({ className = '' }) {
   const { state, actions } = useApp();
   const {
+    location,
     selectedSatellite,
     selectedAsteroid,
     selectedConstellation
   } = state;
+
+  const [isRelocating, setIsRelocating] = useState(false);
+  const [isResolving, setIsResolving] = useState(false);
 
   const sunPos = useMemo(() => {
     const pos = getSunPosition();
@@ -745,12 +914,18 @@ export default function Globe3D({ className = '' }) {
   const shouldAutoRotate = globeSettings.autoRotate && !selectedSatellite && !selectedAsteroid && !selectedConstellation;
 
   return (
-    <div className={`relative bg-space ${className}`}>
+    <div 
+      className={`relative ${isRelocating ? 'cursor-crosshair' : ''} ${className}`}
+      style={{
+        background: 'radial-gradient(circle at center, #020409 0%, #000000 100%)'
+      }}
+    >
       {/* 3D WebGL Canvas */}
       <Canvas
         camera={{ position: [0, 3, 5], fov: 45 }}
         style={{ width: '100%', height: '100%', outline: 'none' }}
         onPointerMissed={() => {
+          if (isRelocating) return;
           actions.selectSatellite(null);
           actions.selectConstellation(null);
           actions.selectAsteroid(null);
@@ -772,7 +947,12 @@ export default function Globe3D({ className = '' }) {
         />
 
         {/* 3D Scene */}
-        <SceneContent />
+        <SceneContent
+          isRelocating={isRelocating}
+          setIsRelocating={setIsRelocating}
+          isResolving={isResolving}
+          setIsResolving={setIsResolving}
+        />
 
         {/* Camera interaction */}
         <OrbitControls
@@ -790,6 +970,49 @@ export default function Globe3D({ className = '' }) {
       <div className="absolute top-4 right-4 border-t-2 border-r-2 border-[#4d8dff]/40 w-4 h-4 pointer-events-none filter drop-shadow-[0_0_3px_rgba(77,141,255,0.4)]" />
       <div className="absolute bottom-4 left-4 border-b-2 border-l-2 border-[#4d8dff]/40 w-4 h-4 pointer-events-none filter drop-shadow-[0_0_3px_rgba(77,141,255,0.4)]" />
       <div className="absolute bottom-4 right-4 border-b-2 border-r-2 border-[#4d8dff]/40 w-4 h-4 pointer-events-none filter drop-shadow-[0_0_3px_rgba(77,141,255,0.4)]" />
+
+      {/* Top-Left Cluster Container */}
+      <div className="absolute top-3 left-3 z-[1000] flex flex-col gap-2 items-start pointer-events-none">
+        <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
+          {location && (
+            <div className="glass-panel flex items-center gap-1.5 px-2 py-1 rounded-md bg-surface/90 backdrop-blur border border-surface-border text-text-primary text-[10px] font-sans font-bold uppercase tracking-wider shadow-lg">
+              <MapPin className="w-3 h-3 text-cyan" />
+              <span>{location.name}</span>
+            </div>
+          )}
+
+          <button
+            onClick={() => setIsRelocating(prev => !prev)}
+            className={`glass-panel flex items-center gap-1.5 px-2 py-1 rounded-md bg-surface/90 backdrop-blur border transition-all text-[10px] font-sans font-bold uppercase tracking-wider shadow-lg pointer-events-auto hover:border-cyan
+              ${isRelocating 
+                ? 'border-accent-amber text-accent-amber animate-pulse' 
+                : 'border-surface-border text-text-secondary hover:text-text-primary'}`}
+            title="Click on the globe to relocate observer"
+            disabled={isResolving}
+          >
+            <Globe className="w-3 h-3 text-cyan" />
+            <span>{isRelocating ? 'Click Globe' : 'Relocate'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Relocate Mode Banner Overlay */}
+      {isRelocating && (
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-[1001] glass-panel px-4 py-2 rounded-lg bg-surface/95 border border-accent-amber shadow-2xl flex items-center gap-3 animate-fade-in pointer-events-auto">
+          <div className="w-2 h-2 rounded-full bg-accent-amber animate-ping" />
+          <span className="text-[10px] font-sans font-bold text-text-primary uppercase tracking-wider">
+            {isResolving ? 'Resolving new coordinates...' : 'Select Location: Click anywhere on the globe'}
+          </span>
+          {!isResolving && (
+            <button
+              onClick={() => setIsRelocating(false)}
+              className="px-2 py-0.5 rounded bg-white/5 border border-white/10 hover:bg-white/10 text-[9px] font-sans font-bold uppercase tracking-wider transition-colors text-text"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

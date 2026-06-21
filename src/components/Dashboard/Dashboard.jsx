@@ -17,6 +17,7 @@ import JournalPanel from '../JournalPanel/JournalPanel.jsx';
 import DiagnosticsPanel from './DiagnosticsPanel.jsx';
 import SettingsPanel from './SettingsPanel.jsx';
 import AIAssistant from './AIAssistant.jsx';
+import SatelliteBattles from '../../features/satellite-battles/SatelliteBattles.jsx';
 import { CONSTELLATIONS, getLocalCoordinates } from '../../data/constellations.js';
 import {
   Map, List, Star, Compass, Radio, RotateCcw,
@@ -125,6 +126,7 @@ const MOBILE_VIEWS = [
 const NAV_ITEMS = [
   { id: 'objects', label: 'Objects', icon: Satellite },
   { id: 'countdown', label: 'Telemetry', icon: Radio },
+  { id: 'battles', label: 'Battles', icon: Flame },
   { id: 'lookup', label: 'Look Up', icon: Compass },
   { id: 'report', label: 'Tonight', icon: Star },
   { id: 'journal', label: 'Journal', icon: Trophy },
@@ -145,6 +147,7 @@ const SECONDARY_ITEMS = [
 const RIGHT_PANEL_HEADERS = {
   objects: { label: "Overhead Objects", icon: Satellite },
   countdown: { label: "Next ISS Pass", icon: Radio },
+  battles: { label: "Satellite Battles", icon: Flame },
   lookup: { label: "Look Up Tracker", icon: Compass },
   report: { label: "Tonight's Sky", icon: Star },
   journal: { label: "Observer Journal", icon: Trophy },
@@ -606,7 +609,7 @@ export default function Dashboard({ onReset }) {
       <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
         {/* ── Top Navigation Bar ── */}
         <header className="relative flex items-center gap-3 px-4 py-2.5 shrink-0"
-          style={{ zIndex: 100, background: 'rgba(10,13,21,0.70)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          style={{ zIndex: 2000, background: 'rgba(10,13,21,0.70)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           {/* Logo (hidden on desktop, since rail shows it) */}
           <div className="flex items-center gap-2 lg:hidden">
             <Satellite className="w-5 h-5 text-cyan animate-pulse" />
@@ -623,15 +626,15 @@ export default function Dashboard({ onReset }) {
               onCancel={() => setShowSearch(false)}
             />
           ) : (
-            <div className="flex items-center gap-2 px-3 py-1 rounded-lg cursor-pointer hover:border-white/20 transition-colors glass-pill shrink-0"
+            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg cursor-pointer hover:border-white/20 transition-colors glass-pill shrink-0"
               onClick={() => setShowSearch(true)}
               title="Click to search and change location"
             >
-              <div className="w-2 h-2 rounded-full bg-cyan animate-pulse shrink-0" />
-              <span className="font-sans text-[11px] font-semibold text-text uppercase tracking-wider shrink-0 max-w-[250px] truncate">
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse shrink-0" />
+              <span className="font-sans text-[10px] font-semibold text-text uppercase tracking-wider shrink-0 max-w-[200px] truncate">
                 {location?.name || 'No location'}
               </span>
-              <span className="text-muted text-xs font-mono hidden md:block shrink-0">
+              <span className="text-muted text-[9px] font-mono hidden md:block shrink-0">
                 {location ? `${location.lat.toFixed(2)}°, ${location.lon.toFixed(2)}°` : ''}
               </span>
             </div>
@@ -756,16 +759,18 @@ export default function Dashboard({ onReset }) {
 
         {/* ── Main Content Area ── */}
         <div className="flex-1 flex overflow-hidden">
-          {/* ── Center: Map ── */}
+          {/* ── Center: Map / Battles ── */}
           <main className="flex-1 relative overflow-hidden">
-            {is3DMode ? (
+            {activeNav === 'battles' ? (
+              <SatelliteBattles is3DMode={is3DMode} />
+            ) : is3DMode ? (
               <Globe3D className="w-full h-full" />
             ) : (
               <GlobeMap className="w-full h-full" />
             )}
 
             {/* Right Sidebar Edge Handle Toggle */}
-            {!isChatOpen && (
+            {!isChatOpen && activeNav !== 'battles' && (
               <button
                 onClick={toggleRightPanel}
                 className="absolute right-0 top-1/2 -translate-y-1/2 z-[1000] w-8 h-20 bg-surface rounded-l-md flex items-center justify-center text-muted hover:text-text-primary transition-all shadow-md cursor-pointer group focus:outline-none border-0"
@@ -817,7 +822,7 @@ export default function Dashboard({ onReset }) {
           {/* ── Right Panel (desktop) ── */}
           <aside 
             className={`hidden lg:flex flex-col shrink-0 overflow-hidden transition-all duration-200 ease-in-out bg-surface
-              ${rightPanelOpen ? 'w-80' : 'w-0'}`}
+              ${(rightPanelOpen && activeNav !== 'battles') ? 'w-80' : 'w-0'}`}
           >
             <div className="w-80 h-full flex flex-col overflow-hidden">
                {/* Static Panel Header */}

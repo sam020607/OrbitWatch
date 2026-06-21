@@ -95,7 +95,8 @@ h1, h2, h3, h4, h5, h6 {
 /* ─── Leaflet Overrides ─────────────────────────────────────────────────── */
 .relocating-map .leaflet-container,
 .relocating-map .leaflet-grab,
-.relocating-map .leaflet-interactive {
+.relocating-map .leaflet-interactive,
+.cursor-crosshair canvas {
   cursor: crosshair !important;
 }
 
@@ -635,4 +636,11 @@ h1, h2, h3, h4, h5, h6 {
 
 .bg-surface\/95 {
   background-color: rgba(15, 22, 30, 0.95) !important;
+}
+
+.relocating-map .leaflet-container,
+.relocating-map .leaflet-grab,
+.relocating-map .leaflet-interactive,
+.cursor-crosshair canvas {
+  cursor: crosshair !important;
 }
