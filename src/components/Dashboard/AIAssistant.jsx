@@ -234,9 +234,10 @@ ${visibleSats || 'No satellites currently cataloged overhead.'}
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] bg-black/20 shrink-0">
               <div className="flex items-center gap-2">
                 <Terminal className="w-3.5 h-3.5 text-cyan" />
-                <span className="font-mono text-[10px] tracking-wider text-text uppercase font-semibold">
-                  AURA - Astronomical Universal Reconnaissance Assistant
-                </span>
+                <div className="flex flex-col leading-tight">
+                  <span className="font-mono text-[10px] tracking-widest text-text uppercase font-bold">AURA</span>
+                  <span className="font-sans text-[7px] tracking-wider text-muted uppercase font-normal">Astronomical Universal Reconnaissance Assistant</span>
+                </div>
                 <span className="flex items-center gap-1 bg-black/40 px-2 py-0.5 rounded-full border border-white/[0.04]">
                   <span className={`w-1 h-1 rounded-full ${isGuestMode ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400 shadow-[0_0_4px_#3fd6a0]'}`} />
                   <span className="text-[7px] font-sans font-bold text-muted uppercase tracking-wider">
