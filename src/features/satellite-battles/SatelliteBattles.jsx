@@ -77,8 +77,8 @@ export default function SatelliteBattles({ is3DMode }) {
 
       try {
         const [tA, tB] = await Promise.all([
-          fetchCelesTrakTLE(satA.satid),
-          fetchCelesTrakTLE(satB.satid)
+          fetchCelesTrakTLE(satA.satid, satA.satname),
+          fetchCelesTrakTLE(satB.satid, satB.satname)
         ]);
 
         if (!active) return;
