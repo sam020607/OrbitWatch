@@ -460,7 +460,12 @@ export default function LandingPage({ onLocationSet }) {
         </div>
 
         {/* 3D Hero Globe Background Layer - Positioned Bottom-Right & Cropped */}
-        <div className="absolute bottom-[-150px] right-[-120px] sm:bottom-[-200px] sm:right-[-160px] md:bottom-[-220px] md:right-[-150px] lg:bottom-[-250px] lg:right-[-180px] w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] md:w-[700px] md:h-[700px] lg:w-[900px] lg:h-[900px] pointer-events-none z-[1] overflow-hidden opacity-40 sm:opacity-50 md:opacity-95 transition-all duration-500 rounded-full flex justify-center items-center">
+        <div className="absolute bottom-[-150px] right-[-120px] sm:bottom-[-200px] sm:right-[-160px] md:bottom-[-220px] md:right-[-150px] lg:bottom-[-250px] lg:right-[-180px] w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] md:w-[700px] md:h-[700px] lg:w-[900px] lg:h-[900px] pointer-events-none z-[1] overflow-hidden opacity-40 sm:opacity-50 md:opacity-95 transition-all duration-500 rounded-full flex justify-center items-center"
+             style={{
+               filter: 'saturate(1.8) contrast(1.15) brightness(1.05) hue-rotate(-5deg)',
+               boxShadow: '0 0 100px 15px rgba(30, 120, 220, 0.45), inset 0 0 60px 10px rgba(30, 120, 220, 0.25)'
+             }}
+        >
           {mounted && (
             <Suspense fallback={
               /* Fallback static image */
@@ -486,7 +491,7 @@ export default function LandingPage({ onLocationSet }) {
         {/* Ambient Dark Atmospheric Vignette Overlay */}
         <div className="absolute inset-0 pointer-events-none z-[2]"
              style={{
-               background: 'radial-gradient(circle at 80% 80%, rgba(10, 13, 21, 0) 20%, rgba(10, 13, 21, 0.85) 90%), linear-gradient(to bottom, rgba(10, 13, 21, 0.3) 0%, rgba(10, 13, 21, 0.95) 100%)',
+               background: 'radial-gradient(ellipse at 75% 65%, transparent 20%, rgba(10, 13, 21, 0.88) 70%), linear-gradient(to bottom, rgba(10, 13, 21, 0.3) 0%, rgba(10, 13, 21, 0.95) 100%)',
              }}
         />
       </div>
