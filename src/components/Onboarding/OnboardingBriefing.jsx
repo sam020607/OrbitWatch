@@ -10,19 +10,31 @@ import {
   Terminal, 
   Cpu, 
   Navigation,
-  CheckCircle2
+  CheckCircle2,
+  Sliders,
+  Activity,
+  RotateCcw,
+  List,
+  Flame,
+  Moon,
+  Search,
+  Eye
 } from 'lucide-react';
 
 export default function OnboardingBriefing({ onComplete, observerLocation }) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isLaunching, setIsLaunching] = useState(false);
-  const [bootSequence, setBootSequence] = useState(0); // For startup glitches
+  const [bootSequence, setBootSequence] = useState(0);
+
+  // Map simulation state
+  const [simMode, setSimMode] = useState('3D');
+  const [simGrid, setSimGrid] = useState(true);
 
   // Startup boot logs simulation
   useEffect(() => {
-    const timer1 = setTimeout(() => setBootSequence(1), 300);
-    const timer2 = setTimeout(() => setBootSequence(2), 700);
-    const timer3 = setTimeout(() => setBootSequence(3), 1100);
+    const timer1 = setTimeout(() => setBootSequence(1), 350);
+    const timer2 = setTimeout(() => setBootSequence(2), 750);
+    const timer3 = setTimeout(() => setBootSequence(3), 1150);
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
@@ -32,24 +44,23 @@ export default function OnboardingBriefing({ onComplete, observerLocation }) {
 
   const slides = [
     {
-      title: "SYSTEM INITIALIZATION",
-      subtitle: "COORDINATES LOCKED",
+      title: "01 / BASE CALIBRATION",
+      subtitle: "OBSERVER STATION CONFIGURATION",
       icon: <Compass className="w-6 h-6 text-cyan" />,
-      description: "Welcome to Project Zenith Control Terminal. Your ground station coordinates have been successfully calibrated. You are now synced with global satellite ephemeris streams.",
+      description: "Welcome to Project Zenith Control Terminal. Your observation coordinate profile is locked in. The Reset Session button (white circle at sidebar bottom) allows you to clear the current coordinates and recalibrate to a new location at any time.",
       widget: (
         <div className="relative w-full h-44 flex flex-col items-center justify-center bg-black/40 rounded-2xl border border-white/5 overflow-hidden">
           {/* Pulsing radar lines */}
           <div className="absolute inset-0 flex items-center justify-center opacity-30">
             <div className="w-32 h-32 rounded-full border border-cyan animate-ping" />
             <div className="absolute w-24 h-24 rounded-full border border-cyan/60 animate-pulse" />
-            <div className="absolute w-12 h-12 rounded-full border border-cyan/40" />
           </div>
           
           {/* Tech readout */}
           <div className="relative z-10 font-mono text-center space-y-1.5 p-4">
             <div className="text-[10px] text-cyan/70 uppercase tracking-widest flex items-center justify-center gap-1.5">
               <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-              Telemetry Link: STABLE
+              Calibrated Coordinates Locked
             </div>
             <div className="text-sm font-bold text-white tracking-widest">
               LAT: {observerLocation?.lat?.toFixed(4) || "0.0000"}°
@@ -57,8 +68,13 @@ export default function OnboardingBriefing({ onComplete, observerLocation }) {
             <div className="text-sm font-bold text-white tracking-widest">
               LON: {observerLocation?.lon?.toFixed(4) || "0.0000"}°
             </div>
-            <div className="text-[9px] text-white/40 uppercase tracking-wider">
-              Station ID: {observerLocation?.name || "GENERIC_OBSERVER"}
+            
+            {/* Interactive Reset Mockup */}
+            <div className="mt-2.5 flex justify-center">
+              <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] text-white/50 tracking-wider">
+                <RotateCcw className="w-2.5 h-2.5 animate-spin-slow text-amber-500" />
+                <span>Reset Session Pill (Sidebar Bottom)</span>
+              </div>
             </div>
           </div>
           
@@ -68,41 +84,90 @@ export default function OnboardingBriefing({ onComplete, observerLocation }) {
       )
     },
     {
-      title: "ORBITAL TELEMETRY",
-      subtitle: "REAL-TIME TRACKING MAPS",
+      title: "02 / VISUALIZATION DECK",
+      subtitle: "2D MAP vs. 3D GLOBE OVERLAYS",
       icon: <Globe className="w-6 h-6 text-cyan" />,
-      description: "Track space infrastructure across standard 2D projections or fully interactive 3D globes. Observe ground footprint overlaps, visibility ranges, and orbital path predictions.",
+      description: "Toggle between 2D flat mercator maps (Leaflet) and 3D space globes (ThreeJS) using the mode selector in the top-left of the map screen. Use the overlay toggle switches to configure latitude graticule lines, Open Ocean twinkling stars, rotating sonar sweeps, and global city lights.",
       widget: (
-        <div className="relative w-full h-44 flex items-center justify-center bg-black/40 rounded-2xl border border-white/5 overflow-hidden">
-          {/* Simulated orbit path and satellite */}
-          <div className="relative w-36 h-36 rounded-full border border-dashed border-white/20 flex items-center justify-center">
-            {/* The Earth globe */}
-            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-cyan/20 to-blue-600/40 border border-cyan/30 flex items-center justify-center relative shadow-[0_0_20px_rgba(6,182,212,0.15)]">
-              <Globe className="w-8 h-8 text-cyan/40 animate-pulse" />
+        <div className="relative w-full h-44 flex flex-col items-center justify-center bg-black/40 rounded-2xl border border-white/5 p-4 overflow-hidden space-y-3">
+          {/* Toggle selectors mockup */}
+          <div className="flex items-center gap-3 relative z-10 w-full justify-center">
+            <button 
+              onClick={() => setSimMode(simMode === '2D' ? '3D' : '2D')}
+              className="px-3 py-1 rounded bg-cyan/10 border border-cyan/40 text-[9px] font-mono font-bold text-cyan tracking-wider hover:bg-cyan/20 transition-all"
+            >
+              MODE: {simMode}
+            </button>
+            <button 
+              onClick={() => setSimGrid(!simGrid)}
+              className={`px-3 py-1 rounded border text-[9px] font-mono font-bold tracking-wider transition-all ${
+                simGrid ? 'bg-white/10 border-white/30 text-white' : 'bg-transparent border-white/10 text-white/40'
+              }`}
+            >
+              GRID: {simGrid ? 'ON' : 'OFF'}
+            </button>
+          </div>
+
+          {/* Interactive display simulation */}
+          <div className="w-full max-w-[260px] h-20 rounded-lg bg-black/60 border border-white/10 flex items-center justify-center relative overflow-hidden">
+            {simGrid && (
+              <div className="absolute inset-0 bg-grid-pattern opacity-20 pointer-events-none" />
+            )}
+            
+            <div className="relative z-10 text-center font-mono text-[9px] text-white/60 space-y-1">
+              <div>Visualizing: {simMode === '3D' ? 'ThreeJS Spherical Globe' : 'Leaflet 2D Mercator Map'}</div>
+              <div className="text-cyan animate-pulse">
+                {simGrid ? ' Graticule Coordinates Enabled' : ' Coordinates Disabled'}
+              </div>
             </div>
             
-            {/* Rotating satellite indicator */}
-            <motion.div 
-              className="absolute w-full h-full"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-            >
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-                <div className="w-3 h-3 rounded-full bg-cyan shadow-[0_0_10px_#06b6d4] relative">
-                  <div className="absolute -inset-1 rounded-full border border-cyan/60 animate-ping" />
-                </div>
-                <span className="text-[7px] font-mono text-cyan tracking-widest mt-1 bg-black/80 px-1 rounded border border-cyan/20">SAT-1</span>
-              </div>
-            </motion.div>
+            {/* Twinkling ocean star mockup */}
+            <div className="absolute top-2 left-6 w-1 h-1 bg-white rounded-full animate-ping opacity-60" />
+            <div className="absolute bottom-3 right-8 w-1.5 h-1.5 bg-cyan rounded-full animate-pulse" />
           </div>
         </div>
       )
     },
     {
-      title: "SATELLITE BATTLES",
+      title: "03 / PASS FORECASTING",
+      subtitle: "OVERHEAD OBJECTS & COUNTDOWNS",
+      icon: <List className="w-6 h-6 text-cyan" />,
+      description: "The Overhead Objects panel displays active satellites crossing your sky, complete with speed, altitude, and visibility indicators. The Next ISS Pass panel renders a live countdown timer showing the precise hours, minutes, and seconds until the space station rises above your horizon.",
+      widget: (
+        <div className="relative w-full h-44 flex items-center justify-between bg-black/40 rounded-2xl border border-white/5 p-4 overflow-hidden gap-4">
+          {/* Scrollable list mockup */}
+          <div className="flex-1 h-full border border-white/5 rounded-xl bg-black/50 p-2 space-y-1.5 overflow-hidden font-mono text-[8px]">
+            <div className="text-cyan/60 border-b border-white/5 pb-1 uppercase tracking-widest text-[7px] font-bold">OVERHEAD SCAN</div>
+            <div className="flex justify-between text-white/80 bg-white/5 p-1 rounded">
+              <span>ISS (ZARYA)</span>
+              <span className="text-cyan font-bold">7.6 km/s</span>
+            </div>
+            <div className="flex justify-between text-white/50 p-1">
+              <span>STARLINK-3212</span>
+              <span>421 km</span>
+            </div>
+            <div className="flex justify-between text-white/50 p-1">
+              <span>CSS (TIANGONG)</span>
+              <span>380 km</span>
+            </div>
+          </div>
+          
+          {/* Ticking countdown clock mockup */}
+          <div className="w-[120px] h-full border border-white/5 rounded-xl bg-black/50 p-3 flex flex-col justify-center items-center font-mono space-y-1">
+            <span className="text-[7px] text-white/40 tracking-widest uppercase">NEXT ISS PASS</span>
+            <div className="text-sm font-bold text-cyan tracking-widest animate-pulse">02:14:52</div>
+            <span className="text-[6px] text-green-400 uppercase bg-green-950/40 border border-green-900/40 px-1.5 py-0.5 rounded-full">
+              VISIBLE PASS
+            </span>
+          </div>
+        </div>
+      )
+    },
+    {
+      title: "04 / SATELLITE BATTLES",
       subtitle: "HEAD-TO-HEAD DUEL METRICS",
-      icon: <Zap className="w-6 h-6 text-cyan" />,
-      description: "Initiate comparisons between any two spacecraft. Analyze Euclidean separation, compute closest approaches using background Web Workers, and review scores across 5 core orbit categories.",
+      icon: <Flame className="w-6 h-6 text-cyan" />,
+      description: "Choose any two satellites to initiate an orbital battle. Watch their paths split on the map (past track in faded opacity, future in bright). The dashboard computes live Euclidean separation and uses dedicated Web Workers to compute the closest encounter distance and ticking countdown.",
       widget: (
         <div className="relative w-full h-44 flex items-center justify-center bg-black/40 rounded-2xl border border-white/5 overflow-hidden px-4">
           <div className="w-full flex justify-between items-center relative max-w-xs">
@@ -130,19 +195,58 @@ export default function OnboardingBriefing({ onComplete, observerLocation }) {
               <span className="text-[8px] font-mono text-white/50 tracking-wider">TIANGONG</span>
             </div>
             
-            {/* Pulsing VS badge in background */}
+            {/* Scoreboard Preview */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -mt-6">
-              <span className="text-[10px] font-mono font-black italic tracking-widest text-white/25">VS ARENA</span>
+              <span className="text-[10px] font-mono font-black italic tracking-widest text-white/25">MIDAS SCORE: 3 - 2</span>
             </div>
           </div>
         </div>
       )
     },
     {
-      title: "OBSERVER JOURNAL",
-      subtitle: "ASTRONOMICAL RECORD KEEPER",
+      title: "05 / CELESTIAL ANALYSIS",
+      subtitle: "TONIGHT'S SKY & LOOK UP RADAR",
+      icon: <Moon className="w-6 h-6 text-cyan" />,
+      description: "Select the Look Up panel to lock on to a satellite and track its coordinates. The circular compass displays real-time Azimuth (degree direction) and Elevation (height above horizon). Toggle Tonight's Sky (Night Report) to review moon phase percentages, visible planets, and forecasted meteor shower counts.",
+      widget: (
+        <div className="relative w-full h-44 flex items-center justify-between bg-black/40 rounded-2xl border border-white/5 p-4 overflow-hidden gap-4">
+          {/* Compass Radar */}
+          <div className="w-32 h-32 rounded-full border border-white/10 flex items-center justify-center relative">
+            <div className="absolute top-1 font-mono text-[7px] text-white/40">N</div>
+            <div className="absolute bottom-1 font-mono text-[7px] text-white/40">S</div>
+            <div className="absolute left-1 font-mono text-[7px] text-white/40">W</div>
+            <div className="absolute right-1 font-mono text-[7px] text-white/40">E</div>
+            
+            {/* Dial line */}
+            <div className="w-[1px] h-20 bg-cyan/50 origin-bottom rotate-[45deg] relative -mt-10" />
+            <div className="absolute top-1/4 right-1/4 w-2 h-2 rounded-full bg-cyan animate-pulse shadow-[0_0_10px_#06b6d4]" />
+            <div className="absolute inset-2 rounded-full border border-dashed border-white/5" />
+          </div>
+
+          {/* Moon/Night report */}
+          <div className="flex-1 h-full border border-white/5 rounded-xl bg-black/50 p-2.5 flex flex-col justify-center space-y-1.5 font-mono text-[8px]">
+            <div className="text-cyan/60 uppercase tracking-widest text-[7px] font-bold">NIGHT REPORT</div>
+            <div className="flex items-center gap-1.5 text-white/70">
+              <span className="text-[10px]">🌗</span>
+              <span>Waning Gibbous (68%)</span>
+            </div>
+            <div className="flex justify-between text-white/55">
+              <span>Jupiter Visibility:</span>
+              <span className="text-green-400">Excellent</span>
+            </div>
+            <div className="flex justify-between text-white/55">
+              <span>Lyrids Showers:</span>
+              <span className="text-cyan font-bold">12/hr</span>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      title: "06 / SKY RECORD KEEPER",
+      subtitle: "OBSERVER JOURNAL & ACHIEVEMENTS",
       icon: <Award className="w-6 h-6 text-cyan" />,
-      description: "Log your real-world sightings directly into your encrypted browser database. Earn achievements, track planet visibilities, and climb the observer ranks.",
+      description: "When observing a satellite overhead, click the 'Log Spotting' button to record the observation into your local encrypted database. Unlock badges (First Contact, Space Explorer, Asteroid Hazard) as you complete logs, and level up your official Observer Rank.",
       widget: (
         <div className="relative w-full h-44 flex items-center justify-center bg-black/40 rounded-2xl border border-white/5 overflow-hidden">
           <div className="flex flex-col items-center space-y-2">
@@ -156,6 +260,48 @@ export default function OnboardingBriefing({ onComplete, observerLocation }) {
                 RANK UNLOCKED
               </span>
               <p className="text-xs text-white/80 font-bold tracking-wider mt-1">STARGAZER II</p>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      title: "07 / CORE DIAGNOSTICS & SETTINGS",
+      subtitle: "SYSTEM READOUTS & KEY VAULT",
+      icon: <Activity className="w-6 h-6 text-cyan" />,
+      description: "Open the Diagnostics panel to view live API status (N2YO, CelesTrak, NASA APOD) and monitor active memory and Web Worker threads. Use the Settings panel to add your custom API credential keys, adjust the globe auto-rotation speed, or toggle interface overlays.",
+      widget: (
+        <div className="relative w-full h-44 flex flex-col justify-between bg-black/40 rounded-2xl border border-white/5 p-3 overflow-hidden gap-2 font-mono text-[7px] text-green-400/90">
+          <div className="border-b border-white/5 pb-1 flex justify-between items-center text-white/40 text-[6px] tracking-widest uppercase">
+            <span>Core Admin Diagnostics console</span>
+            <span className="text-green-500 flex items-center gap-1">
+              <span className="w-1 h-1 bg-green-500 rounded-full animate-ping" />
+              SYS_OK
+            </span>
+          </div>
+          
+          <div className="flex-1 space-y-1">
+            <div className="flex justify-between border-b border-white/[0.02] pb-0.5">
+              <span>[API] n2yo.com/telemetry_gate_0</span>
+              <span className="text-green-500 font-bold">ONLINE (200 OK)</span>
+            </div>
+            <div className="flex justify-between border-b border-white/[0.02] pb-0.5">
+              <span>[THREAD] closest_approach_worker.ts</span>
+              <span className="text-cyan font-bold">READY (POOL 1)</span>
+            </div>
+            <div className="flex justify-between border-b border-white/[0.02] pb-0.5">
+              <span>[VAULT] credentials_storage_aes</span>
+              <span className="text-white/60 font-bold">ENCRYPTED</span>
+            </div>
+          </div>
+          
+          {/* Mock Settings Input Fields */}
+          <div className="flex gap-2 border-t border-white/5 pt-1.5">
+            <div className="flex-1 h-3 rounded bg-black/60 border border-white/10 flex items-center px-1 text-[6px] text-white/30 truncate">
+              VITE_GEMINI_API_KEY=••••••••••••
+            </div>
+            <div className="px-1.5 py-0.5 rounded bg-cyan/20 border border-cyan/40 text-cyan text-[5px] font-bold uppercase tracking-wider">
+              SAVED
             </div>
           </div>
         </div>
@@ -287,7 +433,7 @@ export default function OnboardingBriefing({ onComplete, observerLocation }) {
             </div>
 
             {/* Description Text */}
-            <div className="min-h-[72px] flex items-center">
+            <div className="min-h-[84px] flex items-center">
               <p className="text-white/60 text-xs md:text-sm leading-relaxed">
                 {slides[currentSlide].description}
               </p>
@@ -316,7 +462,7 @@ export default function OnboardingBriefing({ onComplete, observerLocation }) {
               {currentSlide > 0 ? (
                 <button
                   onClick={handlePrev}
-                  className="px-4 py-2 rounded-full border border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10 text-xs font-semibold text-white/80 transition-all active:scale-95 flex items-center gap-2"
+                  className="px-4 py-2 rounded-full border border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10 text-xs font-semibold text-white/80 transition-all active:scale-95 flex items-center gap-2 cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   Back
@@ -361,7 +507,7 @@ export default function OnboardingBriefing({ onComplete, observerLocation }) {
             {currentSlide < slides.length - 1 && (
               <button 
                 onClick={handleLaunch}
-                className="text-[10px] font-mono tracking-widest text-white/30 uppercase text-center hover:text-white/60 transition-colors focus:outline-none cursor-pointer"
+                className="text-[10px] font-mono tracking-widest text-white/30 uppercase text-center hover:text-white/60 transition-colors focus:outline-none cursor-pointer animate-pulse"
               >
                 Skip Briefing Sequence
               </button>
