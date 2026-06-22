@@ -23,7 +23,7 @@ function Toggle({ checked, onChange, id }) {
   );
 }
 
-export default function SettingsPanel() {
+export default function SettingsPanel({ onReplayBriefing }) {
   const { user, signOut, setShowAuthModal } = useAuth();
 
   // Local settings states synced with localStorage
@@ -358,6 +358,39 @@ export default function SettingsPanel() {
                 placeholder="password"
                 className="w-full px-3 py-1.5 rounded bg-black/45 border border-white/10 text-xs text-text-primary focus:outline-none focus:border-accent/50"
               />
+            </div>
+          </div>
+        </section>
+
+        {/* ── SECTION 5: SYSTEM WALKTHROUGH ── */}
+        <section className="space-y-2.5 border-t border-white/[0.04] pt-3">
+          <div className="flex items-center gap-2 text-[10px] font-sans font-bold uppercase tracking-wider text-muted px-1">
+            <Info className="w-3.5 h-3.5 text-cyan" />
+            <span>System Walkthrough</span>
+          </div>
+
+          <div
+            className="p-4 flex flex-col gap-3"
+            style={{
+              background: 'rgba(15, 22, 38, 0.55)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.03)',
+              borderRadius: '16px',
+              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.02)',
+            }}
+          >
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-semibold text-white">Replay Onboarding Briefing</span>
+              <span className="text-[10px] text-muted leading-relaxed">
+                Review the cinematic guide explaining the map layers, satellite battles, and observer journal functions.
+              </span>
+              <button
+                onClick={onReplayBriefing}
+                className="w-full mt-1.5 py-2 rounded-lg font-sans font-semibold text-[11px] uppercase tracking-wider transition-all focus:outline-none flex items-center justify-center gap-1.5 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white cursor-pointer"
+              >
+                Launch Mission Briefing
+              </button>
             </div>
           </div>
         </section>

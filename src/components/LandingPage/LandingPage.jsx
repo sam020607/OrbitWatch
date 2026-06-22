@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Globe, Music2, Facebook, Twitter, Youtube, Instagram } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
@@ -10,9 +10,6 @@ import VaporizeTextCycle, { Tag } from '../ui/vapour-text-effect.tsx';
 import LocationSearch from './LocationSearch.jsx';
 import { useApp } from '../../context/AppContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
-
-const HeroGlobe = React.lazy(() => import('../HeroGlobe.jsx'));
-import HeroStars from '../HeroStars.jsx';
 
 const POPULAR_LOCATIONS = [
   { name: 'New York', lat: 40.7128, lon: -74.0060 },
@@ -92,13 +89,6 @@ export default function LandingPage({ onLocationSet }) {
   const [resolvedName, setResolvedName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showInkOverlay, setShowInkOverlay] = useState(true);
-  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
-
-  useEffect(() => {
-    const handleResize = () => setIsDesktop(window.innerWidth >= 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Always dark mode — single Earth image
   const earthImg = `${import.meta.env.BASE_URL}earth_view_from_space.png`;
@@ -460,62 +450,27 @@ export default function LandingPage({ onLocationSet }) {
           </motion.div>
         </div>
 
-        {/* Twinkling Star Field Background Canvas - Behind the Earth */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
-          {mounted && <HeroStars />}
-        </div>
-
-        {/* Ambient Dark Atmospheric Vignette Overlay */}
-        <div className="absolute inset-0 pointer-events-none z-[2]"
-             style={{
-               background: 'radial-gradient(ellipse at 75% 65%, transparent 20%, rgba(10, 13, 21, 0.88) 70%), linear-gradient(to bottom, rgba(10, 13, 21, 0.3) 0%, rgba(10, 13, 21, 0.95) 100%)',
-             }}
-        />
-
-        {/* Soft Blue Atmospheric Limb Glow Sibling Div - Around the Earth */}
-        <div className="absolute bottom-[-150px] right-[-120px] sm:bottom-[-200px] sm:right-[-160px] md:bottom-[-220px] md:right-[-150px] lg:bottom-[-250px] lg:right-[-180px] w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] md:w-[700px] md:h-[700px] lg:w-[900px] lg:h-[900px] pointer-events-none z-[3] rounded-full filter blur-[35px] opacity-85"
-             style={{
-               background: 'radial-gradient(circle, rgba(30, 120, 255, 0.35) 60%, transparent 100%)',
-               border: '4px solid rgba(30, 120, 255, 0.4)'
-             }}
-        />
-
-        {/* 3D Hero Globe Background Layer - Positioned Bottom-Right & Cropped */}
-        <div className="absolute bottom-[-150px] right-[-120px] sm:bottom-[-200px] sm:right-[-160px] md:bottom-[-220px] md:right-[-150px] lg:bottom-[-250px] lg:right-[-180px] w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] md:w-[700px] md:h-[700px] lg:w-[900px] lg:h-[900px] pointer-events-none z-[4] overflow-hidden opacity-30 sm:opacity-40 md:opacity-65 transition-all duration-500 rounded-full flex justify-center items-center"
-             style={{
-               filter: 'saturate(1.4) contrast(1.05) brightness(0.85)',
-               boxShadow: '0 0 100px 15px rgba(30, 120, 255, 0.25), inset 0 0 60px 10px rgba(30, 120, 255, 0.15)'
-             }}
-        >
-          {mounted && (
-            <Suspense fallback={
-              /* Fallback static image */
-              <div className="w-full h-full rounded-full overflow-hidden flex justify-center items-start">
-                <div className="relative w-full h-full rounded-full"
-                     style={{
-                       boxShadow: '0 -40px 100px var(--accent-glow), inset 0 20px 50px var(--accent-glow)'
-                     }}
-                >
-                  <img 
-                    src={earthImg} 
-                    alt="Earth view from space" 
-                    className="w-full h-full object-cover transition-all duration-500 opacity-40"
-                  />
-                </div>
-              </div>
-            }>
-              <HeroGlobe />
-            </Suspense>
-          )}
-
-          {/* Screen overlay with radial gradient for city lights / ambient atmospheric blending */}
-          <div className="absolute inset-0 rounded-full pointer-events-none mix-blend-screen"
-               style={{
-                 background: 'radial-gradient(circle at 35% 60%, rgba(255, 180, 60, 0.08) 0%, rgba(80, 160, 255, 0.12) 50%, transparent 100%)'
-               }}
-          />
-        </div>
-
+        {/* Earth image: large, bottom-center, day-side in light theme, night-side in dark theme */}
+        {mounted && (
+          <motion.div
+            initial={{ opacity: 0, y: 200 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2, ease: 'easeOut', delay: 0.1 }}
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[160%] sm:w-[130%] md:w-[100%] lg:w-[85%] max-w-[1200px] pointer-events-none aspect-square rounded-full overflow-hidden z-1 flex justify-center items-start"
+          >
+            <div className="relative w-full h-full rounded-full"
+                 style={{
+                   boxShadow: '0 -40px 100px var(--accent-glow), inset 0 20px 50px var(--accent-glow)'
+                 }}
+            >
+              <img 
+                src={earthImg} 
+                alt="Earth view from space" 
+                className="w-full h-full object-cover transition-all duration-500"
+              />
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* 6-Card Feature Grid Section (Expanded real features list) */}

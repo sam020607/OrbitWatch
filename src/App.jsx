@@ -1,19 +1,47 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2, Satellite } from 'lucide-react';
-import { AppProvider } from './context/AppContext.jsx';
+import { AppProvider, useApp } from './context/AppContext.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import LandingPage from './components/LandingPage/LandingPage.jsx';
 import Dashboard from './components/Dashboard/Dashboard.jsx';
 import AuthPage from './components/Auth/AuthPage.jsx';
+import OnboardingBriefing from './components/Onboarding/OnboardingBriefing.jsx';
 
 /**
  * Inner app — rendered inside both AuthProvider and AppProvider.
- * Shows the AuthPage if not signed in, then the existing landing → dashboard flow.
+ * Shows the AuthPage if not signed in, then the existing landing → briefing → dashboard flow.
  */
 function AppInner() {
   const { user, loading, showAuthModal, setShowAuthModal } = useAuth();
-  const [hasLocation, setHasLocation] = useState(false);
+  const { state } = useApp();
+  const [appState, setAppState] = useState('landing'); // 'landing' | 'briefing' | 'dashboard'
+
+  // Route depending on user briefing status
+  const handleLocationSet = () => {
+    const isBriefed = localStorage.getItem('orbitwatch_briefed') === 'true';
+    if (isBriefed) {
+      setAppState('dashboard');
+    } else {
+      setAppState('briefing');
+    }
+  };
+
+  const handleBriefingComplete = () => {
+    localStorage.setItem('orbitwatch_briefed', 'true');
+    setAppState('dashboard');
+  };
+
+  const handleReset = () => {
+    setAppState('landing');
+  };
+
+  // Sync state if location is cleared externally
+  useEffect(() => {
+    if (!state.location) {
+      setAppState('landing');
+    }
+  }, [state.location]);
 
   // Firebase is resolving the persisted session — show a minimal splash
   if (loading) {
@@ -32,63 +60,81 @@ function AppInner() {
   }
 
   return (
-    <AppProvider>
-      <div className="relative w-full h-full overflow-hidden bg-transparent">
-        <AnimatePresence mode="wait">
-          {!hasLocation ? (
-            <motion.div
-              key="landing"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.5 }}
-              className="w-full h-full"
-            >
-              <LandingPage onLocationSet={() => setHasLocation(true)} />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="dashboard"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              className="w-full h-full"
-            >
-              <Dashboard onReset={() => setHasLocation(false)} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+    <div className="relative w-full h-full overflow-hidden bg-transparent">
+      <AnimatePresence mode="wait">
+        {appState === 'landing' && (
+          <motion.div
+            key="landing"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.5 }}
+            className="w-full h-full"
+          >
+            <LandingPage onLocationSet={handleLocationSet} />
+          </motion.div>
+        )}
 
-        {/* Global Auth Modal Overlay */}
-        <AnimatePresence>
-          {showAuthModal && (
-            <motion.div
-              key="auth-modal"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{ zIndex: 9999 }}
-              className="fixed inset-0"
-            >
-              <AuthPage isModal={true} onClose={() => setShowAuthModal(false)} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </AppProvider>
+        {appState === 'briefing' && (
+          <motion.div
+            key="briefing"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.4 }}
+            className="w-full h-full"
+          >
+            <OnboardingBriefing 
+              observerLocation={state.location}
+              onComplete={handleBriefingComplete} 
+            />
+          </motion.div>
+        )}
+
+        {appState === 'dashboard' && (
+          <motion.div
+            key="dashboard"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="w-full h-full"
+          >
+            <Dashboard onReset={handleReset} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Global Auth Modal Overlay */}
+      <AnimatePresence>
+        {showAuthModal && (
+          <motion.div
+            key="auth-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ zIndex: 9999 }}
+            className="fixed inset-0"
+          >
+            <AuthPage isModal={true} onClose={() => setShowAuthModal(false)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
 /**
- * App root — wraps everything in AuthProvider so useAuth() is available everywhere.
+ * App root — wraps everything in AuthProvider and AppProvider so useAuth() and useApp() are available everywhere.
  */
 export default function App() {
   return (
     <AuthProvider>
-      <AnimatePresence mode="wait">
-        <AppInner />
-      </AnimatePresence>
+      <AppProvider>
+        <AnimatePresence mode="wait">
+          <AppInner />
+        </AnimatePresence>
+      </AppProvider>
     </AuthProvider>
   );
 }

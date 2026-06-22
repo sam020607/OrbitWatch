@@ -869,7 +869,14 @@ export default function Dashboard({ onReset }) {
                     )}
                     {rightPanel === 'journal' && <JournalPanel />}
                     {rightPanel === 'diagnostics' && <DiagnosticsPanel />}
-                    {rightPanel === 'settings' && <SettingsPanel />}
+                    {rightPanel === 'settings' && (
+                      <SettingsPanel 
+                        onReplayBriefing={() => {
+                          localStorage.removeItem('orbitwatch_briefed');
+                          onReset();
+                        }}
+                      />
+                    )}
                   </motion.div>
                 </AnimatePresence>
               </div>
