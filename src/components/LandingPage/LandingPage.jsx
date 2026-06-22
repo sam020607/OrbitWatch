@@ -12,6 +12,7 @@ import { useApp } from '../../context/AppContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 
 const HeroGlobe = React.lazy(() => import('../HeroGlobe.jsx'));
+import HeroStars from '../HeroStars.jsx';
 
 const POPULAR_LOCATIONS = [
   { name: 'New York', lat: 40.7128, lon: -74.0060 },
@@ -459,10 +460,23 @@ export default function LandingPage({ onLocationSet }) {
           </motion.div>
         </div>
 
-        {/* 3D Hero Globe Background Layer - Positioned Bottom-Right & Cropped */}
-        <div className="absolute bottom-[-150px] right-[-120px] sm:bottom-[-200px] sm:right-[-160px] md:bottom-[-220px] md:right-[-150px] lg:bottom-[-250px] lg:right-[-180px] w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] md:w-[700px] md:h-[700px] lg:w-[900px] lg:h-[900px] pointer-events-none z-[1] overflow-hidden opacity-40 sm:opacity-50 md:opacity-95 transition-all duration-500 rounded-full flex justify-center items-center"
+        {/* Twinkling Star Field Background Canvas - Behind the Earth */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
+          {mounted && <HeroStars />}
+        </div>
+
+        {/* Soft Blue Atmospheric Limb Glow Sibling Div - Around the Earth */}
+        <div className="absolute bottom-[-150px] right-[-120px] sm:bottom-[-200px] sm:right-[-160px] md:bottom-[-220px] md:right-[-150px] lg:bottom-[-250px] lg:right-[-180px] w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] md:w-[700px] md:h-[700px] lg:w-[900px] lg:h-[900px] pointer-events-none z-[2] rounded-full filter blur-[35px] opacity-85"
              style={{
-               filter: 'saturate(1.8) contrast(1.15) brightness(1.05) hue-rotate(-5deg)',
+               background: 'radial-gradient(circle, rgba(30, 120, 255, 0.35) 60%, transparent 100%)',
+               border: '4px solid rgba(30, 120, 255, 0.4)'
+             }}
+        />
+
+        {/* 3D Hero Globe Background Layer - Positioned Bottom-Right & Cropped */}
+        <div className="absolute bottom-[-150px] right-[-120px] sm:bottom-[-200px] sm:right-[-160px] md:bottom-[-220px] md:right-[-150px] lg:bottom-[-250px] lg:right-[-180px] w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] md:w-[700px] md:h-[700px] lg:w-[900px] lg:h-[900px] pointer-events-none z-[3] overflow-hidden opacity-40 sm:opacity-50 md:opacity-95 transition-all duration-500 rounded-full flex justify-center items-center"
+             style={{
+               filter: 'saturate(2.2) contrast(1.2) brightness(1.1) hue-rotate(-8deg)',
                boxShadow: '0 0 100px 15px rgba(30, 120, 220, 0.45), inset 0 0 60px 10px rgba(30, 120, 220, 0.25)'
              }}
         >
@@ -486,10 +500,17 @@ export default function LandingPage({ onLocationSet }) {
               <HeroGlobe />
             </Suspense>
           )}
+
+          {/* Screen overlay with radial gradient for city lights / ambient atmospheric blending */}
+          <div className="absolute inset-0 rounded-full pointer-events-none mix-blend-screen"
+               style={{
+                 background: 'radial-gradient(circle at 65% 65%, rgba(255, 180, 60, 0.08) 0%, rgba(80, 160, 255, 0.12) 50%, transparent 100%)'
+               }}
+          />
         </div>
 
         {/* Ambient Dark Atmospheric Vignette Overlay */}
-        <div className="absolute inset-0 pointer-events-none z-[2]"
+        <div className="absolute inset-0 pointer-events-none z-[4]"
              style={{
                background: 'radial-gradient(ellipse at 75% 65%, transparent 20%, rgba(10, 13, 21, 0.88) 70%), linear-gradient(to bottom, rgba(10, 13, 21, 0.3) 0%, rgba(10, 13, 21, 0.95) 100%)',
              }}
