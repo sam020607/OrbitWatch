@@ -465,8 +465,15 @@ export default function LandingPage({ onLocationSet }) {
           {mounted && <HeroStars />}
         </div>
 
+        {/* Ambient Dark Atmospheric Vignette Overlay */}
+        <div className="absolute inset-0 pointer-events-none z-[2]"
+             style={{
+               background: 'radial-gradient(ellipse at 75% 65%, transparent 20%, rgba(10, 13, 21, 0.88) 70%), linear-gradient(to bottom, rgba(10, 13, 21, 0.3) 0%, rgba(10, 13, 21, 0.95) 100%)',
+             }}
+        />
+
         {/* Soft Blue Atmospheric Limb Glow Sibling Div - Around the Earth */}
-        <div className="absolute bottom-[-150px] right-[-120px] sm:bottom-[-200px] sm:right-[-160px] md:bottom-[-220px] md:right-[-150px] lg:bottom-[-250px] lg:right-[-180px] w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] md:w-[700px] md:h-[700px] lg:w-[900px] lg:h-[900px] pointer-events-none z-[2] rounded-full filter blur-[35px] opacity-85"
+        <div className="absolute bottom-[-150px] right-[-120px] sm:bottom-[-200px] sm:right-[-160px] md:bottom-[-220px] md:right-[-150px] lg:bottom-[-250px] lg:right-[-180px] w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] md:w-[700px] md:h-[700px] lg:w-[900px] lg:h-[900px] pointer-events-none z-[3] rounded-full filter blur-[35px] opacity-85"
              style={{
                background: 'radial-gradient(circle, rgba(30, 120, 255, 0.35) 60%, transparent 100%)',
                border: '4px solid rgba(30, 120, 255, 0.4)'
@@ -474,10 +481,10 @@ export default function LandingPage({ onLocationSet }) {
         />
 
         {/* 3D Hero Globe Background Layer - Positioned Bottom-Right & Cropped */}
-        <div className="absolute bottom-[-150px] right-[-120px] sm:bottom-[-200px] sm:right-[-160px] md:bottom-[-220px] md:right-[-150px] lg:bottom-[-250px] lg:right-[-180px] w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] md:w-[700px] md:h-[700px] lg:w-[900px] lg:h-[900px] pointer-events-none z-[3] overflow-hidden opacity-40 sm:opacity-50 md:opacity-95 transition-all duration-500 rounded-full flex justify-center items-center"
+        <div className="absolute bottom-[-150px] right-[-120px] sm:bottom-[-200px] sm:right-[-160px] md:bottom-[-220px] md:right-[-150px] lg:bottom-[-250px] lg:right-[-180px] w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] md:w-[700px] md:h-[700px] lg:w-[900px] lg:h-[900px] pointer-events-none z-[4] overflow-hidden opacity-30 sm:opacity-40 md:opacity-65 transition-all duration-500 rounded-full flex justify-center items-center"
              style={{
-               filter: 'saturate(1.6) contrast(1.25) brightness(1.35) hue-rotate(0deg)',
-               boxShadow: '0 0 100px 15px rgba(30, 120, 255, 0.35), inset 0 0 60px 10px rgba(30, 120, 255, 0.2)'
+               filter: 'saturate(1.4) contrast(1.05) brightness(0.85)',
+               boxShadow: '0 0 100px 15px rgba(30, 120, 255, 0.25), inset 0 0 60px 10px rgba(30, 120, 255, 0.15)'
              }}
         >
           {mounted && (
@@ -509,12 +516,6 @@ export default function LandingPage({ onLocationSet }) {
           />
         </div>
 
-        {/* Ambient Dark Atmospheric Vignette Overlay */}
-        <div className="absolute inset-0 pointer-events-none z-[4]"
-             style={{
-               background: 'radial-gradient(ellipse at 75% 65%, transparent 20%, rgba(10, 13, 21, 0.88) 70%), linear-gradient(to bottom, rgba(10, 13, 21, 0.3) 0%, rgba(10, 13, 21, 0.95) 100%)',
-             }}
-        />
       </div>
 
       {/* 6-Card Feature Grid Section (Expanded real features list) */}
