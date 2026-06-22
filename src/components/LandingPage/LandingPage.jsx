@@ -220,7 +220,7 @@ export default function LandingPage({ onLocationSet }) {
           >
             <div className="relative w-full max-w-[800px] h-[120px] md:h-[150px] flex items-center justify-center">
               <VaporizeTextCycle
-                texts={["Know what's overhead.", "Project Zenith", "The Celestial Eye"]}
+                texts={["Know what's overhead.", "Track active orbits.", "Predict visible passes.", "Compare satellite paths."]}
                 font={{
                   fontFamily: "'Playfair Display', serif",
                   fontSize: "64px",
@@ -239,7 +239,15 @@ export default function LandingPage({ onLocationSet }) {
                 tag={Tag.H1}
               />
             </div>
-            <p className="text-[var(--text-secondary)] text-sm md:text-base font-light max-w-md mx-auto mt-4 animate-fade-in">
+            
+            {/* Static Subtitle always present below the vaporize title */}
+            <p className="text-white font-mono text-[10px] md:text-xs uppercase tracking-[0.25em] font-semibold mt-4 animate-fade-in flex items-center justify-center gap-2">
+              <span className="text-cyan">Project Zenith</span>
+              <span className="text-white/30">•</span>
+              <span className="text-white/70 font-light">The Celestial Eye</span>
+            </p>
+
+            <p className="text-[var(--text-secondary)] text-xs md:text-sm font-light max-w-md mx-auto mt-2 animate-fade-in opacity-80">
               Real-time satellite tracking &amp; personal sky visibility — anywhere on Earth
             </p>
           </motion.div>

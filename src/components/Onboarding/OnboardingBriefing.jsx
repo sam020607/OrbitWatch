@@ -333,7 +333,7 @@ export default function OnboardingBriefing({ onComplete, observerLocation }) {
 
   if (bootSequence < 3) {
     return (
-      <div className="fixed inset-0 bg-[#070a12] z-[9999] flex flex-col justify-center items-center font-mono text-[10px] text-cyan/70 select-none">
+      <div className="fixed inset-0 backdrop-blur-[10px] bg-black/60 z-[9999] flex flex-col justify-center items-center font-mono text-[10px] text-cyan/70 select-none">
         <div className="w-[280px] space-y-2 border border-cyan/15 bg-black/40 p-4 rounded-xl backdrop-blur-md shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-1 bg-cyan rounded-br-lg" />
           <div className="absolute top-0 right-0 w-1 h-1 bg-cyan rounded-bl-lg" />
@@ -379,7 +379,7 @@ export default function OnboardingBriefing({ onComplete, observerLocation }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-[#070a12] z-[9999] flex flex-col justify-center items-center select-none overflow-hidden font-sans">
+    <div className="fixed inset-0 backdrop-blur-[10px] bg-black/60 z-[9999] flex flex-col justify-center items-center select-none overflow-hidden font-sans">
       
       {/* Cinematic Starfield & Scanlines Background */}
       <div className="absolute inset-0 bg-space-stars opacity-40 pointer-events-none z-0" />
@@ -434,7 +434,7 @@ export default function OnboardingBriefing({ onComplete, observerLocation }) {
 
             {/* Description Text */}
             <div className="min-h-[64px] flex items-center">
-              <p className="text-white/60 text-[11px] md:text-xs leading-relaxed">
+              <p className="text-white/50 text-[10px] md:text-[11px] leading-relaxed">
                 {slides[currentSlide].description}
               </p>
             </div>

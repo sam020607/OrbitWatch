@@ -15,31 +15,33 @@ import OnboardingBriefing from './components/Onboarding/OnboardingBriefing.jsx';
 function AppInner() {
   const { user, loading, showAuthModal, setShowAuthModal } = useAuth();
   const { state } = useApp();
-  const [appState, setAppState] = useState('landing'); // 'landing' | 'briefing' | 'dashboard'
+  const [appState, setAppState] = useState('landing'); // 'landing' | 'dashboard'
+  const [showBriefing, setShowBriefing] = useState(false);
 
   // Route depending on user briefing status
   const handleLocationSet = () => {
     const isBriefed = localStorage.getItem('orbitwatch_briefed') === 'true';
-    if (isBriefed) {
-      setAppState('dashboard');
-    } else {
-      setAppState('briefing');
+    setAppState('dashboard');
+    if (!isBriefed) {
+      setShowBriefing(true);
     }
   };
 
   const handleBriefingComplete = () => {
     localStorage.setItem('orbitwatch_briefed', 'true');
-    setAppState('dashboard');
+    setShowBriefing(false);
   };
 
   const handleReset = () => {
     setAppState('landing');
+    setShowBriefing(false);
   };
 
   // Sync state if location is cleared externally
   useEffect(() => {
     if (!state.location) {
       setAppState('landing');
+      setShowBriefing(false);
     }
   }, [state.location]);
 
@@ -62,7 +64,7 @@ function AppInner() {
   return (
     <div className="relative w-full h-full overflow-hidden bg-transparent">
       <AnimatePresence mode="wait">
-        {appState === 'landing' && (
+        {appState === 'landing' ? (
           <motion.div
             key="landing"
             initial={{ opacity: 0 }}
@@ -73,25 +75,7 @@ function AppInner() {
           >
             <LandingPage onLocationSet={handleLocationSet} />
           </motion.div>
-        )}
-
-        {appState === 'briefing' && (
-          <motion.div
-            key="briefing"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.4 }}
-            className="w-full h-full"
-          >
-            <OnboardingBriefing 
-              observerLocation={state.location}
-              onComplete={handleBriefingComplete} 
-            />
-          </motion.div>
-        )}
-
-        {appState === 'dashboard' && (
+        ) : (
           <motion.div
             key="dashboard"
             initial={{ opacity: 0, y: 20 }}
@@ -105,6 +89,24 @@ function AppInner() {
         )}
       </AnimatePresence>
 
+      {/* Cinematic Onboarding Briefing Overlay */}
+      <AnimatePresence>
+        {showBriefing && (
+          <motion.div
+            key="briefing-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0"
+            style={{ zIndex: 9990 }}
+          >
+            <OnboardingBriefing 
+              observerLocation={state.location}
+              onComplete={handleBriefingComplete} 
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Global Auth Modal Overlay */}
       <AnimatePresence>
         {showAuthModal && (
