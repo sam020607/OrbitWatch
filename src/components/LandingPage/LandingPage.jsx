@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Globe, Music2, Facebook, Twitter, Youtube, Instagram } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
@@ -10,6 +10,8 @@ import VaporizeTextCycle, { Tag } from '../ui/vapour-text-effect.tsx';
 import LocationSearch from './LocationSearch.jsx';
 import { useApp } from '../../context/AppContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
+
+const HeroGlobe = React.lazy(() => import('../HeroGlobe.jsx'));
 
 const POPULAR_LOCATIONS = [
   { name: 'New York', lat: 40.7128, lon: -74.0060 },
@@ -450,27 +452,36 @@ export default function LandingPage({ onLocationSet }) {
           </motion.div>
         </div>
 
-        {/* Earth image: large, bottom-center, day-side in light theme, night-side in dark theme */}
-        {mounted && (
-          <motion.div
-            initial={{ opacity: 0, y: 200 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, ease: 'easeOut', delay: 0.1 }}
-            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[160%] sm:w-[130%] md:w-[100%] lg:w-[85%] max-w-[1200px] pointer-events-none aspect-square rounded-full overflow-hidden z-1 flex justify-center items-start"
-          >
-            <div className="relative w-full h-full rounded-full"
-                 style={{
-                   boxShadow: '0 -40px 100px var(--accent-glow), inset 0 20px 50px var(--accent-glow)'
-                 }}
-            >
-              <img 
-                src={earthImg} 
-                alt="Earth view from space" 
-                className="w-full h-full object-cover transition-all duration-500"
-              />
-            </div>
-          </motion.div>
-        )}
+        {/* 3D Hero Globe Background Layer */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1] flex justify-center items-center">
+          {mounted && (
+            <Suspense fallback={
+              /* Fallback static image */
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[160%] sm:w-[130%] md:w-[100%] lg:w-[85%] max-w-[1200px] aspect-square rounded-full overflow-hidden flex justify-center items-start">
+                <div className="relative w-full h-full rounded-full"
+                     style={{
+                       boxShadow: '0 -40px 100px var(--accent-glow), inset 0 20px 50px var(--accent-glow)'
+                     }}
+                >
+                  <img 
+                    src={earthImg} 
+                    alt="Earth view from space" 
+                    className="w-full h-full object-cover transition-all duration-500"
+                  />
+                </div>
+              </div>
+            }>
+              <HeroGlobe />
+            </Suspense>
+          )}
+        </div>
+
+        {/* Ambient Dark Atmospheric Vignette Overlay */}
+        <div className="absolute inset-0 pointer-events-none z-[2]"
+             style={{
+               background: 'radial-gradient(circle at center, rgba(10, 13, 21, 0) 40%, rgba(10, 13, 21, 0.8) 100%), linear-gradient(to bottom, rgba(10, 13, 21, 0.5) 0%, rgba(10, 13, 21, 0) 50%, rgba(10, 13, 21, 0.95) 100%)',
+             }}
+        />
       </div>
 
       {/* 6-Card Feature Grid Section (Expanded real features list) */}
