@@ -235,9 +235,9 @@ export default function LandingPage({ onLocationSet }) {
                 spread={4}
                 density={6}
                 animation={{
-                  vaporizeDuration: 1.2,
-                  fadeInDuration: 0.6,
-                  waitDuration: 1.8
+                  vaporizeDuration: 1.0,
+                  fadeInDuration: 0.8,
+                  waitDuration: 1.5
                 }}
                 direction="left-to-right"
                 alignment="center"

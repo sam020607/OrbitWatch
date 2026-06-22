@@ -129,7 +129,7 @@ export default function AuthPage({ isModal = false, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center overflow-hidden"
+      className="fixed inset-0 flex justify-center overflow-y-auto p-4 z-50"
       style={{
         background: isModal ? 'rgba(7, 10, 18, 0.72)' : '#070a12',
         backdropFilter: isModal ? 'blur(16px)' : 'none',
@@ -162,7 +162,7 @@ export default function AuthPage({ isModal = false, onClose }) {
         initial={{ opacity: 0, y: 24, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 w-full max-w-[420px] mx-4"
+        className="relative z-10 w-full max-w-[420px] my-auto mx-auto"
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking card content
       >
         <div style={{
@@ -182,9 +182,9 @@ export default function AuthPage({ isModal = false, onClose }) {
               id="auth-modal-close-btn"
               type="button"
               onClick={onClose}
-              className="absolute top-4 right-4 p-1 rounded-md text-muted hover:text-white hover:bg-white/5 transition-all focus:outline-none"
+              className="absolute top-4 right-4 p-2 rounded-md text-muted hover:text-white hover:bg-white/5 transition-all focus:outline-none cursor-pointer z-20"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           )}
 

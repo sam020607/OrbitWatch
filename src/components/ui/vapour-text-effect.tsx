@@ -68,6 +68,8 @@ type Particle = {
   angle: number;
   speed: number;
   shouldFadeQuickly?: boolean;
+  offsetX?: number;
+  offsetY?: number;
 };
 
 type TextBoundaries = {
@@ -245,17 +247,19 @@ export default function VaporizeTextCycle({
         }
         case "fadingIn": {
           fadeOpacityRef.current += deltaTime * 1000 / animationDurations.FADE_IN_DURATION;
+          const progress = Math.min(fadeOpacityRef.current, 1);
+          const easeProgress = 1 - Math.pow(1 - progress, 3); // cubic ease out
 
           // Use particles for fade-in
           ctx.save();
           ctx.scale(globalDpr, globalDpr);
           particlesRef.current.forEach(particle => {
-            particle.x = particle.originalX;
-            particle.y = particle.originalY;
-            const opacity = Math.min(fadeOpacityRef.current, 1) * particle.originalAlpha;
+            const px = particle.originalX + (particle.offsetX ?? 0) * (1 - easeProgress);
+            const py = particle.originalY + (particle.offsetY ?? 0) * (1 - easeProgress);
+            const opacity = progress * particle.originalAlpha;
             const color = particle.color.replace(/[\d.]+\)$/, `${opacity})`);
             ctx.fillStyle = color;
-            ctx.fillRect(particle.x / globalDpr, particle.y / globalDpr, 1, 1);
+            ctx.fillRect(px / globalDpr, py / globalDpr, 1, 1);
           });
           ctx.restore();
 
@@ -642,11 +646,18 @@ const createParticles = (
       if (alpha > 0) {
         // Remove density from opacity calculation
         const originalAlpha = alpha / 255 * (sampleRate / currentDPR);
+        const angle = Math.random() * Math.PI * 2;
+        const distance = Math.random() * 25 + 5; // 5 to 30 pixels offset
+        const offsetX = Math.cos(angle) * distance;
+        const offsetY = Math.sin(angle) * distance;
+
         const particle = {
           x,
           y,
           originalX: x,
           originalY: y,
+          offsetX,
+          offsetY,
           color: `rgba(${data[index]}, ${data[index + 1]}, ${data[index + 2]}, ${originalAlpha})`,
           opacity: originalAlpha,
           originalAlpha,

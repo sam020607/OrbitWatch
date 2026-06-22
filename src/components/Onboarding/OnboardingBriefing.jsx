@@ -20,6 +20,7 @@ import {
   Search,
   Eye
 } from 'lucide-react';
+import OnboardingSpaceBackground from './OnboardingSpaceBackground.jsx';
 
 export default function OnboardingBriefing({ onComplete, observerLocation }) {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -381,15 +382,8 @@ export default function OnboardingBriefing({ onComplete, observerLocation }) {
   return (
     <div className="fixed inset-0 backdrop-blur-[10px] bg-black/60 z-[9999] flex flex-col justify-center items-center select-none overflow-hidden font-sans">
       
-      {/* Cinematic Starfield & Scanlines Background */}
-      <div className="absolute inset-0 bg-space-stars opacity-40 pointer-events-none z-0" />
-      <div className="absolute inset-0 pointer-events-none z-1 bg-radial-vignette" />
-      <div className="absolute inset-0 pointer-events-none z-2"
-           style={{
-             backgroundImage: 'linear-gradient(rgba(18, 24, 38, 0) 50%, rgba(0, 0, 0, 0.25) 50%)',
-             backgroundSize: '100% 4px',
-           }}
-      />
+      {/* Cinematic Dynamic Starfield & Earth Canvas Background */}
+      <OnboardingSpaceBackground currentSlide={currentSlide} />
 
       {/* Cybernetic HUD elements */}
       <div className="absolute top-6 left-6 text-white/20 font-mono text-[8px] uppercase tracking-[0.25em] z-10 flex items-center gap-1.5">
