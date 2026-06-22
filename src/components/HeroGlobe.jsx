@@ -70,15 +70,48 @@ export default function HeroGlobe() {
         })
       );
       globeEl.current.scene().add(cloudsMesh);
-
-      function rotateClouds() {
-        if (cloudsMesh) {
-          cloudsMesh.rotation.y += (CLOUDS_ROTATION_SPEED * Math.PI) / 180;
-        }
-        animationFrameId = requestAnimationFrame(rotateClouds);
-      }
-      rotateClouds();
     });
+
+    // Generate sparkling particles on the globe surface to make it look alive/glittering
+    const SPARKLE_COUNT = 90;
+    const sparklesGroup = new THREE.Group();
+    const sparklesData = [];
+    const globeRadius = globeEl.current.getGlobeRadius();
+    const sparkleGeo = new THREE.SphereGeometry(0.35, 6, 6);
+
+    const colors = [0xffffff, 0x4db8ff, 0xffaa44, 0x88ffcc];
+
+    for (let i = 0; i < SPARKLE_COUNT; i++) {
+      const lat = (Math.random() - 0.5) * 140; // latitude (-70 to 70)
+      const lng = (Math.random() - 0.5) * 360; // longitude (-180 to 180)
+      
+      const phi = (90 - lat) * (Math.PI / 180);
+      const theta = (lng + 180) * (Math.PI / 180);
+      
+      const r = globeRadius * 1.0025; // slightly above surface
+      const x = -(r * Math.sin(phi) * Math.sin(theta));
+      const y = r * Math.cos(phi);
+      const z = r * Math.sin(phi) * Math.cos(theta);
+      
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const material = new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity: Math.random()
+      });
+      
+      const mesh = new THREE.Mesh(sparkleGeo, material);
+      mesh.position.set(x, y, z);
+      
+      sparklesGroup.add(mesh);
+      sparklesData.push({
+        mesh,
+        material,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.025 + Math.random() * 0.045
+      });
+    }
+    globeEl.current.scene().add(sparklesGroup);
 
     // Boost lighting contrast for that dramatic lit/shadow terminator
     const scene = globeEl.current.scene();
@@ -92,13 +125,33 @@ export default function HeroGlobe() {
       }
     });
 
+    // Unified Animation Loop
+    function animate() {
+      if (cloudsMesh) {
+        cloudsMesh.rotation.y += (CLOUDS_ROTATION_SPEED * Math.PI) / 180;
+      }
+
+      // Animate sparkles (pulsing opacity & scale to create a glittering effect)
+      sparklesData.forEach(s => {
+        s.phase += s.speed;
+        s.material.opacity = 0.15 + Math.abs(Math.sin(s.phase)) * 0.85;
+        const scale = 0.65 + Math.abs(Math.sin(s.phase)) * 0.7;
+        s.mesh.scale.set(scale, scale, scale);
+      });
+
+      animationFrameId = requestAnimationFrame(animate);
+    }
+    animate();
+
     // Clean up animation on unmount or mobile change
     return () => {
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
-      if (cloudsMesh && globeEl.current) {
-        globeEl.current.scene().remove(cloudsMesh);
+      if (globeEl.current) {
+        const scene = globeEl.current.scene();
+        if (cloudsMesh) scene.remove(cloudsMesh);
+        scene.remove(sparklesGroup);
       }
     };
   }, [isMobile]);
