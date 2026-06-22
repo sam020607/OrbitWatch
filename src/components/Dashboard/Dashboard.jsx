@@ -202,6 +202,12 @@ export default function Dashboard({ onReset }) {
   const [rightPanel, setRightPanel] = useState('objects');
   const [showSearch, setShowSearch] = useState(false);
   const [is3DMode, setIs3DMode] = useState(false);
+
+  useEffect(() => {
+    if (activeNav === 'battles') {
+      setIs3DMode(true);
+    }
+  }, [activeNav]);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem('orbitwatch_nav_collapsed');
     return saved === null ? false : saved === 'true';

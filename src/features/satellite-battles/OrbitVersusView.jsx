@@ -301,7 +301,7 @@ export default function OrbitVersusView({
       {/* Atmosphere Vignette styling overlay */}
       <div className="absolute inset-0 pointer-events-none border border-white/5 rounded-l-2xl shadow-[inset_0_0_80px_rgba(0,0,0,0.85)] z-10" />
 
-      <Canvas camera={{ position: [0, 3, 7], fov: 45 }}>
+      <Canvas camera={{ position: [0, 3, 7], fov: 45, far: 2000 }}>
         <ambientLight intensity={0.6} />
         <directionalLight position={[5, 3, 5]} intensity={1.8} />
         <Stars radius={100} depth={50} count={2500} factor={4} saturation={0} fade speed={1} />
@@ -378,7 +378,7 @@ export default function OrbitVersusView({
           enablePan={false}
           enableZoom={true}
           minDistance={2.5}
-          maxDistance={12}
+          maxDistance={120}
           autoRotate={false}
         />
       </Canvas>

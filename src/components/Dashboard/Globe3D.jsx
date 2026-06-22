@@ -912,7 +912,7 @@ export default function Globe3D({ className = '' }) {
     >
       {/* 3D WebGL Canvas */}
       <Canvas
-        camera={{ position: [0, 3, 5], fov: 45 }}
+        camera={{ position: [0, 3, 5], fov: 45, far: 2000 }}
         style={{ width: '100%', height: '100%', outline: 'none' }}
         onPointerMissed={() => {
           if (isRelocating) return;
@@ -949,7 +949,7 @@ export default function Globe3D({ className = '' }) {
           enableZoom={true}
           enablePan={true}
           minDistance={2.5}
-          maxDistance={12}
+          maxDistance={120}
           autoRotate={shouldAutoRotate}
           autoRotateSpeed={globeSettings.speed}
         />
