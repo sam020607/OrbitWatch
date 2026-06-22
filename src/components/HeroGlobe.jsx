@@ -48,15 +48,28 @@ export default function HeroGlobe() {
     const altitude = isMobile ? 1.8 : 1.45;
     globeEl.current.pointOfView({ lat: 5, lng: 15, altitude }, 0);
 
-    // Customize globe material properties for realistic gloss/terrain contrast
-    const globeMaterial = globeEl.current.globeMaterial();
-    if (globeMaterial) {
-      globeMaterial.shininess = 35;
-      globeMaterial.specular = new THREE.Color(0x222222); // Subtler specular reflections
-      if (!isMobile) {
-        globeMaterial.bumpScale = 0.8; // Soft topographic details
+    // Bulletproof helper to retrieve the globe material
+    const getGlobeMaterial = () => {
+      if (!globeEl.current) return null;
+      if (typeof globeEl.current.globeMaterial === 'function') {
+        return globeEl.current.globeMaterial();
       }
-    }
+      if (globeEl.current.globeMaterial) {
+        return globeEl.current.globeMaterial;
+      }
+      let foundMaterial = null;
+      const scene = globeEl.current.scene();
+      if (scene) {
+        scene.traverse((child) => {
+          if (child.isMesh && child.material && !child.material.transparent) {
+            foundMaterial = child.material;
+          }
+        });
+      }
+      return foundMaterial;
+    };
+
+    let materialConfigured = false;
 
     // Add a transparent rotating cloud layer above the globe surface
     const CLOUDS_IMG_URL = '//unpkg.com/three-globe/example/img/clouds.png';
@@ -211,6 +224,19 @@ export default function HeroGlobe() {
 
     // Unified Animation Loop
     function animate() {
+      // Configure globe material once it is loaded
+      if (!materialConfigured) {
+        const globeMaterial = getGlobeMaterial();
+        if (globeMaterial) {
+          globeMaterial.shininess = 35;
+          globeMaterial.specular = new THREE.Color(0x222222); // Subtler specular reflections
+          if (!isMobile) {
+            globeMaterial.bumpScale = 0.8; // Soft topographic details
+          }
+          materialConfigured = true;
+        }
+      }
+
       // Adjust standard lights dynamically once WebGL mounts them
       if (!lightsConfigured) {
         const scene = globeEl.current.scene();
