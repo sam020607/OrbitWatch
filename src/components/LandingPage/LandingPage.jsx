@@ -91,6 +91,13 @@ export default function LandingPage({ onLocationSet }) {
   const [resolvedName, setResolvedName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showInkOverlay, setShowInkOverlay] = useState(true);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Always dark mode — single Earth image
   const earthImg = `${import.meta.env.BASE_URL}earth_view_from_space.png`;
@@ -211,16 +218,16 @@ export default function LandingPage({ onLocationSet }) {
       <div id="hero-section" className="relative w-full min-h-[85vh] pt-16 pb-24 flex flex-col justify-start items-center overflow-hidden border-b border-[var(--surface-border)] bg-[var(--bg)] transition-colors duration-300">
         
         {/* Content Container (Tightened pb) */}
-        <div className="relative w-full max-w-4xl flex-1 flex flex-col items-center justify-center px-4 pt-8 pb-16 z-10">
+        <div className="relative w-full max-w-4xl flex-1 flex flex-col items-center md:items-start justify-center px-6 md:pl-10 lg:pl-16 pt-8 pb-16 z-10">
           
           {/* Headline with Vaporize Effect */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-center mb-6 select-none w-full flex flex-col items-center justify-center"
+            className="text-center md:text-left mb-6 select-none w-full flex flex-col items-center md:items-start justify-center"
           >
-            <div className="relative w-full max-w-[800px] h-[120px] md:h-[150px] flex items-center justify-center">
+            <div className="relative w-full max-w-[800px] h-[120px] md:h-[150px] flex items-center justify-center md:justify-start">
               <VaporizeTextCycle
                 texts={["Know what's overhead.", "Project Zenith", "The Celestial Eye"]}
                 font={{
@@ -237,11 +244,11 @@ export default function LandingPage({ onLocationSet }) {
                   waitDuration: 3
                 }}
                 direction="left-to-right"
-                alignment="center"
+                alignment={isDesktop ? "left" : "center"}
                 tag={Tag.H1}
               />
             </div>
-            <p className="text-[var(--text-secondary)] text-sm md:text-base font-light max-w-md mx-auto mt-4 animate-fade-in">
+            <p className="text-[var(--text-secondary)] text-sm md:text-base font-light max-w-md md:mx-0 mx-auto mt-4 animate-fade-in">
               Real-time satellite tracking &amp; personal sky visibility — anywhere on Earth
             </p>
           </motion.div>
@@ -251,7 +258,7 @@ export default function LandingPage({ onLocationSet }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.35 }}
-            className="relative flex bg-[var(--surface)] border border-[var(--surface-border)] rounded-full p-1 mb-6 z-20"
+            className="relative flex bg-[var(--surface)] border border-[var(--surface-border)] rounded-full p-1 mb-6 z-20 md:self-start"
           >
             <button
               onClick={() => setMethod('search')}
@@ -276,10 +283,10 @@ export default function LandingPage({ onLocationSet }) {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45, duration: 0.5 }}
-            className="relative w-full max-w-xl flex flex-col items-center mb-4 min-h-[140px] z-30"
+            className="relative w-full max-w-xl flex flex-col items-center md:items-start mb-4 min-h-[140px] z-30"
           >
             {method === 'search' ? (
-              <div className="w-full flex flex-col items-center gap-4">
+              <div className="w-full flex flex-col items-center md:items-start gap-4">
                 <LocationSearch 
                   onLocationSelect={handleLocationSelect} 
                   variant="hero" 
@@ -288,12 +295,12 @@ export default function LandingPage({ onLocationSet }) {
                 
                 {/* Popular locations quick-select */}
                 {!searchQuery && (
-                  <div className="w-full flex flex-col items-center gap-6">
+                  <div className="w-full flex flex-col items-center md:items-start gap-6">
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="relative flex flex-wrap justify-center gap-2 mt-2 z-10"
+                      className="relative flex flex-wrap justify-center md:justify-start gap-2 mt-2 z-10"
                     >
                       <span className="text-[var(--text-secondary)] text-xs self-center font-sans tracking-wider" style={{ fontSize: 10 }}>QUICK:</span>
                       {POPULAR_LOCATIONS.map(loc => (
@@ -309,7 +316,7 @@ export default function LandingPage({ onLocationSet }) {
 
                     {/* Scroll cue indicator right after the quick tab */}
                     <motion.div 
-                      className="flex flex-col items-center gap-1 cursor-pointer select-none z-20"
+                      className="flex flex-col items-center md:items-start gap-1 cursor-pointer select-none z-20 md:pl-2"
                       animate={{ 
                         y: [0, 6, 0],
                         opacity: [0.35, 0.8, 0.35]
@@ -332,7 +339,7 @@ export default function LandingPage({ onLocationSet }) {
                     >
                       <span className="text-[10px] font-sans tracking-[0.25em] uppercase text-[var(--text-secondary)] opacity-60 mb-0.5">explore the data</span>
                       <svg 
-                        className="w-4 h-4 text-[var(--text-secondary)] opacity-75" 
+                        className="w-4 h-4 text-[var(--text-secondary)] opacity-75 md:mx-auto" 
                         fill="none" 
                         stroke="currentColor" 
                         strokeWidth="2.5" 
@@ -452,12 +459,12 @@ export default function LandingPage({ onLocationSet }) {
           </motion.div>
         </div>
 
-        {/* 3D Hero Globe Background Layer */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1] flex justify-center items-center">
+        {/* 3D Hero Globe Background Layer - Positioned Bottom-Right & Cropped */}
+        <div className="absolute bottom-[-150px] right-[-120px] sm:bottom-[-200px] sm:right-[-160px] md:bottom-[-220px] md:right-[-150px] lg:bottom-[-250px] lg:right-[-180px] w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] md:w-[700px] md:h-[700px] lg:w-[900px] lg:h-[900px] pointer-events-none z-[1] overflow-hidden opacity-40 sm:opacity-50 md:opacity-95 transition-all duration-500 rounded-full flex justify-center items-center">
           {mounted && (
             <Suspense fallback={
               /* Fallback static image */
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[160%] sm:w-[130%] md:w-[100%] lg:w-[85%] max-w-[1200px] aspect-square rounded-full overflow-hidden flex justify-center items-start">
+              <div className="w-full h-full rounded-full overflow-hidden flex justify-center items-start">
                 <div className="relative w-full h-full rounded-full"
                      style={{
                        boxShadow: '0 -40px 100px var(--accent-glow), inset 0 20px 50px var(--accent-glow)'
@@ -466,7 +473,7 @@ export default function LandingPage({ onLocationSet }) {
                   <img 
                     src={earthImg} 
                     alt="Earth view from space" 
-                    className="w-full h-full object-cover transition-all duration-500"
+                    className="w-full h-full object-cover transition-all duration-500 opacity-40"
                   />
                 </div>
               </div>
@@ -479,7 +486,7 @@ export default function LandingPage({ onLocationSet }) {
         {/* Ambient Dark Atmospheric Vignette Overlay */}
         <div className="absolute inset-0 pointer-events-none z-[2]"
              style={{
-               background: 'radial-gradient(circle at center, rgba(10, 13, 21, 0) 40%, rgba(10, 13, 21, 0.8) 100%), linear-gradient(to bottom, rgba(10, 13, 21, 0.5) 0%, rgba(10, 13, 21, 0) 50%, rgba(10, 13, 21, 0.95) 100%)',
+               background: 'radial-gradient(circle at 80% 80%, rgba(10, 13, 21, 0) 20%, rgba(10, 13, 21, 0.85) 90%), linear-gradient(to bottom, rgba(10, 13, 21, 0.3) 0%, rgba(10, 13, 21, 0.95) 100%)',
              }}
         />
       </div>
