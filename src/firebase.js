@@ -14,11 +14,22 @@ const firebaseConfig = {
   appId:             import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+let app, auth, googleProvider, githubProvider;
 
-export const auth = getAuth(app);
+try {
+  if (!firebaseConfig.apiKey) {
+    throw new Error("VITE_FIREBASE_API_KEY is missing from .env");
+  }
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  googleProvider = new GoogleAuthProvider();
+  googleProvider.setCustomParameters({ prompt: 'select_account' });
+  githubProvider = new GithubAuthProvider();
+} catch (error) {
+  console.warn("Firebase is not configured:", error.message);
+  auth = { isMock: true };
+  googleProvider = null;
+  githubProvider = null;
+}
 
-export const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({ prompt: 'select_account' });
-
-export const githubProvider = new GithubAuthProvider();
+export { auth, googleProvider, githubProvider };

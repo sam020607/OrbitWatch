@@ -20,6 +20,10 @@ export function AuthProvider({ children }) {
 
   // Listen to auth state — Firebase restores session from localStorage automatically
   useEffect(() => {
+    if (!auth || auth.isMock) {
+      setUser(null);
+      return () => {};
+    }
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u ?? null);
     });
@@ -28,12 +32,14 @@ export function AuthProvider({ children }) {
 
   // Ensure persistence is set to local (survives browser restart)
   useEffect(() => {
+    if (!auth || auth.isMock) return;
     setPersistence(auth, browserLocalPersistence).catch(console.error);
   }, []);
 
   const clearError = () => setAuthError(null);
 
   const signInWithGoogle = async () => {
+    if (auth.isMock) throw new Error("Firebase is not configured. Please add your API keys to .env.");
     setAuthError(null);
     try {
       await signInWithPopup(auth, googleProvider);
@@ -44,6 +50,7 @@ export function AuthProvider({ children }) {
   };
 
   const signInWithGithub = async () => {
+    if (auth.isMock) throw new Error("Firebase is not configured. Please add your API keys to .env.");
     setAuthError(null);
     try {
       await signInWithPopup(auth, githubProvider);
@@ -54,6 +61,7 @@ export function AuthProvider({ children }) {
   };
 
   const signUpWithEmail = async (email, password, displayName) => {
+    if (auth.isMock) throw new Error("Firebase is not configured. Please add your API keys to .env.");
     setAuthError(null);
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -67,6 +75,7 @@ export function AuthProvider({ children }) {
   };
 
   const signInWithEmail = async (email, password) => {
+    if (auth.isMock) throw new Error("Firebase is not configured. Please add your API keys to .env.");
     setAuthError(null);
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -77,6 +86,7 @@ export function AuthProvider({ children }) {
   };
 
   const signOut = async () => {
+    if (auth.isMock) return;
     setAuthError(null);
     await firebaseSignOut(auth);
   };
