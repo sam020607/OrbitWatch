@@ -213,19 +213,19 @@ export default function LandingPage({ onLocationSet }) {
       </header>
 
       {/* Hero Section */}
-      <div id="hero-section" className="relative w-full min-h-[85vh] pt-16 pb-24 flex flex-col justify-start items-center overflow-hidden border-b border-[var(--surface-border)] bg-[var(--bg)] transition-colors duration-300">
+      <div id="hero-section" className="relative w-full min-h-[85vh] pt-12 pb-14 flex flex-col justify-start items-center overflow-hidden border-b border-[var(--surface-border)] bg-[var(--bg)] transition-colors duration-300">
         
         {/* Content Container (Tightened pb) */}
-        <div className="relative w-full max-w-4xl flex-1 flex flex-col items-center justify-center px-4 pt-8 pb-16 z-10">
+        <div className="relative w-full max-w-4xl flex-1 flex flex-col items-center justify-center px-4 pt-2 pb-6 z-10">
           
           {/* Headline with Vaporize Effect */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-center mb-6 select-none w-full flex flex-col items-center justify-center"
+            className="text-center mb-3 select-none w-full flex flex-col items-center justify-center"
           >
-            <div className="relative w-full max-w-[800px] h-[150px] md:h-[180px] flex items-center justify-center">
+            <div className="relative w-full max-w-[800px] h-[120px] md:h-[150px] flex items-center justify-center">
               <VaporizeTextCycle
                 texts={[
                   "Know what's\noverhead.", 
@@ -269,7 +269,7 @@ export default function LandingPage({ onLocationSet }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.35 }}
-            className="relative flex bg-[var(--surface)] border border-[var(--surface-border)] rounded-full p-1 mb-6 z-20"
+            className="relative flex bg-[var(--surface)] border border-[var(--surface-border)] rounded-full p-1 mb-3 z-20"
           >
             <button
               onClick={() => setMethod('search')}

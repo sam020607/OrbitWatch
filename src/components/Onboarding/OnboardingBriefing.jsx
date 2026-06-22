@@ -20,8 +20,6 @@ import {
   Search,
   Eye
 } from 'lucide-react';
-import OnboardingSpaceBackground from './OnboardingSpaceBackground.jsx';
-
 export default function OnboardingBriefing({ onComplete, observerLocation }) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isLaunching, setIsLaunching] = useState(false);
@@ -332,217 +330,241 @@ export default function OnboardingBriefing({ onComplete, observerLocation }) {
     }, 1800);
   };
 
-  if (bootSequence < 3) {
-    return (
-      <div className="fixed inset-0 z-[9999] flex flex-col justify-center items-center font-mono text-[10px] text-cyan/70 select-none"
-           style={{
-             backdropFilter: 'blur(6px) brightness(0.85)',
-             WebkitBackdropFilter: 'blur(6px) brightness(0.85)',
-             backgroundColor: 'rgba(0, 0, 0, 0.45)',
-           }}>
-        <div className="w-[280px] space-y-2 border border-cyan/15 bg-black/40 p-4 rounded-xl backdrop-blur-md shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1 h-1 bg-cyan rounded-br-lg" />
-          <div className="absolute top-0 right-0 w-1 h-1 bg-cyan rounded-bl-lg" />
-          <div className="absolute bottom-0 left-0 w-1 h-1 bg-cyan rounded-tr-lg" />
-          <div className="absolute bottom-0 right-0 w-1 h-1 bg-cyan rounded-tl-lg" />
-          
-          <div className="flex items-center gap-1.5 text-cyan font-bold tracking-wider mb-2.5">
-            <Cpu className="w-3.5 h-3.5 animate-spin-slow" />
-            <span>ZENITH BOOT SEQUENCE</span>
-          </div>
-
-          <div className="space-y-0.5 text-[9px]">
-            <div className="flex justify-between items-center">
-              <span>CRITICAL ELEMENTS CALIBRATION</span>
-              <span className="text-green-400 font-bold">READY</span>
-            </div>
-            {bootSequence >= 1 && (
-              <div className="flex justify-between items-center">
-                <span>ORBIT PROPAGATION ENGINE</span>
-                <span className="text-green-400 font-bold">CALIBRATED</span>
-              </div>
-            )}
-            {bootSequence >= 2 && (
-              <div className="flex justify-between items-center">
-                <span>MISSION BRIEFING LAYER</span>
-                <span className="text-cyan animate-pulse">DEPLOYING...</span>
-              </div>
-            )}
-          </div>
-          
-          {/* Micro Progress bar */}
-          <div className="w-full h-0.5 bg-white/5 rounded-full overflow-hidden mt-3">
-            <motion.div 
-              className="h-full bg-cyan"
-              initial={{ width: 0 }}
-              animate={{ width: bootSequence === 1 ? '40%' : bootSequence === 2 ? '80%' : '100%' }}
-              transition={{ duration: 0.4 }}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col justify-center items-center select-none overflow-hidden font-sans"
-         style={{
-           backdropFilter: 'blur(6px) brightness(0.85)',
-           WebkitBackdropFilter: 'blur(6px) brightness(0.85)',
-           backgroundColor: 'rgba(0, 0, 0, 0.45)',
-         }}>
+    <div className="fixed inset-0 z-[9999] flex flex-col justify-center items-center select-none overflow-hidden font-sans">
       
-      {/* Cinematic Dynamic Starfield & Earth Canvas Background */}
-      <OnboardingSpaceBackground currentSlide={currentSlide} />
+      {/* Cinematic dark background style injection */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        html, body {
+          background: #0c0c0c !important;
+          color: white !important;
+          overflow-x: hidden !important;
+          font-family: 'Inter', sans-serif !important;
+        }
+        body::before, body::after {
+          display: none !important;
+        }
+      `}</style>
 
-      {/* Cybernetic HUD elements */}
-      <div className="absolute top-6 left-6 text-white/20 font-mono text-[8px] uppercase tracking-[0.25em] z-10 flex items-center gap-1.5">
-        <Terminal className="w-3 h-3" />
-        <span>System: SECURE_ONBOARDING_INIT</span>
-      </div>
-      <div className="absolute bottom-6 right-6 text-white/20 font-mono text-[8px] uppercase tracking-[0.25em] z-10 flex items-center gap-1.5">
-        <Navigation className="w-3 h-3 animate-pulse text-cyan" />
-        <span>LOCATION LOCKED</span>
+      {/* Fullscreen looping background video */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+        <video autoPlay loop muted playsInline
+          style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'url(#c3-noise)' }}
+          src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260508_064122_c4750c0e-7476-4b44-94a2-a85a65c63bf2.mp4">
+        </video>
+        {/* Dark overlay so content stays legible */}
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(12,12,12,0.72)' }}></div>
       </div>
 
-      <AnimatePresence mode="wait">
-        {!isLaunching ? (
-          <motion.div
-            key="briefing-container"
-            initial={{ opacity: 0, scale: 0.96, y: 12 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: -15 }}
-            transition={{ type: 'spring', stiffness: 110, damping: 18 }}
-            className="w-[90%] max-w-[480px] liquid-glass p-7 rounded-[20px] z-10 shadow-[0_0_40px_rgba(6,182,212,0.08)] flex flex-col items-stretch space-y-5"
-          >
-            {/* Header / Subtitle row */}
-            <div className="flex items-start justify-between">
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-1.5 text-cyan">
-                  {slides[currentSlide].icon}
-                  <span className="text-[9px] font-mono font-bold tracking-[0.3em] uppercase">
-                    {slides[currentSlide].title}
-                  </span>
+      {/* Noise texture filter */}
+      <svg style={{ position: 'absolute', width: 0, height: 0 }} aria-hidden="true">
+        <defs>
+          <filter id="c3-noise">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves={2} stitchTiles="stitch"/>
+            <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.35 0"/>
+            <feComposite in2="SourceGraphic" operator="in" result="noise"/>
+            <feBlend in="SourceGraphic" in2="noise" mode="multiply"/>
+          </filter>
+        </defs>
+      </svg>
+
+      {/* Content wrapper sitting above background */}
+      <div style={{ position: 'relative', zIndex: 10 }} className="w-full h-full flex flex-col justify-center items-center">
+        {bootSequence < 3 ? (
+          <div className="w-[280px] space-y-2 border border-cyan/15 bg-black/40 p-4 rounded-xl backdrop-blur-md shadow-2xl relative overflow-hidden font-mono text-[10px] text-cyan/70">
+            <div className="absolute top-0 left-0 w-1 h-1 bg-cyan rounded-br-lg" />
+            <div className="absolute top-0 right-0 w-1 h-1 bg-cyan rounded-bl-lg" />
+            <div className="absolute bottom-0 left-0 w-1 h-1 bg-cyan rounded-tr-lg" />
+            <div className="absolute bottom-0 right-0 w-1 h-1 bg-cyan rounded-tl-lg" />
+            
+            <div className="flex items-center gap-1.5 text-cyan font-bold tracking-wider mb-2.5">
+              <Cpu className="w-3.5 h-3.5 animate-spin-slow" />
+              <span>ZENITH BOOT SEQUENCE</span>
+            </div>
+
+            <div className="space-y-0.5 text-[9px]">
+              <div className="flex justify-between items-center">
+                <span>CRITICAL ELEMENTS CALIBRATION</span>
+                <span className="text-green-400 font-bold">READY</span>
+              </div>
+              {bootSequence >= 1 && (
+                <div className="flex justify-between items-center">
+                  <span>ORBIT PROPAGATION ENGINE</span>
+                  <span className="text-green-400 font-bold">CALIBRATED</span>
                 </div>
-                <h2 className="text-base md:text-lg font-bold tracking-tight text-white uppercase"
-                    style={{ fontFamily: "'Helvetica Now Var', 'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
-                  {slides[currentSlide].subtitle}
-                </h2>
-              </div>
-              
-              {/* Slide Counter badge */}
-              <div className="px-2 py-0.5 rounded bg-white/5 border border-white/10 font-mono text-[9px] text-white/40 tracking-wider">
-                {currentSlide + 1}/{slides.length}
-              </div>
-            </div>
-
-            {/* Description Text */}
-            <div className="min-h-[64px] flex items-center">
-              <p className="text-white/50 text-[10px] md:text-[11px] leading-relaxed">
-                {slides[currentSlide].description}
-              </p>
-            </div>
-
-            {/* Micro-Animation Widget Wrapper */}
-            <div className="w-full relative animate-fade-in">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={`widget-${currentSlide}`}
-                  initial={{ opacity: 0, x: 15 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -15 }}
-                  transition={{ duration: 0.2 }}
-                  className="w-full"
-                >
-                  {slides[currentSlide].widget}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {/* Footer Navigation controls */}
-            <div className="flex items-center justify-between pt-3.5 border-t border-white/5 shrink-0 z-20">
-              
-              {/* Back Button */}
-              {currentSlide > 0 ? (
-                <button
-                  onClick={handlePrev}
-                  className="px-3.5 py-1.5 rounded-full border border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10 text-[10px] font-semibold text-white/80 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
-                >
-                  <ArrowLeft className="w-3 h-3" />
-                  Back
-                </button>
-              ) : (
-                <div /> // Spacing placeholder
               )}
-
-              {/* Dot Indicators */}
-              <div className="flex items-center gap-1">
-                {slides.map((_, i) => (
-                  <div
-                    key={i}
-                    onClick={() => setCurrentSlide(i)}
-                    className={`h-1 rounded-full transition-all duration-300 cursor-pointer ${
-                      currentSlide === i ? 'w-4.5 bg-cyan' : 'w-1 bg-white/20'
-                    }`}
-                  />
-                ))}
-              </div>
-
-              {/* Next/Finish Button */}
-              <button
-                onClick={handleNext}
-                className="px-4 py-1.5 rounded-full bg-cyan text-black hover:bg-cyan/95 text-[10px] font-bold uppercase tracking-wider transition-all shadow-[0_0_12px_rgba(6,182,212,0.3)] active:scale-95 flex items-center gap-1.5 hover:shadow-[0_0_18px_rgba(6,182,212,0.45)] cursor-pointer"
-              >
-                {currentSlide === slides.length - 1 ? (
-                  <>
-                    Initialize
-                    <CheckCircle2 className="w-3 h-3" />
-                  </>
-                ) : (
-                  <>
-                    Next
-                    <ArrowRight className="w-3 h-3" />
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Skip Option */}
-            {currentSlide < slides.length - 1 && (
-              <button 
-                onClick={handleLaunch}
-                className="text-[9px] font-mono tracking-widest text-white/25 uppercase text-center hover:text-white/50 transition-colors focus:outline-none cursor-pointer"
-              >
-                Skip Briefing Sequence
-              </button>
-            )}
-          </motion.div>
-        ) : (
-          /* Cinematic Launch sequence overlay */
-          <motion.div
-            key="launch-sequence"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex flex-col justify-center items-center space-y-5 z-10"
-          >
-            {/* Glowing portal pulse */}
-            <div className="relative w-16 h-16 rounded-full border-2 border-cyan/40 flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full border border-cyan animate-ping opacity-60" />
-              <Cpu className="w-6 h-6 text-cyan animate-spin-slow" />
+              {bootSequence >= 2 && (
+                <div className="flex justify-between items-center">
+                  <span>MISSION BRIEFING LAYER</span>
+                  <span className="text-cyan animate-pulse">DEPLOYING...</span>
+                </div>
+              )}
             </div>
             
-            <div className="text-center font-mono space-y-1">
-              <div className="text-[11px] text-cyan tracking-[0.3em] font-bold uppercase animate-pulse">
-                INITIALIZING MISSION CONTROL
-              </div>
-              <p className="text-[8px] text-white/30 tracking-[0.25em] uppercase">
-                Synchronizing live satellite networks...
-              </p>
+            {/* Micro Progress bar */}
+            <div className="w-full h-0.5 bg-white/5 rounded-full overflow-hidden mt-3">
+              <motion.div 
+                className="h-full bg-cyan"
+                initial={{ width: 0 }}
+                animate={{ width: bootSequence === 1 ? '40%' : bootSequence === 2 ? '80%' : '100%' }}
+                transition={{ duration: 0.4 }}
+              />
             </div>
-          </motion.div>
+          </div>
+        ) : (
+          <>
+            {/* Cybernetic HUD elements */}
+            <div className="absolute top-6 left-6 text-white/20 font-mono text-[8px] uppercase tracking-[0.25em] z-10 flex items-center gap-1.5">
+              <Terminal className="w-3 h-3" />
+              <span>System: SECURE_ONBOARDING_INIT</span>
+            </div>
+            <div className="absolute bottom-6 right-6 text-white/20 font-mono text-[8px] uppercase tracking-[0.25em] z-10 flex items-center gap-1.5">
+              <Navigation className="w-3 h-3 animate-pulse text-cyan" />
+              <span>LOCATION LOCKED</span>
+            </div>
+
+            <AnimatePresence mode="wait">
+              {!isLaunching ? (
+                <motion.div
+                  key="briefing-container"
+                  initial={{ opacity: 0, scale: 0.96, y: 12 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.92, y: -15 }}
+                  transition={{ type: 'spring', stiffness: 110, damping: 18 }}
+                  className="w-[90%] max-w-[480px] liquid-glass p-7 rounded-[20px] z-10 shadow-[0_0_40px_rgba(6,182,212,0.08)] flex flex-col items-stretch space-y-5"
+                >
+                  {/* Header / Subtitle row */}
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-1.5 text-cyan">
+                        {slides[currentSlide].icon}
+                        <span className="text-[9px] font-mono font-bold tracking-[0.3em] uppercase">
+                          {slides[currentSlide].title}
+                        </span>
+                      </div>
+                      <h2 className="text-base md:text-lg font-bold tracking-tight text-white uppercase"
+                          style={{ fontFamily: "'Helvetica Now Var', 'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
+                        {slides[currentSlide].subtitle}
+                      </h2>
+                    </div>
+                    
+                    {/* Slide Counter badge */}
+                    <div className="px-2 py-0.5 rounded bg-white/5 border border-white/10 font-mono text-[9px] text-white/40 tracking-wider">
+                      {currentSlide + 1}/{slides.length}
+                    </div>
+                  </div>
+
+                  {/* Description Text */}
+                  <div className="min-h-[64px] flex items-center">
+                    <p className="text-white/50 text-[10px] md:text-[11px] leading-relaxed">
+                      {slides[currentSlide].description}
+                    </p>
+                  </div>
+
+                  {/* Micro-Animation Widget Wrapper */}
+                  <div className="w-full relative animate-fade-in">
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={`widget-${currentSlide}`}
+                        initial={{ opacity: 0, x: 15 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -15 }}
+                        transition={{ duration: 0.2 }}
+                        className="w-full"
+                      >
+                        {slides[currentSlide].widget}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Footer Navigation controls */}
+                  <div className="flex items-center justify-between pt-3.5 border-t border-white/5 shrink-0 z-20">
+                    
+                    {/* Back Button */}
+                    {currentSlide > 0 ? (
+                      <button
+                        onClick={handlePrev}
+                        className="px-3.5 py-1.5 rounded-full border border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10 text-[10px] font-semibold text-white/80 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <ArrowLeft className="w-3 h-3" />
+                        Back
+                      </button>
+                    ) : (
+                      <div /> // Spacing placeholder
+                    )}
+
+                    {/* Dot Indicators */}
+                    <div className="flex items-center gap-1">
+                      {slides.map((_, i) => (
+                        <div
+                          key={i}
+                          onClick={() => setCurrentSlide(i)}
+                          className={`h-1 rounded-full transition-all duration-300 cursor-pointer ${
+                            currentSlide === i ? 'w-4.5 bg-cyan' : 'w-1 bg-white/20'
+                          }`}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Next/Finish Button */}
+                    <button
+                      onClick={handleNext}
+                      className="px-4 py-1.5 rounded-full bg-cyan text-black hover:bg-cyan/95 text-[10px] font-bold uppercase tracking-wider transition-all shadow-[0_0_12px_rgba(6,182,212,0.3)] active:scale-95 flex items-center gap-1.5 hover:shadow-[0_0_18px_rgba(6,182,212,0.45)] cursor-pointer"
+                    >
+                      {currentSlide === slides.length - 1 ? (
+                        <>
+                          Initialize
+                          <CheckCircle2 className="w-3 h-3" />
+                        </>
+                      ) : (
+                        <>
+                          Next
+                          <ArrowRight className="w-3 h-3" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Skip Option */}
+                  {currentSlide < slides.length - 1 && (
+                    <button 
+                      onClick={handleLaunch}
+                      className="text-[9px] font-mono tracking-widest text-white/25 uppercase text-center hover:text-white/50 transition-colors focus:outline-none cursor-pointer"
+                    >
+                      Skip Briefing Sequence
+                    </button>
+                  )}
+                </motion.div>
+              ) : (
+                /* Cinematic Launch sequence overlay */
+                <motion.div
+                  key="launch-sequence"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col justify-center items-center space-y-5 z-10"
+                >
+                  {/* Glowing portal pulse */}
+                  <div className="relative w-16 h-16 rounded-full border-2 border-cyan/40 flex items-center justify-center">
+                    <div className="absolute inset-0 rounded-full border border-cyan animate-ping opacity-60" />
+                    <Cpu className="w-6 h-6 text-cyan animate-spin-slow" />
+                  </div>
+                  
+                  <div className="text-center font-mono space-y-1">
+                    <div className="text-[11px] text-cyan tracking-[0.3em] font-bold uppercase animate-pulse">
+                      INITIALIZING MISSION CONTROL
+                    </div>
+                    <p className="text-[8px] text-white/30 tracking-[0.25em] uppercase">
+                      Synchronizing live satellite networks...
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
         )}
-      </AnimatePresence>
+      </div>
     </div>
   );
 }
