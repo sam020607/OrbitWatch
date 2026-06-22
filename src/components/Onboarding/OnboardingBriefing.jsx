@@ -334,7 +334,12 @@ export default function OnboardingBriefing({ onComplete, observerLocation }) {
 
   if (bootSequence < 3) {
     return (
-      <div className="fixed inset-0 backdrop-blur-[10px] bg-black/60 z-[9999] flex flex-col justify-center items-center font-mono text-[10px] text-cyan/70 select-none">
+      <div className="fixed inset-0 z-[9999] flex flex-col justify-center items-center font-mono text-[10px] text-cyan/70 select-none"
+           style={{
+             backdropFilter: 'blur(6px) brightness(0.85)',
+             WebkitBackdropFilter: 'blur(6px) brightness(0.85)',
+             backgroundColor: 'rgba(0, 0, 0, 0.45)',
+           }}>
         <div className="w-[280px] space-y-2 border border-cyan/15 bg-black/40 p-4 rounded-xl backdrop-blur-md shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-1 bg-cyan rounded-br-lg" />
           <div className="absolute top-0 right-0 w-1 h-1 bg-cyan rounded-bl-lg" />
@@ -380,7 +385,12 @@ export default function OnboardingBriefing({ onComplete, observerLocation }) {
   }
 
   return (
-    <div className="fixed inset-0 backdrop-blur-[10px] bg-black/60 z-[9999] flex flex-col justify-center items-center select-none overflow-hidden font-sans">
+    <div className="fixed inset-0 z-[9999] flex flex-col justify-center items-center select-none overflow-hidden font-sans"
+         style={{
+           backdropFilter: 'blur(6px) brightness(0.85)',
+           WebkitBackdropFilter: 'blur(6px) brightness(0.85)',
+           backgroundColor: 'rgba(0, 0, 0, 0.45)',
+         }}>
       
       {/* Cinematic Dynamic Starfield & Earth Canvas Background */}
       <OnboardingSpaceBackground currentSlide={currentSlide} />

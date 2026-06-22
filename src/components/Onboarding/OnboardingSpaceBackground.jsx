@@ -119,6 +119,9 @@ export default function OnboardingSpaceBackground({ currentSlide = 0 }) {
     ];
 
     let idleEarthRotation = 0;
+    let earthBobAngle = 0;
+    let earthOrbitAngle = 0;
+    let nebulaOpacityAngle = 0;
     let lastTime = performance.now();
 
     // ───────────────── ANIMATION LOOP ─────────────────
@@ -144,8 +147,15 @@ export default function OnboardingSpaceBackground({ currentSlide = 0 }) {
       c2.g += (targetNebula.c2.g - c2.g) * ease;
       c2.b += (targetNebula.c2.b - c2.b) * ease;
 
-      // Slowly crawl Earth rotation
+      // Slowly crawl Earth rotation and bobbing/orbit angles
       idleEarthRotation += 0.0004;
+      earthBobAngle += 0.003;
+      earthOrbitAngle += 0.001;
+      nebulaOpacityAngle += 0.015;
+
+      const earthBobY = Math.sin(earthBobAngle) * 12; // gentle bobbing
+      const earthCreepX = Math.sin(earthOrbitAngle) * 20; // very slow orbit parallax creep
+      const nebulaScale = 0.45 + Math.sin(nebulaOpacityAngle) * 0.15; // breathe opacity between 0.3 and 0.6
 
       // Clear Screen
       ctx.clearRect(0, 0, width, height);
@@ -165,8 +175,8 @@ export default function OnboardingSpaceBackground({ currentSlide = 0 }) {
         width * 0.7 + camX * 0.4, height * 0.75 + camY * 0.4, 0,
         width * 0.7 + camX * 0.4, height * 0.75 + camY * 0.4, Math.max(width, height) * 0.6
       );
-      grad1.addColorStop(0, `rgba(${Math.round(c1.r)}, ${Math.round(c1.g)}, ${Math.round(c1.b)}, 0.45)`);
-      grad1.addColorStop(0.5, `rgba(${Math.round(c1.r)}, ${Math.round(c1.g)}, ${Math.round(c1.b)}, 0.15)`);
+      grad1.addColorStop(0, `rgba(${Math.round(c1.r)}, ${Math.round(c1.g)}, ${Math.round(c1.b)}, ${nebulaScale})`);
+      grad1.addColorStop(0.5, `rgba(${Math.round(c1.r)}, ${Math.round(c1.g)}, ${Math.round(c1.b)}, ${nebulaScale * 0.33})`);
       grad1.addColorStop(1, 'rgba(3, 5, 9, 0)');
       ctx.fillStyle = grad1;
       ctx.fillRect(0, 0, width, height);
@@ -176,8 +186,8 @@ export default function OnboardingSpaceBackground({ currentSlide = 0 }) {
         width * 0.2 + camX * 0.6, height * 0.2 + camY * 0.6, 0,
         width * 0.2 + camX * 0.6, height * 0.2 + camY * 0.6, Math.max(width, height) * 0.5
       );
-      grad2.addColorStop(0, `rgba(${Math.round(c2.r)}, ${Math.round(c2.g)}, ${Math.round(c2.b)}, 0.4)`);
-      grad2.addColorStop(0.6, `rgba(${Math.round(c2.r)}, ${Math.round(c2.g)}, ${Math.round(c2.b)}, 0.1)`);
+      grad2.addColorStop(0, `rgba(${Math.round(c2.r)}, ${Math.round(c2.g)}, ${Math.round(c2.b)}, ${nebulaScale * 0.95})`);
+      grad2.addColorStop(0.6, `rgba(${Math.round(c2.r)}, ${Math.round(c2.g)}, ${Math.round(c2.b)}, ${nebulaScale * 0.25})`);
       grad2.addColorStop(1, 'rgba(3, 5, 9, 0)');
       ctx.fillStyle = grad2;
       ctx.fillRect(0, 0, width, height);
@@ -192,9 +202,18 @@ export default function OnboardingSpaceBackground({ currentSlide = 0 }) {
 
       // ───────────────── DRAW STARFIELD ─────────────────
       const time = currentTime / 1000;
+      const limitX = width * 1.25;
+      const limitY = height * 1.25;
       stars.forEach(star => {
-        // Slow drift
-        star.x += 0.04;
+        // Parallax drift based on size (near stars are larger and move faster)
+        const driftSpeed = star.size * 0.08;
+        star.x -= driftSpeed * 0.8;
+        star.y += driftSpeed * 0.5;
+
+        // Wrap around virtual coordinates if they exit bounds
+        if (star.x < -limitX) star.x = limitX;
+        if (star.y > limitY) star.y = -limitY;
+
         // Twinkling simulation
         const twinkleAlpha = star.baseAlpha + Math.sin(time * star.twinkleSpeed * 100 + star.twinkleDelay) * 0.18;
         ctx.fillStyle = `${star.color}${Math.max(0.05, Math.min(twinkleAlpha, 1.0))})`;
@@ -230,10 +249,12 @@ export default function OnboardingSpaceBackground({ currentSlide = 0 }) {
       });
 
       // ───────────────── DRAW EARTH & ORBITS ─────────────────
-      // Earth coordinate calculations
+      // Earth coordinate calculations with floating animation
       const earthRadius = Math.min(width, height) * 0.3;
-      const earthX = width * 0.82;
-      const earthY = height * 0.82;
+      const baseEarthX = width * 0.82;
+      const baseEarthY = height * 0.82;
+      const earthX = baseEarthX + earthCreepX;
+      const earthY = baseEarthY + earthBobY;
 
       // A. Earth Atmosphere Limb (behind Earth)
       ctx.save();
@@ -374,7 +395,8 @@ export default function OnboardingSpaceBackground({ currentSlide = 0 }) {
   }, [currentSlide]);
 
   return (
-    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none w-full h-full">
+    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none w-full h-full"
+         style={{ filter: 'blur(1.5px)' }}>
       {/* HTML5 Canvas Background */}
       <canvas ref={canvasRef} className="absolute inset-0 block w-full h-full" />
       
