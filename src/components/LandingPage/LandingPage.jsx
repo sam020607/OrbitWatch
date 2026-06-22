@@ -218,21 +218,26 @@ export default function LandingPage({ onLocationSet }) {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-center mb-6 select-none w-full flex flex-col items-center justify-center"
           >
-            <div className="relative w-full max-w-[800px] h-[120px] md:h-[150px] flex items-center justify-center">
+            <div className="relative w-full max-w-[800px] h-[150px] md:h-[180px] flex items-center justify-center">
               <VaporizeTextCycle
-                texts={["Know what's overhead.", "Track active orbits.", "Predict visible passes.", "Compare satellite paths."]}
+                texts={[
+                  "Know what's\noverhead.", 
+                  "Track active\norbits.", 
+                  "Predict visible\npasses.", 
+                  "Compare satellite\npaths."
+                ]}
                 font={{
                   fontFamily: "'Playfair Display', serif",
-                  fontSize: "64px",
+                  fontSize: "56px",
                   fontWeight: 400
                 }}
                 color="rgb(255, 255, 255)"
                 spread={4}
                 density={6}
                 animation={{
-                  vaporizeDuration: 2.5,
-                  fadeInDuration: 1.5,
-                  waitDuration: 3
+                  vaporizeDuration: 1.2,
+                  fadeInDuration: 0.6,
+                  waitDuration: 1.8
                 }}
                 direction="left-to-right"
                 alignment="center"

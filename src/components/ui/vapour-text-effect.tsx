@@ -525,7 +525,18 @@ const renderCanvas = ({
   }
 
   // Create particles from the rendered text and get text boundaries
-  const { particles, textBoundaries } = createParticles(ctx, canvas, currentText, textX, textY, font, color, framerProps.alignment || "left");
+  const { particles, textBoundaries } = createParticles(
+    ctx, 
+    canvas, 
+    currentText, 
+    textX, 
+    textY, 
+    font, 
+    color, 
+    framerProps.alignment || "left",
+    globalDpr,
+    fontSize
+  );
 
   // Store particles and text boundaries for animation
   particlesRef.current = particles;
@@ -543,16 +554,21 @@ const createParticles = (
   textY: number,
   font: string,
   color: string,
-  alignment: "left" | "center" | "right"
+  alignment: "left" | "center" | "right",
+  globalDpr: number,
+  fontSize: number
 ) => {
   const particles = [];
 
   // Clear any previous content
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Split text by newlines
+  const lines = text.split("\n");
+  const lineSpacing = fontSize * globalDpr * 1.15; // Space between lines
+
   // Set text properties for sampling
   ctx.fillStyle = color;
-  ctx.font = font;
   ctx.textAlign = alignment;
   ctx.textBaseline = "middle";
   ctx.imageSmoothingQuality = "high";
@@ -566,27 +582,46 @@ const createParticles = (
     (ctx as any).textRendering = "geometricPrecision";
   }
 
-  // Calculate text boundaries
-  const metrics = ctx.measureText(text);
+  // Calculate text boundaries by finding the longest line width
+  let maxTextWidth = 0;
+  lines.forEach((line, index) => {
+    // Style last line differently if it's multiline
+    if (lines.length > 1 && index === lines.length - 1) {
+      ctx.font = `italic 400 ${fontSize * globalDpr}px 'Playfair Display', Georgia, serif`;
+    } else {
+      ctx.font = font;
+    }
+    const metrics = ctx.measureText(line);
+    if (metrics.width > maxTextWidth) {
+      maxTextWidth = metrics.width;
+    }
+  });
+
   let textLeft;
-  const textWidth = metrics.width;
-  
   if (alignment === "center") {
-    textLeft = textX - textWidth / 2;
+    textLeft = textX - maxTextWidth / 2;
   } else if (alignment === "left") {
     textLeft = textX;
   } else {
-    textLeft = textX - textWidth;
+    textLeft = textX - maxTextWidth;
   }
   
   const textBoundaries = {
     left: textLeft,
-    right: textLeft + textWidth,
-    width: textWidth,
+    right: textLeft + maxTextWidth,
+    width: maxTextWidth,
   };
 
-  // Render the text for sampling
-  ctx.fillText(text, textX, textY);
+  // Render each line with vertical offsets
+  const startY = textY - ((lines.length - 1) * lineSpacing) / 2;
+  lines.forEach((line, index) => {
+    if (lines.length > 1 && index === lines.length - 1) {
+      ctx.font = `italic 400 ${fontSize * globalDpr}px 'Playfair Display', Georgia, serif`;
+    } else {
+      ctx.font = font;
+    }
+    ctx.fillText(line, textX, startY + index * lineSpacing);
+  });
 
   // Sample the rendered text
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
