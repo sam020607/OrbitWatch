@@ -82,7 +82,7 @@ function AppInner() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="w-full h-full"
+            className={`w-full h-full ${showBriefing ? 'hidden pointer-events-none' : ''}`}
           >
             <Dashboard onReset={handleReset} />
           </motion.div>

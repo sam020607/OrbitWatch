@@ -700,17 +700,7 @@ function SceneContent({ isRelocating, setIsRelocating, isResolving, setIsResolvi
                 innerOpacity={0.7}
                 outerOpacity={0.3}
                 onClick={handleSatClick}
-              >
-                {/* Selected Satellite HUD Label */}
-                {isSelected && (
-                  <Html distanceFactor={6}>
-                    <div className="bg-surface/95 border rounded px-2 py-1 text-[9px] text-text-primary font-sans font-bold uppercase tracking-wider select-none shadow-xl -translate-x-1/2 -translate-y-8 backdrop-blur" style={{ borderColor: `${color}60`, boxShadow: `0 0 10px ${color}40` }}>
-                      <p style={{ color }}>{sat.satname}</p>
-                      <p className="text-text-secondary font-mono text-[7px] mt-0.5">{sat.satalt.toFixed(0)} km · {sat.velocity.toFixed(2)} km/s</p>
-                    </div>
-                  </Html>
-                )}
-              </GlowDot>
+              />
             );
           })}
         </>
