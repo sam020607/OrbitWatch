@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { MapPin, Globe } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MapPin, Globe, Music2, Facebook, Twitter, Youtube, Instagram } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { reverseGeocode } from '../../api/geocodeApi.js';
+import { FadeUp } from '../ui/FadeUp.jsx';
+import InkReveal from '../ui/ink-reveal.jsx';
+import VaporizeTextCycle, { Tag } from '../ui/vapour-text-effect.tsx';
 import LocationSearch from './LocationSearch.jsx';
 import { useApp } from '../../context/AppContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -85,6 +88,7 @@ export default function LandingPage({ onLocationSet }) {
   const [resolvingName, setResolvingName] = useState(false);
   const [resolvedName, setResolvedName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showInkOverlay, setShowInkOverlay] = useState(true);
 
   // Always dark mode — single Earth image
   const earthImg = `${import.meta.env.BASE_URL}earth_view_from_space.png`;
@@ -95,6 +99,9 @@ export default function LandingPage({ onLocationSet }) {
 
   useEffect(() => {
     setMounted(true);
+    
+    // The Ink Reveal timer has been moved to onViewportEnter of the card
+    // so it only starts counting down when the user actually sees the card.
   }, []);
 
   // Globe slow rotation interval
@@ -143,7 +150,16 @@ export default function LandingPage({ onLocationSet }) {
   }
 
   return (
-    <div className="w-full h-full bg-[var(--bg)] text-[var(--text-primary)] transition-colors duration-300 overflow-y-auto overflow-x-hidden scroll-smooth">
+    <main className="relative w-full overflow-x-hidden flex flex-col items-center font-sans selection:bg-white/20 selection:text-white h-full overflow-y-auto scroll-smooth">
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="fixed inset-0 w-full h-full object-cover z-[0]"
+        src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260429_114316_1c7889ad-2885-410e-b493-98119fee0ddb.mp4"
+      />
+      <div className="relative z-10 w-full max-w-7xl flex flex-col items-center pb-16">
       
       {/* Floating Header */}
       <header className="absolute top-0 left-0 right-0 h-16 flex items-center justify-between px-6 z-30 pointer-events-none">
@@ -195,33 +211,37 @@ export default function LandingPage({ onLocationSet }) {
         {/* Content Container (Tightened pb) */}
         <div className="relative w-full max-w-4xl flex-1 flex flex-col items-center justify-center px-4 pt-8 pb-16 z-10">
           
-          {/* Headline */}
+          {/* Headline with Vaporize Effect */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-center mb-6 select-none"
+            className="text-center mb-6 select-none w-full flex flex-col items-center justify-center"
           >
-            <h1 
-              className="text-5xl md:text-7xl font-playfair font-normal text-[var(--text-primary)] tracking-tight leading-[1.15]"
-              style={{ textShadow: 'var(--headline-glow)' }}
-            >
-              <div>Know what's</div>
-              <div className="italic font-normal">overhead.</div>
-            </h1>
-
-            {/* Project Zenith title and Celestial Eye subtext */}
-            <div className="flex flex-col items-center gap-1.5 mt-5 select-none animate-fade-in">
-              <h2 className="text-3xl md:text-4xl font-playfair tracking-wide text-[var(--text-primary)] font-semibold">
-                Project Zenith
-              </h2>
-              <span className="text-xs font-sans tracking-[0.25em] uppercase text-[var(--text-secondary)] font-semibold">
-                The Celestial Eye
-              </span>
-              <p className="text-[var(--text-secondary)] text-sm md:text-base font-light max-w-md mx-auto mt-1">
-                Real-time satellite tracking &amp; personal sky visibility — anywhere on Earth
-              </p>
+            <div className="relative w-full max-w-[800px] h-[120px] md:h-[150px] flex items-center justify-center">
+              <VaporizeTextCycle
+                texts={["Know what's overhead.", "Project Zenith", "The Celestial Eye"]}
+                font={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: "64px",
+                  fontWeight: 400
+                }}
+                color="rgb(255, 255, 255)"
+                spread={4}
+                density={6}
+                animation={{
+                  vaporizeDuration: 2.5,
+                  fadeInDuration: 1.5,
+                  waitDuration: 3
+                }}
+                direction="left-to-right"
+                alignment="center"
+                tag={Tag.H1}
+              />
             </div>
+            <p className="text-[var(--text-secondary)] text-sm md:text-base font-light max-w-md mx-auto mt-4 animate-fade-in">
+              Real-time satellite tracking &amp; personal sky visibility — anywhere on Earth
+            </p>
           </motion.div>
 
           {/* Selection Method Tabs */}
@@ -436,7 +456,7 @@ export default function LandingPage({ onLocationSet }) {
             initial={{ opacity: 0, y: 200 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.2, ease: 'easeOut', delay: 0.1 }}
-            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[160%] sm:w-[130%] md:w-[100%] lg:w-[85%] max-w-[1200px] pointer-events-none translate-y-[52%] aspect-square rounded-full overflow-hidden z-1 flex justify-center items-start"
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[160%] sm:w-[130%] md:w-[100%] lg:w-[85%] max-w-[1200px] pointer-events-none aspect-square rounded-full overflow-hidden z-1 flex justify-center items-start"
           >
             <div className="relative w-full h-full rounded-full"
                  style={{
@@ -596,51 +616,58 @@ export default function LandingPage({ onLocationSet }) {
           {/* Two-Column Layout */}
           <div className="w-full flex flex-col lg:flex-row gap-10 lg:gap-12 items-start justify-between">
             
-            {/* Left Column (Frosted Glass Cards, 40% Width) */}
+            {/* Left Column (Animated Video Card, 42% Width) */}
             <motion.div 
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-50px" }}
+              onViewportEnter={() => {
+                setTimeout(() => {
+                  setShowInkOverlay(false);
+                }, 10000);
+              }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="w-full lg:w-[42%] flex flex-col gap-4"
+              className="w-full lg:w-[42%] relative rounded-[24px] overflow-hidden flex flex-col justify-end p-8 border border-[var(--surface-border)] min-h-[420px] md:min-h-[500px] shadow-lg group transition-all duration-500 hover:shadow-[0_0_60px_rgba(77,141,255,0.2)]"
+              style={{ backgroundColor: 'var(--surface)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}
             >
-              {/* Card 1: Live Tracking */}
-              <div 
-                className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px]"
-                style={{ backgroundColor: 'var(--surface)' }}
-              >
-                <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1.5">
-                  Live Tracking
-                </h4>
-                <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
-                  Track satellites, constellations (Starlink etc.), and near-Earth asteroids in real time.
-                </p>
-              </div>
+              {/* Inner Video */}
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover z-0 group-hover:scale-105 transition-transform duration-1000"
+                src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260514_135830_bb6491d1-9b66-4aec-9722-13b4dfe3fb46.mp4"
+              />
+              
+              {/* Ink Reveal Mask Overlay */}
+              <AnimatePresence>
+                {showInkOverlay && (
+                  <motion.div
+                    initial={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1 }}
+                    className="absolute inset-0 z-[1]"
+                  >
+                    <InkReveal maskColor={[10, 13, 21]} brushSize={100} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-              {/* Card 2: Real-time Telemetry */}
-              <div 
-                className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px]"
-                style={{ backgroundColor: 'var(--surface)' }}
-              >
-                <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1.5">
-                  Real-Time Telemetry
-                </h4>
-                <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
-                  Access actual altitude, speed, and positioning details for every tracked object.
-                </p>
-              </div>
+              {/* Darkening Gradient Overlay for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0d15] via-[#0a0d15]/60 to-[#0a0d15]/10 z-0 pointer-events-none"></div>
 
-              {/* Card 3: What's Visible Tonight */}
-              <div 
-                className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px]"
-                style={{ backgroundColor: 'var(--surface)' }}
-              >
-                <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1.5">
-                  What's Visible Tonight
-                </h4>
-                <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
-                  Check moon phases, upcoming satellite passes, and planet visibilities for your location.
-                </p>
+              <div className="relative z-10 flex flex-col items-start w-full pointer-events-none">
+                <h2 className="flex flex-wrap gap-[0.2em] m-0 text-[26px] md:text-[32px] font-bold leading-[1.05] tracking-[-0.01em] uppercase text-white" style={{ fontFamily: "'Helvetica Now Var', 'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
+                  {['WE', 'TRACK', 'WITH', 'PRECISION', 'AND', 'WONDER.'].map((word, i) => (
+                    <FadeUp key={i} as="span" delay={0.15 + (i * 0.08)} y={20} once={true}>
+                      {word}
+                    </FadeUp>
+                  ))}
+                </h2>
+                <FadeUp delay={0.9} y={15} once={true} className="mt-4 text-[14px] leading-[1.6] text-white/80" style={{ fontFamily: "'Helvetica Now Var', 'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
+                  OrbitWatch provides real-time satellite tracking and celestial visibility all in one place.
+                </FadeUp>
               </div>
             </motion.div>
 
@@ -659,6 +686,83 @@ export default function LandingPage({ onLocationSet }) {
           </div>
         </div>
       </section>
-    </div>
+
+
+      {/* Liquid Glass Footer Section */}
+      <motion.footer
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
+        className="liquid-glass w-full rounded-3xl p-6 md:p-10 text-white/70 mt-32 md:mt-64 mb-10"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-12 mb-10">
+          <div className="md:col-span-5">
+            <div className="flex items-center gap-3 mb-4 text-white">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 256 256" fill="currentColor"><path d="M 4.688 136 C 68.373 136 120 187.627 120 251.312 C 120 252.883 119.967 254.445 119.905 256 L 0 256 L 0 136.096 C 1.555 136.034 3.117 136 4.688 136 Z M 251.312 136 C 252.883 136 254.445 136.034 256 136.096 L 256 256 L 136.095 256 C 136.032 254.438 136.001 252.875 136 251.312 C 136 187.627 187.627 136 251.312 136 Z M 119.905 0 C 119.967 1.555 120 3.117 120 4.688 C 120 68.373 68.373 120 4.687 120 C 3.117 120 1.555 119.967 0 119.905 L 0 0 Z M 256 119.905 C 254.445 119.967 252.883 120 251.312 120 C 187.627 120 136 68.373 136 4.687 C 136 3.117 136.033 1.555 136.095 0 L 256 0 Z" /></svg>
+              <span className="text-xl font-medium tracking-wide">ORBITWATCH</span>
+            </div>
+            <p className="text-sm leading-relaxed max-w-sm">
+              Project Zenith: The Celestial Eye. Real-time satellite tracking & personal sky visibility — anywhere on Earth. Know what's overhead.
+            </p>
+          </div>
+
+          <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-8">
+            <div>
+              <h3 className="text-sm uppercase tracking-wider text-white font-medium mb-4">Discover</h3>
+              <div className="flex flex-col text-xs space-y-2">
+                <a href="#" className="hover:text-white transition-colors">Labs & Workshops</a>
+                <a href="#" className="hover:text-white transition-colors">Deep Dive Series</a>
+                <a href="#" className="hover:text-white transition-colors">Global Circle</a>
+                <a href="#" className="hover:text-white transition-colors">Resource Vault</a>
+                <a href="#" className="hover:text-white transition-colors">Future Roadmap</a>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-sm uppercase tracking-wider text-white font-medium mb-4">The Mission</h3>
+              <div className="flex flex-col text-xs space-y-2">
+                <a href="#" className="hover:text-white transition-colors">Origin Story</a>
+                <a href="#" className="hover:text-white transition-colors">The Collective</a>
+                <a href="#" className="hover:text-white transition-colors">Newsroom Hub</a>
+                <a href="#" className="hover:text-white transition-colors">Join the Team</a>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-sm uppercase tracking-wider text-white font-medium mb-4">Concierge</h3>
+              <div className="flex flex-col text-xs space-y-2">
+                <a href="#" className="hover:text-white transition-colors">Get in Touch</a>
+                <a href="#" className="hover:text-white transition-colors">Legal Privacy</a>
+                <a href="#" className="hover:text-white transition-colors">User Agreement</a>
+                <a href="#" className="hover:text-white transition-colors">Report Concern</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4">
+          <p className="text-[10px] uppercase tracking-widest opacity-50">Curated by Project Zenith</p>
+          <div className="flex items-center gap-4">
+            <span className="text-[10px] uppercase tracking-widest opacity-50">Join the Journey:</span>
+            <div className="flex flex-row items-center gap-3">
+              <a href="#" className="opacity-70 hover:opacity-100 transition-colors hover:text-white">
+                <Music2 size={16} />
+              </a>
+              <a href="#" className="opacity-70 hover:opacity-100 transition-colors hover:text-white">
+                <Facebook size={16} />
+              </a>
+              <a href="#" className="opacity-70 hover:opacity-100 transition-colors hover:text-white">
+                <Twitter size={16} />
+              </a>
+              <a href="#" className="opacity-70 hover:opacity-100 transition-colors hover:text-white">
+                <Youtube size={16} />
+              </a>
+              <a href="#" className="opacity-70 hover:opacity-100 transition-colors hover:text-white">
+                <Instagram size={16} />
+              </a>
+            </div>
+          </div>
+        </div>
+      </motion.footer>
+      </div>
+    </main>
   );
 }

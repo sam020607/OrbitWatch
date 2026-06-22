@@ -16,6 +16,7 @@
     "axios": "^1.7.9",
     "firebase": "^12.15.0",
     "framer-motion": "^11.15.0",
+    "gsap": "^3.15.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.469.0",
     "puppeteer": "^25.1.0",
