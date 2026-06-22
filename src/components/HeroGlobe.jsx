@@ -88,7 +88,7 @@ export default function HeroGlobe() {
       }
       if (child.isDirectionalLight) {
         child.intensity = 2.0; // higher directional intensity for bright daylight contrast
-        child.position.set(-1.2, 0.4, 0.8); // shadow direction
+        child.position.set(1.5, 0.3, 0.5); // light source on the right side
       }
     });
 
