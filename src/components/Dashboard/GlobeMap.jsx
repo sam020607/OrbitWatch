@@ -158,7 +158,7 @@ function createRadarIcon() {
  * Uses requestAnimationFrame + Leaflet's imperative marker.setLatLng()
  * so React never re-renders per frame — pure DOM mutation.
  */
-function SmoothISSMarker({ issPosition, selectedSatellite, actions }) {
+function SmoothISSMarker({ issPosition, selectedSatellite, showMapDetailCard, actions }) {
   const markerRef = useRef(null);
   const isIssSelected = selectedSatellite?.satid === 25544;
   const issIcon = useMemo(() => createISSIcon(isIssSelected), [isIssSelected]);
@@ -235,7 +235,17 @@ function SmoothISSMarker({ issPosition, selectedSatellite, actions }) {
       icon={issIcon}
       zIndexOffset={1000}
       eventHandlers={{
-        click: () => actions.selectSatellite(isIssSelected ? null : issObj),
+        click: () => {
+          if (isIssSelected) {
+            if (!showMapDetailCard) {
+              actions.setShowMapDetailCard(true);
+            } else {
+              actions.selectSatellite(null);
+            }
+          } else {
+            actions.selectSatellite(issObj);
+          }
+        }
       }}
     />
   );
@@ -458,7 +468,8 @@ export default function GlobeMap({ className = '' }) {
     selectedAsteroid,
     asteroidFilter,
     theme,
-    issNextPasses = []
+    issNextPasses = [],
+    showMapDetailCard
   } = state;
 
   const [isRelocating, setIsRelocating] = useState(false);
@@ -733,6 +744,7 @@ export default function GlobeMap({ className = '' }) {
             <SmoothISSMarker
               issPosition={issPosition}
               selectedSatellite={selectedSatellite}
+              showMapDetailCard={showMapDetailCard}
               actions={actions}
             />
 
@@ -776,7 +788,17 @@ export default function GlobeMap({ className = '' }) {
                   position={[sat.satlat, sat.satlon]}
                   icon={satIcon}
                   eventHandlers={{
-                    click: () => actions.selectSatellite(isSelected ? null : sat),
+                    click: () => {
+                      if (isSelected) {
+                        if (!showMapDetailCard) {
+                          actions.setShowMapDetailCard(true);
+                        } else {
+                          actions.selectSatellite(null);
+                        }
+                      } else {
+                        actions.selectSatellite(sat);
+                      }
+                    },
                   }}
                 />
               );
@@ -917,7 +939,17 @@ export default function GlobeMap({ className = '' }) {
                   position={[ast.lat, ast.lon]}
                   icon={astIcon}
                   eventHandlers={{
-                    click: () => actions.selectAsteroid(isSelected ? null : ast),
+                    click: () => {
+                      if (isSelected) {
+                        if (!showMapDetailCard) {
+                          actions.setShowMapDetailCard(true);
+                        } else {
+                          actions.selectAsteroid(null);
+                        }
+                      } else {
+                        actions.selectAsteroid(ast);
+                      }
+                    },
                   }}
                 />
               );
@@ -1011,7 +1043,7 @@ export default function GlobeMap({ className = '' }) {
       {/* Category Legend pill row (now unified in top-left container) */}
 
       {/* Selected Object Detail Card */}
-      {selectedSatellite && (
+      {selectedSatellite && showMapDetailCard && (
         <div className="absolute top-[42px] right-3 w-72 z-[1000] glass-panel p-3 rounded-lg bg-surface/90 backdrop-blur border border-surface-border shadow-2xl animate-fade-in flex flex-col gap-2">
           <div className="flex items-start justify-between">
             <div className="min-w-0">
@@ -1022,7 +1054,7 @@ export default function GlobeMap({ className = '' }) {
               <p className="text-muted text-[9px] font-mono mt-0.5">NORAD ID #{selectedSatellite.satid}</p>
             </div>
             <button 
-              onClick={() => actions.selectSatellite(null)}
+              onClick={() => actions.setShowMapDetailCard(false)}
               className="text-text-secondary hover:text-text-primary p-0.5 rounded hover:bg-white/5 transition-colors"
             >
               <X className="w-3 h-3" />
@@ -1066,7 +1098,7 @@ export default function GlobeMap({ className = '' }) {
         </div>
       )}
 
-      {selectedAsteroid && (
+      {selectedAsteroid && showMapDetailCard && (
         <div className="absolute top-[42px] right-3 w-72 z-[1000] glass-panel p-3 rounded-lg bg-surface/90 backdrop-blur border border-surface-border shadow-2xl animate-fade-in flex flex-col gap-2">
           <div className="flex items-start justify-between">
             <div className="min-w-0">
@@ -1077,7 +1109,7 @@ export default function GlobeMap({ className = '' }) {
               <p className="text-muted text-[9px] font-mono mt-0.5">EST. DIA: {selectedAsteroid.estimated_diameter_min_m?.toFixed(0)}-{selectedAsteroid.estimated_diameter_max_m?.toFixed(0)} m</p>
             </div>
             <button 
-              onClick={() => actions.selectAsteroid(null)}
+              onClick={() => actions.setShowMapDetailCard(false)}
               className="text-text-secondary hover:text-text-primary p-0.5 rounded hover:bg-white/5 transition-colors"
             >
               <X className="w-3 h-3" />

@@ -204,7 +204,7 @@ export default function Dashboard({ onReset }) {
   const [is3DMode, setIs3DMode] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem('orbitwatch_nav_collapsed');
-    return saved === 'true';
+    return saved === null ? false : saved === 'true';
   });
 
   const [tonightSubItem, setTonightSubItem] = useState(() => {
@@ -273,7 +273,7 @@ export default function Dashboard({ onReset }) {
 
   const [rightPanelOpen, setRightPanelOpen] = useState(() => {
     const saved = localStorage.getItem('orbitwatch_right_panel_open');
-    return saved === 'true';
+    return saved === null ? true : saved === 'true';
   });
 
   const toggleRightPanel = () => {

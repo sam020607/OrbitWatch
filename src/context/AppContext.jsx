@@ -184,6 +184,7 @@ const initialState = {
 
   // NASA APOD Cache
   apodData: null,
+  showMapDetailCard: false,
 };
 
 /** ─── Reducer ───────────────────────────────────────────────────────────── */
@@ -205,7 +206,7 @@ function appReducer(state, action) {
       return { ...state, satellites: action.payload };
 
     case 'SELECT_SATELLITE':
-      return { ...state, selectedSatellite: action.payload, selectedConstellation: null, selectedAsteroid: null, activeView: action.payload ? 'lookup' : state.activeView };
+      return { ...state, selectedSatellite: action.payload, selectedConstellation: null, selectedAsteroid: null, activeView: action.payload ? 'lookup' : state.activeView, showMapDetailCard: action.payload ? true : false };
 
     case 'SET_ISS_PASSES':
       return { ...state, issNextPasses: action.payload };
@@ -241,13 +242,13 @@ function appReducer(state, action) {
       return { ...state, viewMode: action.payload, selectedSatellite: null, selectedConstellation: null, selectedAsteroid: null };
 
     case 'SELECT_CONSTELLATION':
-      return { ...state, selectedConstellation: action.payload, selectedSatellite: null, selectedAsteroid: null, activeView: action.payload ? 'lookup' : state.activeView };
+      return { ...state, selectedConstellation: action.payload, selectedSatellite: null, selectedAsteroid: null, activeView: action.payload ? 'lookup' : state.activeView, showMapDetailCard: action.payload ? true : false };
 
     case 'SET_ASTEROIDS':
       return { ...state, asteroids: action.payload };
 
     case 'SELECT_ASTEROID':
-      return { ...state, selectedAsteroid: action.payload, selectedSatellite: null, selectedConstellation: null, activeView: action.payload ? 'lookup' : state.activeView };
+      return { ...state, selectedAsteroid: action.payload, selectedSatellite: null, selectedConstellation: null, activeView: action.payload ? 'lookup' : state.activeView, showMapDetailCard: action.payload ? true : false };
 
     case 'SET_ASTEROID_FILTER':
       return { ...state, asteroidFilter: action.payload };
@@ -292,6 +293,9 @@ function appReducer(state, action) {
     case 'DISMISS_ACHIEVEMENT_TOAST':
       return { ...state, newUnlockedAchievements: [] };
 
+    case 'SET_SHOW_MAP_DETAIL_CARD':
+      return { ...state, showMapDetailCard: action.payload };
+
     case 'SET_APOD_DATA':
       return { ...state, apodData: action.payload };
 
@@ -334,6 +338,7 @@ export function AppProvider({ children }) {
     logObservation: (obs) => dispatch({ type: 'LOG_OBSERVATION', payload: obs }),
     deleteObservation: (id) => dispatch({ type: 'DELETE_OBSERVATION', payload: id }),
     dismissAchievementToast: () => dispatch({ type: 'DISMISS_ACHIEVEMENT_TOAST' }),
+    setShowMapDetailCard: (v) => dispatch({ type: 'SET_SHOW_MAP_DETAIL_CARD', payload: v }),
     setApodData: (data) => dispatch({ type: 'SET_APOD_DATA', payload: data }),
     reset: () => dispatch({ type: 'RESET' }),
   }), [dispatch]);
