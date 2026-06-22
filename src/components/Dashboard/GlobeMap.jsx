@@ -274,6 +274,19 @@ const GENERATED_OCEAN_STARS = (() => {
     // ─── Seas ───
     [5, 22, 55, 95],         // Arabian Sea & Bay of Bengal (India)
     [30, 45, -5, 30],        // Mediterranean Sea (Europe/Africa)
+
+    // ─── High North Pacific & Bering Sea ───
+    [52, 66, 160, 180],     // Bering Sea West
+    [52, 66, -180, -140],    // Bering Sea East / Gulf of Alaska
+    
+    // ─── High North Atlantic & Baffin Bay ───
+    [55, 75, -70, -50],      // Labrador Sea / Baffin Bay (West of Greenland)
+    [60, 80, -25, 45],       // Norwegian / Greenland / Barents Sea (East of Greenland / North of Norway)
+    [52, 65, -95, -75],      // Hudson Bay (Canada)
+    
+    // ─── Arctic Ocean (North of Siberia & Alaska) ───
+    [72, 83, -160, -110],    // Beaufort Sea (North of Alaska/Canada)
+    [76, 83, 60, 175],       // Kara, Laptev, East Siberian Seas (North of Russia)
   ];
 
   oceanBoxes.forEach((box, boxIdx) => {
