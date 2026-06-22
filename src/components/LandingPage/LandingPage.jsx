@@ -159,6 +159,13 @@ export default function LandingPage({ onLocationSet }) {
         className="fixed inset-0 w-full h-full object-cover z-[0]"
         src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260429_114316_1c7889ad-2885-410e-b493-98119fee0ddb.mp4"
       />
+      {/* Cinematic vignette overlay to fade background video edges and hide the right-side landscape leak */}
+      <div 
+        className="fixed inset-0 z-[1] pointer-events-none"
+        style={{
+          background: 'linear-gradient(to right, var(--bg) 0%, transparent 15%, transparent 85%, var(--bg) 100%)'
+        }}
+      />
       <div className="relative z-10 w-full flex flex-col items-center">
       
       {/* Floating Header */}
@@ -704,7 +711,7 @@ export default function LandingPage({ onLocationSet }) {
       {/* Liquid Glass Footer Section */}
       <div className="w-full flex flex-col items-center pt-24 md:pt-48 pb-16 z-10"
            style={{
-             background: 'linear-gradient(to bottom, var(--bg) 0%, transparent 100%)'
+             background: 'linear-gradient(to bottom, var(--bg) 0%, rgba(10, 13, 21, 0.35) 60%, var(--bg) 100%)'
            }}
       >
         <div className="w-full max-w-4xl px-6">
