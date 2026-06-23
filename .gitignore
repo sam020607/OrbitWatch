@@ -15,3 +15,8 @@ package-lock.json
 /.vite/
 # OS generated files
 Thumbs.db
+
+# Project-specific ignored folders/files
+/top100/
+/take_skiper_screenshot.js
+/take_screenshot.js

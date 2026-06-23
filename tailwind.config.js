@@ -30,8 +30,6 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         crimson: ['"Crimson Text"', 'Georgia', 'serif'],
         playfair: ['"Playfair Display"', 'Georgia', 'serif'],
-        heading: ["'Instrument Serif'", "serif"],
-        body: ["'Barlow'", "sans-serif"],
       },
       animation: {
         'pulse-glow': 'pulseGlow 2s ease-in-out infinite',

@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import { BorderTrail } from '../motion-primitives/border-trail.jsx';
+import { CardContainer, CardBody, CardItem } from '@/components/ui/3d-card';
 
 // Radar Widget Component
 const RadarWidget = () => (
@@ -310,47 +311,59 @@ const StickyCard = ({
       ref={container}
       className="sticky top-0 h-[100vh] flex items-center justify-center pointer-events-none"
     >
-      <motion.div
-        style={{
-          scale,
-          y: i * 22,
-        }}
-        className="relative flex flex-col md:flex-row w-[92%] max-w-[760px] min-h-[460px] md:min-h-[350px] md:h-[350px] origin-top overflow-hidden border border-white/10 rounded-[28px] bg-slate-950/75 backdrop-blur-[20px] shadow-[0_20px_50px_rgba(0,0,0,0.6)] p-6 md:p-8 pointer-events-auto"
+      <CardContainer 
+        containerClassName="py-0 w-full flex justify-center items-center pointer-events-none" 
+        className="w-[92%] max-w-[760px] pointer-events-auto"
       >
-        <BorderTrail
-          className="bg-gradient-to-l from-cyan-300 via-blue-500 to-cyan-300 dark:from-cyan-400 dark:via-blue-500 dark:to-blue-700"
-          size={120}
-        />
-        {/* Left Column: Info */}
-        <div className="flex-1 flex flex-col justify-between h-full pr-0 md:pr-6">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-[9px] font-mono tracking-[0.25em] text-cyan-400 uppercase">{subtitle}</span>
-              <span className="text-[9px] font-mono text-white/20">// 0{i + 1}</span>
-            </div>
-            <h3 className="text-xl md:text-2xl font-sans font-light tracking-tight text-white mb-3">
-              {title}
-            </h3>
-            <p className="text-white/60 text-xs md:text-sm leading-relaxed font-light">
-              {description}
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-3 gap-3 border-t border-white/5 pt-4 mt-4">
-            {details.map((d, idx) => (
-              <div key={idx} className="flex flex-col">
-                <span className="text-[8px] font-mono text-white/30 uppercase tracking-wider">{d.label}</span>
-                <span className="text-[11px] md:text-xs font-sans font-semibold text-white mt-0.5">{d.value}</span>
+        <motion.div
+          style={{
+            scale,
+            y: i * 22,
+            transformStyle: "preserve-3d",
+          }}
+          className="w-full flex"
+        >
+          <CardBody className="relative flex flex-col md:flex-row w-full min-h-[460px] md:min-h-[350px] h-auto md:h-[350px] origin-top overflow-hidden border border-white/10 rounded-[28px] bg-slate-950/75 backdrop-blur-[20px] shadow-[0_20px_50px_rgba(0,0,0,0.6)] p-6 md:p-8">
+            <BorderTrail
+              className="bg-gradient-to-l from-cyan-300 via-blue-500 to-cyan-300 dark:from-cyan-400 dark:via-blue-500 dark:to-blue-700"
+              size={120}
+            />
+            {/* Left Column: Info */}
+            <div className="flex-1 flex flex-col justify-between h-full pr-0 md:pr-6 [transform-style:preserve-3d]">
+              <div>
+                <CardItem translateZ="20" className="flex items-center gap-2 mb-2 w-full">
+                  <span className="text-[9px] font-mono tracking-[0.25em] text-cyan-400 uppercase">{subtitle}</span>
+                  <span className="text-[9px] font-mono text-white/20">// 0{i + 1}</span>
+                </CardItem>
+                <CardItem translateZ="40" className="block w-full">
+                  <h3 className="text-xl md:text-2xl font-sans font-light tracking-tight text-white mb-3">
+                    {title}
+                  </h3>
+                </CardItem>
+                <CardItem translateZ="30" className="block w-full">
+                  <p className="text-white/60 text-xs md:text-sm leading-relaxed font-light">
+                    {description}
+                  </p>
+                </CardItem>
               </div>
-            ))}
-          </div>
-        </div>
+              
+              <CardItem translateZ="30" className="grid grid-cols-3 gap-3 border-t border-white/5 pt-4 mt-4 w-full">
+                {details.map((d, idx) => (
+                  <div key={idx} className="flex flex-col">
+                    <span className="text-[8px] font-mono text-white/30 uppercase tracking-wider">{d.label}</span>
+                    <span className="text-[11px] md:text-xs font-sans font-semibold text-white mt-0.5">{d.value}</span>
+                  </div>
+                ))}
+              </CardItem>
+            </div>
 
-        {/* Right Column: Mini Dashboard Interactive Graphic */}
-        <div className="w-full md:w-[240px] h-[150px] md:h-full mt-4 md:mt-0 flex-shrink-0">
-          {renderWidget(widget)}
-        </div>
-      </motion.div>
+            {/* Right Column: Mini Dashboard Interactive Graphic */}
+            <CardItem translateZ="50" className="w-full md:w-[240px] h-[150px] md:h-full mt-4 md:mt-0 flex-shrink-0 [transform-style:preserve-3d]">
+              {renderWidget(widget)}
+            </CardItem>
+          </CardBody>
+        </motion.div>
+      </CardContainer>
     </div>
   );
 };

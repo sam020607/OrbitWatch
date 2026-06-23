@@ -9,9 +9,7 @@ import InkReveal from '../ui/ink-reveal.jsx';
 import VaporizeTextCycle, { Tag } from '../ui/vapour-text-effect.tsx';
 import LocationSearch from './LocationSearch.jsx';
 import FeatureStickyStack from './FeatureStickyStack.jsx';
-import SatelliteDissection from './SatelliteDissection.jsx';
-import CtaFooter from './CtaFooter.jsx';
-import ScrollThread from './ScrollThread.jsx';
+import { Skiper30 } from '../ui/skiper-30.tsx';
 import { GlowEffect } from '../motion-primitives/glow-effect.jsx';
 import StringTune, { StringProgress, StringCursor, StringMagnetic } from '@fiddle-digital/string-tune';
 import { useApp } from '../../context/AppContext.jsx';
@@ -185,9 +183,6 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
 
   return (
     <main ref={mainRef} className="relative w-full overflow-x-hidden flex flex-col items-center font-sans selection:bg-white/20 selection:text-white h-full overflow-y-auto scroll-smooth">
-      {/* Scroll Thread */}
-      <ScrollThread containerRef={mainRef} />
-
       {/* Scroll Progress Bar */}
       <div 
         string="progress" 
@@ -534,8 +529,8 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
         <FeatureStickyStack />
       </section>
 
-      {/* 3D Exploded Satellite Dissection */}
-      <SatelliteDissection />
+      {/* Parallax Space Gallery */}
+      <Skiper30 />
 
       {/* SECTION 1 — Statement */}
       <section className="relative w-full py-16 bg-[var(--bg)] border-b border-[var(--surface-border)] px-6 flex justify-center items-center transition-colors duration-300">
@@ -653,8 +648,62 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
       </section>
 
 
-      {/* Cinematic CTA + Footer Section */}
-      <CtaFooter />
+      {/* Liquid Glass Footer Section */}
+      <motion.footer
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
+        className="liquid-glass w-full rounded-3xl p-6 md:p-10 text-white/70 mt-32 md:mt-64 mb-10"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-12 mb-10">
+          <div className="md:col-span-5">
+            <div className="flex items-center gap-3 mb-4 text-white">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 256 256" fill="currentColor"><path d="M 4.688 136 C 68.373 136 120 187.627 120 251.312 C 120 252.883 119.967 254.445 119.905 256 L 0 256 L 0 136.096 C 1.555 136.034 3.117 136 4.688 136 Z M 251.312 136 C 252.883 136 254.445 136.034 256 136.096 L 256 256 L 136.095 256 C 136.032 254.438 136.001 252.875 136 251.312 C 136 187.627 187.627 136 251.312 136 Z M 119.905 0 C 119.967 1.555 120 3.117 120 4.688 C 120 68.373 68.373 120 4.687 120 C 3.117 120 1.555 119.967 0 119.905 L 0 0 Z M 256 119.905 C 254.445 119.967 252.883 120 251.312 120 C 187.627 120 136 68.373 136 4.687 C 136 3.117 136.033 1.555 136.095 0 L 256 0 Z" /></svg>
+              <span className="text-xl font-medium tracking-wide">ORBITWATCH</span>
+            </div>
+            <p className="text-sm leading-relaxed max-w-sm">
+              Project Zenith: The Celestial Eye. Real-time satellite tracking & personal sky visibility — anywhere on Earth. Know what's overhead.
+            </p>
+          </div>
+
+          <div className="md:col-span-7 flex flex-col justify-center items-start md:items-end">
+            <button 
+              onClick={onNavigateAbout} 
+              string="magnetic"
+              className="text-lg uppercase tracking-wider text-white font-medium mb-2 hover:text-cyan transition-colors"
+            >
+              About Us
+            </button>
+            <p className="text-sm text-white/50 text-left md:text-right max-w-xs leading-relaxed">
+              Learn more about the team, our mission, and the technology behind Project Zenith.
+            </p>
+          </div>
+        </div>
+
+        <div className="pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4">
+          <p className="text-[10px] uppercase tracking-widest opacity-50">Curated by Project Zenith</p>
+          <div className="flex items-center gap-4">
+            <span className="text-[10px] uppercase tracking-widest opacity-50">Join the Journey:</span>
+            <div className="flex flex-row items-center gap-3">
+              <a href="#" className="opacity-70 hover:opacity-100 transition-colors hover:text-white">
+                <Music2 size={16} />
+              </a>
+              <a href="#" className="opacity-70 hover:opacity-100 transition-colors hover:text-white">
+                <Facebook size={16} />
+              </a>
+              <a href="#" className="opacity-70 hover:opacity-100 transition-colors hover:text-white">
+                <Twitter size={16} />
+              </a>
+              <a href="#" className="opacity-70 hover:opacity-100 transition-colors hover:text-white">
+                <Youtube size={16} />
+              </a>
+              <a href="#" className="opacity-70 hover:opacity-100 transition-colors hover:text-white">
+                <Instagram size={16} />
+              </a>
+            </div>
+          </div>
+        </div>
+      </motion.footer>
       </div>
     </main>
   );
