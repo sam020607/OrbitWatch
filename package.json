@@ -11,21 +11,25 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@fiddle-digital/string-tune": "^1.2.0",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
     "axios": "^1.7.9",
     "caniuse-lite": "^1.0.30001799",
+    "clsx": "^2.1.1",
     "firebase": "^12.15.0",
-    "framer-motion": "^11.15.0",
+    "framer-motion": "^11.18.2",
     "gsap": "^3.15.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.469.0",
+    "motion": "^12.40.0",
     "puppeteer": "^25.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1",
     "react-router-dom": "^7.1.1",
     "suncalc": "^1.9.0",
+    "tailwind-merge": "^3.6.0",
     "three": "^0.184.0"
   },
   "devDependencies": {

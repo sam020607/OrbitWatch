@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import LandingPage from './components/LandingPage/LandingPage.jsx';
 import Dashboard from './components/Dashboard/Dashboard.jsx';
 import AuthPage from './components/Auth/AuthPage.jsx';
+import AboutUs from './components/AboutUs.jsx';
 
 /**
  * Inner app — rendered inside both AuthProvider and AppProvider.
@@ -13,7 +14,7 @@ import AuthPage from './components/Auth/AuthPage.jsx';
  */
 function AppInner() {
   const { user, loading, showAuthModal, setShowAuthModal } = useAuth();
-  const [hasLocation, setHasLocation] = useState(false);
+  const [currentView, setCurrentView] = useState('landing'); // 'landing', 'dashboard', 'about'
 
   // Firebase is resolving the persisted session — show a minimal splash
   if (loading) {
@@ -35,7 +36,7 @@ function AppInner() {
     <AppProvider>
       <div className="relative w-full h-full overflow-hidden bg-transparent">
         <AnimatePresence mode="wait">
-          {!hasLocation ? (
+          {currentView === 'landing' && (
             <motion.div
               key="landing"
               initial={{ opacity: 0 }}
@@ -44,9 +45,13 @@ function AppInner() {
               transition={{ duration: 0.5 }}
               className="w-full h-full"
             >
-              <LandingPage onLocationSet={() => setHasLocation(true)} />
+              <LandingPage 
+                onLocationSet={() => setCurrentView('dashboard')} 
+                onNavigateAbout={() => setCurrentView('about')} 
+              />
             </motion.div>
-          ) : (
+          )}
+          {currentView === 'dashboard' && (
             <motion.div
               key="dashboard"
               initial={{ opacity: 0, y: 20 }}
@@ -55,7 +60,19 @@ function AppInner() {
               transition={{ duration: 0.4 }}
               className="w-full h-full"
             >
-              <Dashboard onReset={() => setHasLocation(false)} />
+              <Dashboard onReset={() => setCurrentView('landing')} />
+            </motion.div>
+          )}
+          {currentView === 'about' && (
+            <motion.div
+              key="about"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+              className="w-full h-full"
+            >
+              <AboutUs onBack={() => setCurrentView('landing')} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -86,9 +103,7 @@ function AppInner() {
 export default function App() {
   return (
     <AuthProvider>
-      <AnimatePresence mode="wait">
-        <AppInner />
-      </AnimatePresence>
+      <AppInner />
     </AuthProvider>
   );
 }

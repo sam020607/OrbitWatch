@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Globe, Music2, Facebook, Twitter, Youtube, Instagram } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
@@ -8,6 +8,10 @@ import { FadeUp } from '../ui/FadeUp.jsx';
 import InkReveal from '../ui/ink-reveal.jsx';
 import VaporizeTextCycle, { Tag } from '../ui/vapour-text-effect.tsx';
 import LocationSearch from './LocationSearch.jsx';
+import FeatureStickyStack from './FeatureStickyStack.jsx';
+import SatelliteDissection from './SatelliteDissection.jsx';
+import { GlowEffect } from '../motion-primitives/glow-effect.jsx';
+import StringTune, { StringProgress, StringCursor, StringMagnetic } from '@fiddle-digital/string-tune';
 import { useApp } from '../../context/AppContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 
@@ -79,7 +83,7 @@ function GlobeController({ onInteraction, center }) {
  * Cinematic landing page with a photorealistic Earth, interactive rotating globe,
  * compact 6-card feature grid, a scrollable statement, and technical explanation details.
  */
-export default function LandingPage({ onLocationSet }) {
+export default function LandingPage({ onLocationSet, onNavigateAbout }) {
   const { state, actions } = useApp();
   const { user, setShowAuthModal } = useAuth();
   const [mounted, setMounted] = useState(false);
@@ -89,6 +93,34 @@ export default function LandingPage({ onLocationSet }) {
   const [resolvedName, setResolvedName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showInkOverlay, setShowInkOverlay] = useState(true);
+  const mainRef = useRef(null);
+
+  // Initialize StringTune on client mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let stringTune;
+
+    try {
+      stringTune = StringTune.getInstance();
+      if (mainRef.current) {
+        stringTune.scrollContainer = mainRef.current;
+      }
+      stringTune.use(StringProgress);
+      stringTune.use(StringCursor, { lerp: 0.15 });
+      stringTune.use(StringMagnetic);
+      stringTune.start(60);
+    } catch (e) {
+      console.warn("StringTune init failed:", e);
+    }
+
+    return () => {
+      try {
+        if (stringTune) {
+          stringTune.destroy();
+        }
+      } catch (e) {}
+    };
+  }, []);
 
   // Always dark mode — single Earth image
   const earthImg = `${import.meta.env.BASE_URL}earth_view_from_space.png`;
@@ -150,16 +182,22 @@ export default function LandingPage({ onLocationSet }) {
   }
 
   return (
-    <main className="relative w-full overflow-x-hidden flex flex-col items-center font-sans selection:bg-white/20 selection:text-white h-full overflow-y-auto scroll-smooth">
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="fixed inset-0 w-full h-full object-cover z-[0]"
-        src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260429_114316_1c7889ad-2885-410e-b493-98119fee0ddb.mp4"
+    <main ref={mainRef} className="relative w-full overflow-x-hidden flex flex-col items-center font-sans selection:bg-white/20 selection:text-white h-full overflow-y-auto scroll-smooth">
+      {/* Scroll Progress Bar */}
+      <div 
+        string="progress" 
+        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 to-blue-500 origin-left z-[9999]"
       />
-      <div className="relative z-10 w-full max-w-7xl flex flex-col items-center pb-16">
+
+      {/* Custom target reticle cursor (only visible on desktop devices with cursor) */}
+      <div 
+        string="cursor" 
+        className="fixed top-0 left-0 w-8 h-8 rounded-full border border-cyan-400/80 pointer-events-none z-[9999] hidden md:flex items-center justify-center -translate-x-1/2 -translate-y-1/2"
+      >
+        <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+      </div>
+
+      <div className="relative z-10 w-full flex flex-col items-center pb-16">
       
       {/* Floating Header */}
       <header className="absolute top-0 left-0 right-0 h-16 flex items-center justify-between px-6 z-30 pointer-events-none">
@@ -194,13 +232,23 @@ export default function LandingPage({ onLocationSet }) {
               )}
             </div>
           ) : (
-            <button
-              id="landing-signin-btn"
-              onClick={() => setShowAuthModal(true)}
-              className="px-4 py-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all font-sans text-xs font-semibold uppercase tracking-widest text-white focus:outline-none cursor-pointer"
-            >
-              Sign In
-            </button>
+            <div className="relative group">
+              <GlowEffect
+                colors={['#FF5733', '#33FF57', '#3357FF', '#F1C40F']}
+                mode='colorShift'
+                blur='soft'
+                duration={3}
+                scale={0.9}
+              />
+              <button
+                id="landing-signin-btn"
+                string="magnetic"
+                onClick={() => setShowAuthModal(true)}
+                className="relative px-4 py-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all font-sans text-xs font-semibold uppercase tracking-widest text-white focus:outline-none cursor-pointer z-10"
+              >
+                Sign In
+              </button>
+            </div>
           )}
         </div>
       </header>
@@ -253,6 +301,7 @@ export default function LandingPage({ onLocationSet }) {
           >
             <button
               onClick={() => setMethod('search')}
+              string="magnetic"
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-sans font-semibold transition-all`}
               style={method === 'search' ? { backgroundColor: 'var(--text-primary)', color: 'var(--bg)' } : { color: 'var(--text-secondary)' }}
             >
@@ -261,6 +310,7 @@ export default function LandingPage({ onLocationSet }) {
             </button>
             <button
               onClick={() => setMethod('globe')}
+              string="magnetic"
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-sans font-semibold transition-all`}
               style={method === 'globe' ? { backgroundColor: 'var(--text-primary)', color: 'var(--bg)' } : { color: 'var(--text-secondary)' }}
             >
@@ -297,6 +347,7 @@ export default function LandingPage({ onLocationSet }) {
                       {POPULAR_LOCATIONS.map(loc => (
                         <button
                           key={loc.name}
+                          string="magnetic"
                           onClick={() => handleLocationSelect({ ...loc, name: loc.name, country: '' })}
                           className="px-3 py-1 rounded-full text-xs border border-[var(--surface-border)] text-[var(--text-primary)] bg-[var(--surface)] hover:bg-[var(--text-primary)] hover:text-[var(--bg)] hover:border-[var(--text-primary)] transition-all duration-200 shadow-sm"
                         >
@@ -473,104 +524,13 @@ export default function LandingPage({ onLocationSet }) {
         )}
       </div>
 
-      {/* 6-Card Feature Grid Section (Expanded real features list) */}
-      <section className="relative w-full py-16 bg-[var(--bg)] border-b border-[var(--surface-border)] px-6 flex justify-center items-center z-10 transition-colors duration-300">
-        <div className="w-full max-w-4xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            
-            {/* Card 1 */}
-            <motion.div 
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: 0.05 }}
-              className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px] hover:border-[var(--text-secondary)] transition-all duration-300 shadow-sm"
-              style={{ backgroundColor: 'var(--surface)' }}
-            >
-              <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1">Live Tracking</h4>
-              <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
-                Track satellites, constellations (Starlink etc.), and near-Earth asteroids in real time.
-              </p>
-            </motion.div>
-
-            {/* Card 2 */}
-            <motion.div 
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px] hover:border-[var(--text-secondary)] transition-all duration-300 shadow-sm"
-              style={{ backgroundColor: 'var(--surface)' }}
-            >
-              <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1">Real-Time Telemetry</h4>
-              <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
-                Access actual altitude, speed, and positioning details for every tracked object.
-              </p>
-            </motion.div>
-
-            {/* Card 3 */}
-            <motion.div 
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-              className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px] hover:border-[var(--text-secondary)] transition-all duration-300 shadow-sm"
-              style={{ backgroundColor: 'var(--surface)' }}
-            >
-              <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1">Space Fact of the Moment</h4>
-              <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
-                Discover fascinating cosmic trivia with our rotating space facts database.
-              </p>
-            </motion.div>
-
-            {/* Card 4 */}
-            <motion.div 
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px] hover:border-[var(--text-secondary)] transition-all duration-300 shadow-sm"
-              style={{ backgroundColor: 'var(--surface)' }}
-            >
-              <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1">NASA APOD Feature</h4>
-              <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
-                View the daily featured scientific image complete with official NASA explanations.
-              </p>
-            </motion.div>
-
-            {/* Card 5 */}
-            <motion.div 
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: 0.25 }}
-              className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px] hover:border-[var(--text-secondary)] transition-all duration-300 shadow-sm"
-              style={{ backgroundColor: 'var(--surface)' }}
-            >
-              <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1">What's Visible Tonight</h4>
-              <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
-                Check moon phases, upcoming satellite passes, and planet visibilities for your location.
-              </p>
-            </motion.div>
-
-            {/* Card 6 */}
-            <motion.div 
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="p-5 border border-[var(--surface-border)] rounded-[18px] backdrop-blur-[20px] hover:border-[var(--text-secondary)] transition-all duration-300 shadow-sm"
-              style={{ backgroundColor: 'var(--surface)' }}
-            >
-              <h4 className="text-[var(--text-primary)] font-bold text-sm font-sans mb-1">Observer Journal</h4>
-              <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
-                Log your real-world sky sightings, raise your observer rank, and unlock achievements.
-              </p>
-            </motion.div>
-
-          </div>
-        </div>
+      {/* 6-Card Feature Grid replaced with a smooth sticky card stack */}
+      <section className="relative w-full bg-[var(--bg)] border-b border-[var(--surface-border)] z-10 transition-colors duration-300">
+        <FeatureStickyStack />
       </section>
+
+      {/* 3D Exploded Satellite Dissection */}
+      <SatelliteDissection />
 
       {/* SECTION 1 — Statement */}
       <section className="relative w-full py-16 bg-[var(--bg)] border-b border-[var(--surface-border)] px-6 flex justify-center items-center transition-colors duration-300">
@@ -706,35 +666,17 @@ export default function LandingPage({ onLocationSet }) {
             </p>
           </div>
 
-          <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-8">
-            <div>
-              <h3 className="text-sm uppercase tracking-wider text-white font-medium mb-4">Discover</h3>
-              <div className="flex flex-col text-xs space-y-2">
-                <a href="#" className="hover:text-white transition-colors">Labs & Workshops</a>
-                <a href="#" className="hover:text-white transition-colors">Deep Dive Series</a>
-                <a href="#" className="hover:text-white transition-colors">Global Circle</a>
-                <a href="#" className="hover:text-white transition-colors">Resource Vault</a>
-                <a href="#" className="hover:text-white transition-colors">Future Roadmap</a>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-sm uppercase tracking-wider text-white font-medium mb-4">The Mission</h3>
-              <div className="flex flex-col text-xs space-y-2">
-                <a href="#" className="hover:text-white transition-colors">Origin Story</a>
-                <a href="#" className="hover:text-white transition-colors">The Collective</a>
-                <a href="#" className="hover:text-white transition-colors">Newsroom Hub</a>
-                <a href="#" className="hover:text-white transition-colors">Join the Team</a>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-sm uppercase tracking-wider text-white font-medium mb-4">Concierge</h3>
-              <div className="flex flex-col text-xs space-y-2">
-                <a href="#" className="hover:text-white transition-colors">Get in Touch</a>
-                <a href="#" className="hover:text-white transition-colors">Legal Privacy</a>
-                <a href="#" className="hover:text-white transition-colors">User Agreement</a>
-                <a href="#" className="hover:text-white transition-colors">Report Concern</a>
-              </div>
-            </div>
+          <div className="md:col-span-7 flex flex-col justify-center items-start md:items-end">
+            <button 
+              onClick={onNavigateAbout} 
+              string="magnetic"
+              className="text-lg uppercase tracking-wider text-white font-medium mb-2 hover:text-cyan transition-colors"
+            >
+              About Us
+            </button>
+            <p className="text-sm text-white/50 text-left md:text-right max-w-xs leading-relaxed">
+              Learn more about the team, our mission, and the technology behind Project Zenith.
+            </p>
           </div>
         </div>
 
