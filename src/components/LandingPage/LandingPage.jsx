@@ -10,6 +10,7 @@ import VaporizeTextCycle, { Tag } from '../ui/vapour-text-effect.tsx';
 import LocationSearch from './LocationSearch.jsx';
 import FeatureStickyStack from './FeatureStickyStack.jsx';
 import SatelliteDissection from './SatelliteDissection.jsx';
+import Skiper19 from './Skiper19.jsx';
 import { GlowEffect } from '../motion-primitives/glow-effect.jsx';
 import StringTune, { StringProgress, StringCursor, StringMagnetic } from '@fiddle-digital/string-tune';
 import { useApp } from '../../context/AppContext.jsx';
@@ -647,6 +648,9 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
         </div>
       </section>
 
+
+      {/* Scroll-driven path tracer */}
+      <Skiper19 />
 
       {/* Liquid Glass Footer Section */}
       <motion.footer
