@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, MotionValue, useScroll, useTransform } from "framer-motion";
-import { useEffect, useRef, useState, RefObject } from "react";
+import Lenis from "lenis";
+import { useEffect, useRef, useState } from "react";
 
 const images = [
   "images/top100/heic1501a.webp", // Pillars of Creation
@@ -19,16 +20,17 @@ const images = [
   "images/top100/heic1105a.webp", // Rose Galaxies (Arp 273)
 ];
 
-type Skiper30Props = {
-  scrollContainerRef?: RefObject<HTMLElement | null>;
-};
-
-const Skiper30 = ({ scrollContainerRef }: Skiper30Props = {}) => {
+const Skiper30 = () => {
   const gallery = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLElement | null>(null);
   const [dimension, setDimension] = useState({ width: 0, height: 0 });
+  const [, setRenderTrigger] = useState(0);
 
-  // Use provided container ref (already populated by parent) so useScroll
-  // tracks the correct scrollable element from the very first render.
+  useEffect(() => {
+    scrollContainerRef.current = document.querySelector('main');
+    setRenderTrigger(prev => prev + 1);
+  }, []);
+
   const { scrollYProgress } = useScroll({
     container: scrollContainerRef,
     target: gallery,
@@ -36,19 +38,38 @@ const Skiper30 = ({ scrollContainerRef }: Skiper30Props = {}) => {
   });
 
   const { height } = dimension;
-  const y  = useTransform(scrollYProgress, [0, 1], [0, height * 2]);
+  const y = useTransform(scrollYProgress, [0, 1], [0, height * 2]);
   const y2 = useTransform(scrollYProgress, [0, 1], [0, height * 3.3]);
   const y3 = useTransform(scrollYProgress, [0, 1], [0, height * 1.25]);
   const y4 = useTransform(scrollYProgress, [0, 1], [0, height * 3]);
 
   useEffect(() => {
+    const mainEl = scrollContainerRef.current || document.querySelector('main');
+    if (!mainEl) return;
+
+    const lenis = new Lenis({
+      wrapper: mainEl,
+      content: mainEl.firstElementChild as HTMLElement || mainEl,
+    });
+
+    const raf = (time: number) => {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    };
+
     const resize = () => {
       setDimension({ width: window.innerWidth, height: window.innerHeight });
     };
+
     window.addEventListener("resize", resize);
+    requestAnimationFrame(raf);
     resize();
-    return () => window.removeEventListener("resize", resize);
-  }, []);
+
+    return () => {
+      window.removeEventListener("resize", resize);
+      lenis.destroy();
+    };
+  }, [scrollContainerRef.current]);
 
   return (
     <section className="w-full bg-[#0a0d15] text-white">
