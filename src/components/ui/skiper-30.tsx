@@ -54,7 +54,7 @@ const Skiper30 = () => {
       wrapper: mainEl,
       content: mainEl.firstElementChild as HTMLElement || mainEl,
       smoothWheel: true,
-      lerp: 0.1,
+      lerp: 0.06,
       syncTouch: false,
       prevent: (node) => node.closest('[data-lenis-prevent]') !== null,
     });
