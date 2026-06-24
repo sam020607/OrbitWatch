@@ -683,10 +683,5 @@ h1, h2, h3, h4, h5, h6 {
   cursor: crosshair !important;
 }
 
-/* Hide default cursor on desktop pointer devices for StringTune reticle */
-@media (pointer: fine) {
-  body, a, button, select, input, textarea, [role="button"] {
-    cursor: none !important;
-  }
-}
+
 

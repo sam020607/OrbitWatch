@@ -10,8 +10,7 @@ import VaporizeTextCycle, { Tag } from '../ui/vapour-text-effect.tsx';
 import LocationSearch from './LocationSearch.jsx';
 import FeatureStickyStack from './FeatureStickyStack.jsx';
 import { Skiper30 } from '../ui/skiper-30.tsx';
-import { GlowEffect } from '../motion-primitives/glow-effect.jsx';
-import StringTune, { StringProgress, StringCursor, StringMagnetic } from '@fiddle-digital/string-tune';
+import StringTune, { StringProgress, StringMagnetic } from '@fiddle-digital/string-tune';
 import { useApp } from '../../context/AppContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 
@@ -106,7 +105,6 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
         stringTune.scrollContainer = mainRef.current;
       }
       stringTune.use(StringProgress);
-      stringTune.use(StringCursor, { lerp: 0.15 });
       stringTune.use(StringMagnetic);
       stringTune.start(60);
     } catch (e) {
@@ -205,14 +203,6 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
         className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 to-blue-500 origin-left z-[9999]"
       />
 
-      {/* Custom target reticle cursor (only visible on desktop devices with cursor) */}
-      <div 
-        string="cursor" 
-        className="fixed top-0 left-0 w-8 h-8 rounded-full border border-cyan-400/80 pointer-events-none z-[9999] hidden md:flex items-center justify-center -translate-x-1/2 -translate-y-1/2"
-      >
-        <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-      </div>
-
       <div className="relative z-10 w-full flex flex-col items-center pb-16">
       
       {/* Floating Header */}
@@ -248,23 +238,13 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
               )}
             </div>
           ) : (
-            <div className="relative group">
-              <GlowEffect
-                colors={['#FF5733', '#33FF57', '#3357FF', '#F1C40F']}
-                mode='colorShift'
-                blur='soft'
-                duration={3}
-                scale={0.9}
-              />
-              <button
-                id="landing-signin-btn"
-                string="magnetic"
-                onClick={() => setShowAuthModal(true)}
-                className="relative px-4 py-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all font-sans text-xs font-semibold uppercase tracking-widest text-white focus:outline-none cursor-pointer z-10"
-              >
-                Sign In
-              </button>
-            </div>
+            <button
+              id="landing-signin-btn"
+              onClick={() => setShowAuthModal(true)}
+              className="px-4 py-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all font-sans text-xs font-semibold uppercase tracking-widest text-white focus:outline-none cursor-pointer"
+            >
+              Sign In
+            </button>
           )}
         </div>
       </header>
@@ -759,6 +739,7 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
           </motion.footer>
         </div>
       </div>
-    </main>
-  );
+    </div>
+  </main>
+);
 }
