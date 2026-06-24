@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, MotionValue, useScroll, useTransform } from "framer-motion";
-import Lenis from "lenis";
 import { useEffect, useRef, useState } from "react";
 
 const images = [
@@ -22,17 +21,9 @@ const images = [
 
 const Skiper30 = () => {
   const gallery = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLElement | null>(null);
   const [dimension, setDimension] = useState({ width: 0, height: 0 });
-  const [, setRenderTrigger] = useState(0);
-
-  useEffect(() => {
-    scrollContainerRef.current = document.querySelector('main');
-    setRenderTrigger(prev => prev + 1);
-  }, []);
 
   const { scrollYProgress } = useScroll({
-    container: scrollContainerRef,
     target: gallery,
     offset: ["start end", "end start"],
   });
@@ -44,32 +35,13 @@ const Skiper30 = () => {
   const y4 = useTransform(scrollYProgress, [0, 1], [0, height * 3]);
 
   useEffect(() => {
-    const mainEl = scrollContainerRef.current || document.querySelector('main');
-    if (!mainEl) return;
-
-    const lenis = new Lenis({
-      wrapper: mainEl,
-      content: mainEl.firstElementChild as HTMLElement || mainEl,
-    });
-
-    const raf = (time: number) => {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    };
-
     const resize = () => {
       setDimension({ width: window.innerWidth, height: window.innerHeight });
     };
-
     window.addEventListener("resize", resize);
-    requestAnimationFrame(raf);
     resize();
-
-    return () => {
-      window.removeEventListener("resize", resize);
-      lenis.destroy();
-    };
-  }, [scrollContainerRef.current]);
+    return () => window.removeEventListener("resize", resize);
+  }, []);
 
   return (
     <section className="w-full bg-[#0a0d15] text-white">
