@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, MotionValue, useScroll, useTransform } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, RefObject } from "react";
 
 const images = [
   "images/top100/heic1501a.webp", // Pillars of Creation
@@ -19,17 +19,24 @@ const images = [
   "images/top100/heic1105a.webp", // Rose Galaxies (Arp 273)
 ];
 
-const Skiper30 = () => {
+type Skiper30Props = {
+  scrollContainerRef?: RefObject<HTMLElement | null>;
+};
+
+const Skiper30 = ({ scrollContainerRef }: Skiper30Props = {}) => {
   const gallery = useRef<HTMLDivElement>(null);
   const [dimension, setDimension] = useState({ width: 0, height: 0 });
 
+  // Use provided container ref (already populated by parent) so useScroll
+  // tracks the correct scrollable element from the very first render.
   const { scrollYProgress } = useScroll({
+    container: scrollContainerRef,
     target: gallery,
     offset: ["start end", "end start"],
   });
 
   const { height } = dimension;
-  const y = useTransform(scrollYProgress, [0, 1], [0, height * 2]);
+  const y  = useTransform(scrollYProgress, [0, 1], [0, height * 2]);
   const y2 = useTransform(scrollYProgress, [0, 1], [0, height * 3.3]);
   const y3 = useTransform(scrollYProgress, [0, 1], [0, height * 1.25]);
   const y4 = useTransform(scrollYProgress, [0, 1], [0, height * 3]);
