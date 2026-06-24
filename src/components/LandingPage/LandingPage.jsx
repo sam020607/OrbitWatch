@@ -702,24 +702,24 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
                   <div className="flex flex-col text-xs space-y-4">
                     {/* Member 1 */}
                     <div className="flex flex-col gap-1">
-                      <span className="text-white/90 font-medium">Samriddhi Upadhyay</span>
-                      <div className="flex items-center gap-3">
-                        <a href="https://github.com/sam020607" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
-                          <Github size={12} /> GitHub
-                        </a>
-                        <a href="https://www.linkedin.com/in/samriddhiupadhyay/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
-                          <Linkedin size={12} /> LinkedIn
-                        </a>
-                      </div>
-                    </div>
-                    {/* Member 2 */}
-                    <div className="flex flex-col gap-1">
                       <span className="text-white/90 font-medium">Agarim Karnwal</span>
                       <div className="flex items-center gap-3">
                         <a href="https://github.com/Agarimkarnwal" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
                           <Github size={12} /> GitHub
                         </a>
                         <a href="https://www.linkedin.com/in/agarim-karnwal-717b04375/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
+                          <Linkedin size={12} /> LinkedIn
+                        </a>
+                      </div>
+                    </div>
+                    {/* Member 2 */}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-white/90 font-medium">Samriddhi Upadhyay</span>
+                      <div className="flex items-center gap-3">
+                        <a href="https://github.com/sam020607" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
+                          <Github size={12} /> GitHub
+                        </a>
+                        <a href="https://www.linkedin.com/in/samriddhiupadhyay/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
                           <Linkedin size={12} /> LinkedIn
                         </a>
                       </div>
