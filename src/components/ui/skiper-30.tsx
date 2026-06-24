@@ -53,11 +53,16 @@ const Skiper30 = () => {
     const lenis = new Lenis({
       wrapper: mainEl,
       content: mainEl.firstElementChild as HTMLElement || mainEl,
+      smoothWheel: true,
+      lerp: 0.1,
+      syncTouch: false,
+      prevent: (node) => node.closest('[data-lenis-prevent]') !== null,
     });
 
+    let rafId: number;
     const raf = (time: number) => {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      rafId = requestAnimationFrame(raf);
     };
 
     const resize = () => {
@@ -65,11 +70,12 @@ const Skiper30 = () => {
     };
 
     window.addEventListener("resize", resize);
-    requestAnimationFrame(raf);
+    rafId = requestAnimationFrame(raf);
     resize();
 
     return () => {
       window.removeEventListener("resize", resize);
+      cancelAnimationFrame(rafId);
       lenis.destroy();
     };
   }, [scrollContainerRef.current]);
