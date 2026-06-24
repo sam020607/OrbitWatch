@@ -196,6 +196,13 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
           background: 'linear-gradient(to right, var(--bg) 0%, transparent 15%, transparent 85%, var(--bg) 100%)'
         }}
       />
+      {/* Bottom grass mask — fades the bottom 20% of the video to solid deep navy, hiding the grass strip */}
+      <div 
+        className="fixed inset-0 z-[1] pointer-events-none"
+        style={{
+          background: 'linear-gradient(to top, #0a0d15 0%, #0a0d15 8%, rgba(10,13,21,0.85) 14%, rgba(10,13,21,0.5) 18%, transparent 25%)'
+        }}
+      />
 
       {/* Scroll Progress Bar */}
       <div 
@@ -660,7 +667,7 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
       {/* Liquid Glass Footer Section */}
       <div className="w-full flex flex-col items-center pt-24 md:pt-48 pb-16 z-10"
            style={{
-             background: 'var(--bg)'
+             background: 'linear-gradient(to bottom, var(--bg) 0%, rgba(10, 13, 21, 0.35) 60%, var(--bg) 100%)'
            }}
       >
         <div className="w-full max-w-4xl px-6">
