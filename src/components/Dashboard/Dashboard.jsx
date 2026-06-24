@@ -435,7 +435,7 @@ export default function Dashboard({ onReset }) {
         </div>
 
         {/* Nav List */}
-        <nav className="flex-1 py-4 space-y-1.5 px-3">
+        <nav className="flex-1 py-4 space-y-1.5 px-3 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = activeNav === item.id;
@@ -830,7 +830,7 @@ export default function Dashboard({ onReset }) {
             className={`hidden lg:flex flex-col shrink-0 overflow-hidden transition-all duration-200 ease-in-out bg-surface
               ${(rightPanelOpen && activeNav !== 'battles') ? 'w-80' : 'w-0'}`}
           >
-            <div className="w-80 h-full flex flex-col overflow-hidden">
+            <div className="w-80 h-full flex flex-col overflow-hidden" data-lenis-prevent>
                {/* Static Panel Header */}
                {(() => {
                  const headerInfo = getHeaderInfo();
@@ -851,7 +851,7 @@ export default function Dashboard({ onReset }) {
               })()}
 
               {/* Panel content */}
-              <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 flex flex-col overflow-y-auto">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={rightPanel}
