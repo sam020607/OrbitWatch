@@ -23,16 +23,19 @@ const images = [
 const Skiper30 = () => {
   const gallery = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLElement | null>(null);
-  const [dimension, setDimension] = useState({ width: 0, height: 0 });
-  const [, setRenderTrigger] = useState(0);
+  const [dimension, setDimension] = useState(() => ({
+    width: typeof window !== 'undefined' ? window.innerWidth : 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+  }));
+  const [containerReady, setContainerReady] = useState(false);
 
   useEffect(() => {
     scrollContainerRef.current = document.querySelector('main');
-    setRenderTrigger(prev => prev + 1);
+    setContainerReady(true);
   }, []);
 
   const { scrollYProgress } = useScroll({
-    container: scrollContainerRef,
+    container: containerReady ? scrollContainerRef : undefined,
     target: gallery,
     offset: ["start end", "end start"],
   });
