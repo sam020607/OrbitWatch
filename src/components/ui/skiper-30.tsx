@@ -23,12 +23,18 @@ const images = [
 const Skiper30 = () => {
   const gallery = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLElement | null>(null);
-  const [dimension, setDimension] = useState({ width: 0, height: 0 });
-  const [, setRenderTrigger] = useState(0);
 
+  // Initialize with real window dimensions immediately — avoids height=0 on first render
+  // which would make all parallax y-transforms [0,0] and lock columns off-screen
+  const [dimension, setDimension] = useState(() => ({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1280,
+    height: typeof window !== 'undefined' ? window.innerHeight : 800,
+  }));
+
+  // Resolve scroll container synchronously before first paint
   useEffect(() => {
-    scrollContainerRef.current = document.querySelector('main');
-    setRenderTrigger(prev => prev + 1);
+    const main = document.querySelector('main') as HTMLElement | null;
+    if (main) scrollContainerRef.current = main;
   }, []);
 
   const { scrollYProgress } = useScroll({
@@ -44,7 +50,7 @@ const Skiper30 = () => {
   const y4 = useTransform(scrollYProgress, [0, 1], [0, height * 3]);
 
   useEffect(() => {
-    const mainEl = scrollContainerRef.current || document.querySelector('main');
+    const mainEl = scrollContainerRef.current || document.querySelector('main') as HTMLElement;
     if (!mainEl) return;
 
     const lenis = new Lenis({
@@ -69,7 +75,7 @@ const Skiper30 = () => {
       window.removeEventListener("resize", resize);
       lenis.destroy();
     };
-  }, [scrollContainerRef.current]);
+  }, []);
 
   return (
     <section className="w-full bg-[#0a0d15] text-white">
