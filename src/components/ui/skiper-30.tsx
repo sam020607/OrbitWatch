@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, MotionValue, useScroll, useTransform } from "framer-motion";
-import { useEffect, useRef, useState, RefObject } from "react";
+import Lenis from "lenis";
+import { useEffect, useRef, useState } from "react";
 
 const images = [
   "images/top100/heic1501a.webp", // Pillars of Creation
@@ -19,42 +20,56 @@ const images = [
   "images/top100/heic1105a.webp", // Rose Galaxies (Arp 273)
 ];
 
-type Skiper30Props = {
-  /** Pass the landing page's mainRef so useScroll always has a valid container */
-  scrollContainer: RefObject<HTMLElement | null>;
-};
-
-const Skiper30 = ({ scrollContainer }: Skiper30Props) => {
+const Skiper30 = () => {
   const gallery = useRef<HTMLDivElement>(null);
-
-  // Initialize with real window values — avoids height=0 on first render
-  // which would lock all parallax columns off-screen in production
-  const [dimension, setDimension] = useState(() => ({
-    width: typeof window !== "undefined" ? window.innerWidth : 1280,
-    height: typeof window !== "undefined" ? window.innerHeight : 800,
-  }));
+  const scrollContainerRef = useRef<HTMLElement | null>(null);
+  const [dimension, setDimension] = useState({ width: 0, height: 0 });
+  const [, setRenderTrigger] = useState(0);
 
   useEffect(() => {
-    const resize = () =>
-      setDimension({ width: window.innerWidth, height: window.innerHeight });
-    window.addEventListener("resize", resize);
-    resize();
-    return () => window.removeEventListener("resize", resize);
+    scrollContainerRef.current = document.querySelector('main');
+    setRenderTrigger(prev => prev + 1);
   }, []);
 
-  // scrollContainer (mainRef) is passed directly from LandingPage —
-  // always valid, no querySelector timing race condition
   const { scrollYProgress } = useScroll({
-    container: scrollContainer,
+    container: scrollContainerRef,
     target: gallery,
     offset: ["start end", "end start"],
   });
 
   const { height } = dimension;
-  const y  = useTransform(scrollYProgress, [0, 1], [0, height * 2]);
+  const y = useTransform(scrollYProgress, [0, 1], [0, height * 2]);
   const y2 = useTransform(scrollYProgress, [0, 1], [0, height * 3.3]);
   const y3 = useTransform(scrollYProgress, [0, 1], [0, height * 1.25]);
   const y4 = useTransform(scrollYProgress, [0, 1], [0, height * 3]);
+
+  useEffect(() => {
+    const mainEl = scrollContainerRef.current || document.querySelector('main');
+    if (!mainEl) return;
+
+    const lenis = new Lenis({
+      wrapper: mainEl,
+      content: mainEl.firstElementChild as HTMLElement || mainEl,
+    });
+
+    const raf = (time: number) => {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    };
+
+    const resize = () => {
+      setDimension({ width: window.innerWidth, height: window.innerHeight });
+    };
+
+    window.addEventListener("resize", resize);
+    requestAnimationFrame(raf);
+    resize();
+
+    return () => {
+      window.removeEventListener("resize", resize);
+      lenis.destroy();
+    };
+  }, [scrollContainerRef.current]);
 
   return (
     <section className="w-full bg-[#0a0d15] text-white">
@@ -62,9 +77,9 @@ const Skiper30 = ({ scrollContainer }: Skiper30Props) => {
         ref={gallery}
         className="relative box-border flex h-[175vh] gap-[2vw] overflow-hidden bg-[#0a0d15] p-[2vw] border-y border-white/5"
       >
-        <Column images={[images[0], images[1], images[2]]}   y={y}  />
-        <Column images={[images[3], images[4], images[5]]}   y={y2} />
-        <Column images={[images[6], images[7], images[8]]}   y={y3} />
+        <Column images={[images[0], images[1], images[2]]} y={y} />
+        <Column images={[images[3], images[4], images[5]]} y={y2} />
+        <Column images={[images[6], images[7], images[8]]} y={y3} />
         <Column images={[images[9], images[10], images[11]]} y={y4} />
       </div>
     </section>
