@@ -7,15 +7,12 @@ import LandingPage from './components/LandingPage/LandingPage.jsx';
 import Dashboard from './components/Dashboard/Dashboard.jsx';
 import AuthPage from './components/Auth/AuthPage.jsx';
 import OnboardingBriefing from './components/Onboarding/OnboardingBriefing.jsx';
+import AboutUs from './components/AboutUs.jsx';
 
-/**
- * Inner app — rendered inside both AuthProvider and AppProvider.
- * Shows the AuthPage if not signed in, then the existing landing → briefing → dashboard flow.
- */
 function AppInner() {
   const { user, loading, showAuthModal, setShowAuthModal } = useAuth();
   const { state } = useApp();
-  const [appState, setAppState] = useState('landing'); // 'landing' | 'dashboard'
+  const [appState, setAppState] = useState('landing'); // 'landing' | 'dashboard' | 'about'
   const [showBriefing, setShowBriefing] = useState(false);
 
   // Route depending on user briefing status
@@ -39,11 +36,11 @@ function AppInner() {
 
   // Sync state if location is cleared externally
   useEffect(() => {
-    if (!state.location) {
+    if (!state.location && appState === 'dashboard') {
       setAppState('landing');
       setShowBriefing(false);
     }
-  }, [state.location]);
+  }, [state.location, appState]);
 
   // Firebase is resolving the persisted session — show a minimal splash
   if (loading) {
@@ -64,7 +61,7 @@ function AppInner() {
   return (
     <div className="relative w-full h-full overflow-hidden bg-transparent">
       <AnimatePresence mode="wait">
-        {appState === 'landing' ? (
+        {appState === 'landing' && (
           <motion.div
             key="landing"
             initial={{ opacity: 0 }}
@@ -73,9 +70,13 @@ function AppInner() {
             transition={{ duration: 0.5 }}
             className="w-full h-full"
           >
-            <LandingPage onLocationSet={handleLocationSet} />
+            <LandingPage 
+              onLocationSet={handleLocationSet} 
+              onNavigateAbout={() => setAppState('about')}
+            />
           </motion.div>
-        ) : (
+        )}
+        {appState === 'dashboard' && (
           <motion.div
             key="dashboard"
             initial={{ opacity: 0, y: 20 }}
@@ -85,6 +86,18 @@ function AppInner() {
             className={`w-full h-full ${showBriefing ? 'hidden pointer-events-none' : ''}`}
           >
             <Dashboard onReset={handleReset} />
+          </motion.div>
+        )}
+        {appState === 'about' && (
+          <motion.div
+            key="about"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="w-full h-full"
+          >
+            <AboutUs onBack={() => setAppState('landing')} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -126,9 +139,6 @@ function AppInner() {
   );
 }
 
-/**
- * App root — wraps everything in AuthProvider and AppProvider so useAuth() and useApp() are available everywhere.
- */
 export default function App() {
   return (
     <AuthProvider>

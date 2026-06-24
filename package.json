@@ -11,14 +11,21 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@fiddle-digital/string-tune": "^1.2.0",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
+    "@tabler/icons-react": "^3.44.0",
     "axios": "^1.7.9",
+    "caniuse-lite": "^1.0.30001799",
+    "clsx": "^2.1.1",
     "firebase": "^12.15.0",
-    "framer-motion": "^11.15.0",
+    "framer-motion": "^11.18.2",
     "gsap": "^3.15.0",
+    "hls.js": "^1.6.16",
     "leaflet": "^1.9.4",
+    "lenis": "^1.3.23",
     "lucide-react": "^0.469.0",
+    "motion": "^12.40.0",
     "puppeteer": "^25.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -27,16 +34,17 @@
     "react-router-dom": "^7.1.1",
     "satellite.js": "^4.1.4",
     "suncalc": "^1.9.0",
+    "tailwind-merge": "^3.6.0",
     "three": "^0.184.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
-    "@vitejs/plugin-react": "^6.0.2",
+    "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.20",
     "gh-pages": "^6.3.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
-    "vite": "^8.0.16"
+    "vite": "^5.2.0"
   }
 }
