@@ -81,7 +81,7 @@ const Skiper30 = () => {
   }, [scrollContainerRef.current]);
 
   return (
-    <section className="w-full bg-[#0a0d15] text-white">
+    <section className="relative w-full bg-[#0a0d15] text-white">
       <div
         ref={gallery}
         className="relative box-border flex h-[175vh] gap-[2vw] overflow-hidden bg-[#0a0d15] p-[2vw] border-y border-white/5"
