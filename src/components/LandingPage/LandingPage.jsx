@@ -660,7 +660,7 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
       {/* Liquid Glass Footer Section */}
       <div className="w-full flex flex-col items-center pt-24 md:pt-48 pb-16 z-10"
            style={{
-             background: 'linear-gradient(to bottom, var(--bg) 0%, rgba(10, 13, 21, 0.35) 60%, var(--bg) 100%)'
+             background: 'var(--bg)'
            }}
       >
         <div className="w-full max-w-4xl px-6">
