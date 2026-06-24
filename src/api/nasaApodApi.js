@@ -17,9 +17,13 @@ export async function fetchAstronomyPictureOfTheDay() {
     const cached = localStorage.getItem('orbitwatch_apod_data');
     if (cached) {
       const parsed = JSON.parse(cached);
-      if (parsed && parsed.date === todayStr && parsed.explanation) {
+      // Bust cache if missing media_type (stale entry) so we get fresh data with all fields
+      const hasMediaType = parsed && typeof parsed.media_type === 'string';
+      if (parsed && parsed.date === todayStr && parsed.explanation && hasMediaType) {
         recordSuccess(SOURCE, 0, { isLiveData: false }); // cache hit
         return parsed;
+      } else if (!hasMediaType) {
+        localStorage.removeItem('orbitwatch_apod_data'); // force re-fetch
       }
     }
   } catch (e) {

@@ -135,6 +135,20 @@ export default function LookUpCard() {
   const [apodLoading, setApodLoading] = useState(false);
   const [apodError, setApodError] = useState(null);
 
+  // Detect video APODs by media_type OR URL pattern (handles stale cached data missing media_type)
+  const isApodVideo = (data) => {
+    if (!data) return false;
+    if (data.media_type === 'video') return true;
+    const url = data.url || '';
+    return url.includes('youtube') || url.includes('youtu.be') || url.includes('embed');
+  };
+
+  // Extract YouTube video ID from embed/watch URLs
+  const getYouTubeId = (url = '') => {
+    const m = url.match(/(?:embed\/|v=|youtu\.be\/)([\w-]{11})/);
+    return m ? m[1] : null;
+  };
+
   useEffect(() => {
     if (!displayData && !apodData && !apodLoading) {
       setApodLoading(true);
@@ -246,14 +260,36 @@ export default function LookUpCard() {
             </div>
           ) : (
             <div className="flex flex-col">
-              {/* Image Container */}
+              {/* Image / Video Container */}
               <div className="relative group overflow-hidden h-40 bg-space">
-                <img 
-                  src={apodData.url} 
-                  alt={apodData.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
+                {isApodVideo(apodData) ? (
+                  // Video APOD — embed iframe directly (pointer-events-none so card click still works)
+                  // Use ?autoplay=0&controls=0&rel=0 for a clean preview look
+                  getYouTubeId(apodData.url) ? (
+                    <iframe
+                      src={`https://www.youtube-nocookie.com/embed/${getYouTubeId(apodData.url)}?autoplay=0&controls=0&rel=0&modestbranding=1&showinfo=0`}
+                      title={apodData.title}
+                      className="w-full h-full border-0 pointer-events-none scale-110"
+                      allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted text-xs font-mono">▶ Video</div>
+                  )
+                ) : (
+                  <img
+                    src={apodData.hdurl || apodData.url}
+                    alt={apodData.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-space via-transparent to-transparent opacity-85" />
+                {isApodVideo(apodData) && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-black/60 border border-white/20 flex items-center justify-center">
+                      <span className="text-white text-lg ml-0.5">▶</span>
+                    </div>
+                  </div>
+                )}
                 <div className="absolute bottom-2 left-3 right-3 text-left">
                   <h3 className="text-sm font-playfair font-bold text-white truncate">{apodData.title}</h3>
                   {apodData.copyright && (
@@ -363,14 +399,26 @@ export default function LookUpCard() {
                     <X className="w-4 h-4" />
                   </button>
                   
-                  {/* Full Image */}
+                  {/* Full Image or Video */}
                   <div className="relative w-full flex-1 bg-space flex items-center justify-center min-h-[300px]">
-                    <img 
-                      src={apodData.url} 
-                      alt={apodData.title}
-                      className="w-full h-full object-contain max-h-[80vh]" 
-                    />
-                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-panel via-panel/85 to-transparent pointer-events-none" />
+                    {isApodVideo(apodData) ? (
+                      <iframe
+                        src={apodData.url}
+                        title={apodData.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full min-h-[300px] h-[400px] border-0"
+                      />
+                    ) : (
+                      <img
+                        src={apodData.hdurl || apodData.url}
+                        alt={apodData.title}
+                        className="w-full h-full object-contain max-h-[80vh]"
+                      />
+                    )}
+                    {!isApodVideo(apodData) && (
+                      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-panel via-panel/85 to-transparent pointer-events-none" />
+                    )}
                     <div className="absolute bottom-4 left-6 right-6 text-left z-10">
                       <span className="text-[10px] font-sans text-cyan tracking-[0.1em] uppercase font-bold">
                         NASA APOD
@@ -379,14 +427,24 @@ export default function LookUpCard() {
                       <div className="text-[10px] text-muted font-mono mt-1 flex items-center gap-2 flex-wrap">
                         <span>Date: {apodData.date}</span>
                         {apodData.copyright && <span>· Copyright: {apodData.copyright}</span>}
-                        {apodData.hdurl && (
-                          <a 
-                            href={apodData.hdurl} 
-                            target="_blank" 
+                        {apodData.hdurl && apodData.media_type !== 'video' && (
+                          <a
+                            href={apodData.hdurl}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="text-cyan hover:underline inline-flex items-center gap-0.5 ml-1 pointer-events-auto"
                           >
                             View HD <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                        )}
+                        {apodData.media_type === 'video' && (
+                          <a
+                            href={apodData.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-cyan hover:underline inline-flex items-center gap-0.5 ml-1 pointer-events-auto"
+                          >
+                            Open on YouTube <ExternalLink className="w-2.5 h-2.5" />
                           </a>
                         )}
                       </div>

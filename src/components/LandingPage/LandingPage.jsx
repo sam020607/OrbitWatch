@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Globe, Music2, Facebook, Twitter, Youtube, Instagram } from 'lucide-react';
+import { MapPin, Globe, Music2, Facebook, Twitter, Youtube, Instagram, Github, Linkedin } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { reverseGeocode } from '../../api/geocodeApi.js';
@@ -681,67 +681,56 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
               <div className="md:col-span-5">
                 <div className="flex items-center gap-3 mb-4 text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 256 256" fill="currentColor"><path d="M 4.688 136 C 68.373 136 120 187.627 120 251.312 C 120 252.883 119.967 254.445 119.905 256 L 0 256 L 0 136.096 C 1.555 136.034 3.117 136 4.688 136 Z M 251.312 136 C 252.883 136 254.445 136.034 256 136.096 L 256 256 L 136.095 256 C 136.032 254.438 136.001 252.875 136 251.312 C 136 187.627 187.627 136 251.312 136 Z M 119.905 0 C 119.967 1.555 120 3.117 120 4.688 C 120 68.373 68.373 120 4.687 120 C 3.117 120 1.555 119.967 0 119.905 L 0 0 Z M 256 119.905 C 254.445 119.967 252.883 120 251.312 120 C 187.627 120 136 68.373 136 4.687 C 136 3.117 136.033 1.555 136.095 0 L 256 0 Z" /></svg>
-                  <span className="text-xl font-medium tracking-wide">ORBITWATCH</span>
+                  <span className="text-xl font-medium tracking-wide">TEAM PHOENIX</span>
                 </div>
                 <p className="text-sm leading-relaxed max-w-sm">
-                  Project Zenith: The Celestial Eye. Real-time satellite tracking & personal sky visibility — anywhere on Earth. Know what's overhead.
+                  Project Zenith: The Celestial Eye. Real-time satellite tracking & personal sky visibility — anywhere on Earth. Brought to you by Team Phoenix.
                 </p>
               </div>
 
-              <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-8">
+              <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-8">
+                {/* About */}
                 <div>
-                  <h3 className="text-sm uppercase tracking-wider text-white font-medium mb-4">Discover</h3>
-                  <div className="flex flex-col text-xs space-y-2">
-                    <a href="#" className="hover:text-white transition-colors">Labs & Workshops</a>
-                    <a href="#" className="hover:text-white transition-colors">Deep Dive Series</a>
-                    <a href="#" className="hover:text-white transition-colors">Global Circle</a>
-                    <a href="#" className="hover:text-white transition-colors">Resource Vault</a>
-                    <a href="#" className="hover:text-white transition-colors">Future Roadmap</a>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-sm uppercase tracking-wider text-white font-medium mb-4">The Mission</h3>
+                  <h3 className="text-sm uppercase tracking-wider text-white font-medium mb-4">Navigate</h3>
                   <div className="flex flex-col text-xs space-y-2">
                     <button onClick={onNavigateAbout} className="hover:text-white transition-colors text-left font-sans cursor-pointer bg-transparent border-none p-0 text-white/70">About Us</button>
-                    <a href="#" className="hover:text-white transition-colors">Origin Story</a>
-                    <a href="#" className="hover:text-white transition-colors">The Collective</a>
-                    <a href="#" className="hover:text-white transition-colors">Newsroom Hub</a>
                   </div>
                 </div>
+                {/* Team */}
                 <div>
-                  <h3 className="text-sm uppercase tracking-wider text-white font-medium mb-4">Concierge</h3>
-                  <div className="flex flex-col text-xs space-y-2">
-                    <a href="#" className="hover:text-white transition-colors">Get in Touch</a>
-                    <a href="#" className="hover:text-white transition-colors">Legal Privacy</a>
-                    <a href="#" className="hover:text-white transition-colors">User Agreement</a>
-                    <a href="#" className="hover:text-white transition-colors">Report Concern</a>
+                  <h3 className="text-sm uppercase tracking-wider text-white font-medium mb-4">Team Phoenix</h3>
+                  <div className="flex flex-col text-xs space-y-4">
+                    {/* Member 1 */}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-white/90 font-medium">Samriddhi Upadhyay</span>
+                      <div className="flex items-center gap-3">
+                        <a href="https://github.com/sam020607" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
+                          <Github size={12} /> GitHub
+                        </a>
+                        <a href="https://www.linkedin.com/in/samriddhiupadhyay/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
+                          <Linkedin size={12} /> LinkedIn
+                        </a>
+                      </div>
+                    </div>
+                    {/* Member 2 */}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-white/90 font-medium">Agarim Karnwal</span>
+                      <div className="flex items-center gap-3">
+                        <a href="https://github.com/Agarimkarnwal" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
+                          <Github size={12} /> GitHub
+                        </a>
+                        <a href="https://www.linkedin.com/in/agarim-karnwal-717b04375/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
+                          <Linkedin size={12} /> LinkedIn
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4">
-              <p className="text-[10px] uppercase tracking-widest opacity-50">Curated by Project Zenith</p>
-              <div className="flex items-center gap-4">
-                <span className="text-[10px] uppercase tracking-widest opacity-50">Join the Journey:</span>
-                <div className="flex flex-row items-center gap-3">
-                  <a href="#" className="opacity-70 hover:opacity-100 transition-colors hover:text-white">
-                    <Music2 size={16} />
-                  </a>
-                  <a href="#" className="opacity-70 hover:opacity-100 transition-colors hover:text-white">
-                    <Facebook size={16} />
-                  </a>
-                  <a href="#" className="opacity-70 hover:opacity-100 transition-colors hover:text-white">
-                    <Twitter size={16} />
-                  </a>
-                  <a href="#" className="opacity-70 hover:opacity-100 transition-colors hover:text-white">
-                    <Youtube size={16} />
-                  </a>
-                  <a href="#" className="opacity-70 hover:opacity-100 transition-colors hover:text-white">
-                    <Instagram size={16} />
-                  </a>
-                </div>
-              </div>
+            <div className="pt-6 border-t border-white/10 flex items-center justify-center">
+              <p className="text-[10px] uppercase tracking-widest opacity-40">© {new Date().getFullYear()} Team Phoenix · Project Zenith</p>
             </div>
           </motion.footer>
         </div>
