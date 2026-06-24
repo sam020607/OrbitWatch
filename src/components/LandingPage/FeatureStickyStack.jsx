@@ -415,7 +415,7 @@ export default function FeatureStickyStack() {
       </div>
       
       {/* Spacer to allow scrolling through the sticky state */}
-      <div className="h-[120vh] pointer-events-none"></div>
+      <div className="h-[35vh] pointer-events-none"></div>
     </div>
   );
 }
