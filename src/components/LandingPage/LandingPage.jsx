@@ -546,7 +546,7 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
       </section>
 
       {/* Parallax Space Gallery */}
-      <Skiper30 />
+      <Skiper30 scrollContainer={mainRef} />
 
       {/* SECTION 1 — Statement */}
       <section className="relative w-full py-16 bg-[var(--bg)] border-b border-[var(--surface-border)] px-6 flex justify-center items-center transition-colors duration-300">
