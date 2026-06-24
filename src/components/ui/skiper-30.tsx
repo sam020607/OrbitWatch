@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, MotionValue, useScroll, useTransform } from "framer-motion";
-import Lenis from "lenis";
 import { useEffect, useRef, useState } from "react";
 
 const images = [
@@ -47,38 +46,15 @@ const Skiper30 = () => {
   const y4 = useTransform(scrollYProgress, [0, 1], [0, height * 3]);
 
   useEffect(() => {
-    const mainEl = scrollContainerRef.current || document.querySelector('main');
-    if (!mainEl) return;
-
-    const lenis = new Lenis({
-      wrapper: mainEl,
-      content: mainEl.firstElementChild as HTMLElement || mainEl,
-      smoothWheel: true,
-      lerp: 0.1,
-      syncTouch: false,
-      prevent: (node) => node.closest('[data-lenis-prevent]') !== null,
-    });
-
-    let rafId: number;
-    const raf = (time: number) => {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
-    };
-
     const resize = () => {
       setDimension({ width: window.innerWidth, height: window.innerHeight });
     };
-
     window.addEventListener("resize", resize);
-    rafId = requestAnimationFrame(raf);
     resize();
-
     return () => {
       window.removeEventListener("resize", resize);
-      cancelAnimationFrame(rafId);
-      lenis.destroy();
     };
-  }, [scrollContainerRef.current]);
+  }, []);
 
   return (
     <section className="w-full bg-[#0a0d15] text-white">

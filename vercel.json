@@ -1,5 +1,9 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/api/n2yo/:path*",       "destination": "https://api.n2yo.com/:path*" },
+    { "source": "/api/celestrak/:path*",  "destination": "https://celestrak.org/:path*" },
+    { "source": "/api/astronomy/:path*",  "destination": "https://api.astronomyapi.com/:path*" },
+    { "source": "/api/spacetrack/:path*", "destination": "https://www.space-track.org/:path*" },
+    { "source": "/(.*)",                  "destination": "/index.html" }
   ]
 }
