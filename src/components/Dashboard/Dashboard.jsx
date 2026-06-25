@@ -905,7 +905,7 @@ export default function Dashboard({ onReset }) {
             {/* Mobile Navigation Drawer Overlay */}
             <AnimatePresence>
               {isNavMenuOpen && (
-                <Fragment>
+                <>
                   {/* Backdrop blur */}
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -961,7 +961,7 @@ export default function Dashboard({ onReset }) {
                       })}
                     </div>
                   </motion.div>
-                </Fragment>
+                </>
               )}
             </AnimatePresence>
           </main>
