@@ -437,7 +437,7 @@ export default function Dashboard({ onReset }) {
 
 
   return (
-    <div className="flex h-screen w-screen bg-space overflow-hidden select-none text-text">
+    <div className="flex h-[100dvh] lg:h-screen w-screen bg-space overflow-hidden select-none text-text">
       {/* ── Collapsible Left Navigation Rail (Desktop Only) ── */}
       <aside 
         className={`hidden lg:flex flex-col h-full bg-surface transition-all duration-200 ease-in-out shrink-0 relative
@@ -648,9 +648,6 @@ export default function Dashboard({ onReset }) {
           {/* Logo (hidden on desktop) */}
           <div className="flex items-center gap-1.5 lg:hidden select-none pointer-events-none">
             <Satellite className="w-4 h-4 text-cyan animate-pulse" />
-            <span className="font-playfair italic text-xs font-bold text-text-primary tracking-wider uppercase">
-              Project <span className="text-cyan">Zenith</span>
-            </span>
           </div>
 
           {/* Location display or inline header search */}
@@ -935,7 +932,7 @@ export default function Dashboard({ onReset }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="lg:hidden absolute inset-x-0 bottom-12 top-14 z-[500] bg-panel border-t border-border overflow-y-auto flex flex-col h-[calc(100vh-104px)]"
+              className="lg:hidden absolute inset-x-0 bottom-12 top-14 z-[500] bg-panel border-t border-border overflow-y-auto flex flex-col"
             >
               {/* Sticky Drawer Header */}
               <div className="sticky top-0 z-[1000] flex items-center justify-between px-4 py-3 bg-[#0d121c]/90 backdrop-blur-md border-b border-border">
