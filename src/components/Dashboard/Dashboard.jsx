@@ -343,39 +343,11 @@ export default function Dashboard({ onReset }) {
 
   const resetChromeTimer = useCallback(() => {
     setShowChrome(true);
-    if (chromeTimeoutRef.current) {
-      clearTimeout(chromeTimeoutRef.current);
-    }
-    // Only auto-hide on mobile devices (< 1024px)
-    if (window.innerWidth < 1024 && !isChatOpen && mobileView === 'map') {
-      chromeTimeoutRef.current = setTimeout(() => {
-        setShowChrome(false);
-      }, 3000);
-    }
-  }, [isChatOpen, mobileView]);
+  }, []);
 
   useEffect(() => {
-    resetChromeTimer();
-    
-    const handleActivity = () => {
-      resetChromeTimer();
-    };
-
-    window.addEventListener('mousemove', handleActivity);
-    window.addEventListener('mousedown', handleActivity);
-    window.addEventListener('touchstart', handleActivity);
-    window.addEventListener('keydown', handleActivity);
-
-    return () => {
-      if (chromeTimeoutRef.current) {
-        clearTimeout(chromeTimeoutRef.current);
-      }
-      window.removeEventListener('mousemove', handleActivity);
-      window.removeEventListener('mousedown', handleActivity);
-      window.removeEventListener('touchstart', handleActivity);
-      window.removeEventListener('keydown', handleActivity);
-    };
-  }, [resetChromeTimer]);
+    setShowChrome(true);
+  }, []);
 
   const handleNavClick = (itemId) => {
     if (itemId === 'report') {

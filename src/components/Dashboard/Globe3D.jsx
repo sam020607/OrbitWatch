@@ -902,6 +902,37 @@ export default function Globe3D({ className = '', mobileView = 'map', showChrome
     return () => window.removeEventListener('orbitwatch-settings-changed', handleSettingsChange);
   }, []);
 
+  const mobileToggleRef = useRef(null);
+  const mobilePanelRef = useRef(null);
+
+  useEffect(() => {
+    const stopEvents = [
+      'mousedown', 'mouseup', 'touchstart', 'touchend', 
+      'touchmove', 'pointerdown', 'pointerup', 'pointermove', 
+      'dblclick', 'contextmenu', 'wheel'
+    ];
+    const handler = (e) => e.stopPropagation();
+
+    const btn = mobileToggleRef.current;
+    if (btn) {
+      stopEvents.forEach(evt => btn.addEventListener(evt, handler, { passive: true }));
+    }
+
+    const panel = mobilePanelRef.current;
+    if (panel) {
+      stopEvents.forEach(evt => panel.addEventListener(evt, handler, { passive: true }));
+    }
+
+    return () => {
+      if (btn) {
+        stopEvents.forEach(evt => btn.removeEventListener(evt, handler));
+      }
+      if (panel) {
+        stopEvents.forEach(evt => panel.removeEventListener(evt, handler));
+      }
+    };
+  }, [isControlsExpanded]);
+
   const shouldAutoRotate = globeSettings.autoRotate && !selectedSatellite && !selectedAsteroid && !selectedConstellation;
 
   return (
@@ -993,6 +1024,7 @@ export default function Globe3D({ className = '', mobileView = 'map', showChrome
       {mobileView === 'map' && (
         <div className={`lg:hidden absolute top-3 right-3 z-[1010] flex flex-col items-end gap-2 transition-all duration-300 ${showChrome ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-12 pointer-events-none'}`}>
           <button
+            ref={mobileToggleRef}
             onPointerDown={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => {
@@ -1008,6 +1040,7 @@ export default function Globe3D({ className = '', mobileView = 'map', showChrome
           {/* Expanded Dropdown Panel */}
           {isControlsExpanded && (
             <div 
+              ref={mobilePanelRef}
               onPointerDown={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
