@@ -241,6 +241,8 @@ export default function Dashboard({ onReset }) {
   useEffect(() => {
     if (activeNav === 'battles') {
       setIs3DMode(true);
+    } else {
+      setIs3DMode(false);
     }
   }, [activeNav]);
   const [isCollapsed, setIsCollapsed] = useState(() => {
