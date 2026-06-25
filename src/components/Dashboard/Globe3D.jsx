@@ -868,7 +868,7 @@ function SceneContent({ isRelocating, setIsRelocating, isResolving, setIsResolvi
 /**
  * Globe3D — Three.js 3D Viewport wrapper.
  */
-export default function Globe3D({ className = '' }) {
+export default function Globe3D({ className = '', mobileView = 'map' }) {
   const { state, actions } = useApp();
   const {
     location,
@@ -962,29 +962,31 @@ export default function Globe3D({ className = '' }) {
       <div className="absolute bottom-4 right-4 border-b-2 border-r-2 border-[#4d8dff]/40 w-4 h-4 pointer-events-none filter drop-shadow-[0_0_3px_rgba(77,141,255,0.4)]" />
 
       {/* Top-Left Cluster Container */}
-      <div className="absolute top-3 left-3 z-[1000] flex flex-col gap-2 items-start pointer-events-none">
-        <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
-          {location && (
-            <div className="glass-panel flex items-center gap-1.5 px-2 py-1 rounded-md bg-surface/90 backdrop-blur border border-surface-border text-text-primary text-[10px] font-sans font-bold uppercase tracking-wider shadow-lg">
-              <MapPin className="w-3 h-3 text-cyan" />
-              <span>{location.name}</span>
-            </div>
-          )}
+      {mobileView === 'map' && (
+        <div className="absolute top-3 left-3 z-[1000] flex flex-col gap-2 items-start pointer-events-none">
+          <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
+            {location && (
+              <div className="glass-panel flex items-center gap-1.5 px-2 py-1 rounded-md bg-surface/90 backdrop-blur border border-surface-border text-text-primary text-[10px] font-sans font-bold uppercase tracking-wider shadow-lg">
+                <MapPin className="w-3 h-3 text-cyan" />
+                <span>{location.name}</span>
+              </div>
+            )}
 
-          <button
-            onClick={() => setIsRelocating(prev => !prev)}
-            className={`glass-panel flex items-center gap-1.5 px-2 py-1 rounded-md bg-surface/90 backdrop-blur border transition-all text-[10px] font-sans font-bold uppercase tracking-wider shadow-lg pointer-events-auto hover:border-cyan
-              ${isRelocating 
-                ? 'border-accent-amber text-accent-amber animate-pulse' 
-                : 'border-surface-border text-text-secondary hover:text-text-primary'}`}
-            title="Click on the globe to relocate observer"
-            disabled={isResolving}
-          >
-            <Globe className="w-3 h-3 text-cyan" />
-            <span>{isRelocating ? 'Click Globe' : 'Relocate'}</span>
-          </button>
+            <button
+              onClick={() => setIsRelocating(prev => !prev)}
+              className={`glass-panel flex items-center gap-1.5 px-2 py-1 rounded-md bg-surface/90 backdrop-blur border transition-all text-[10px] font-sans font-bold uppercase tracking-wider shadow-lg pointer-events-auto hover:border-cyan
+                ${isRelocating 
+                  ? 'border-accent-amber text-accent-amber animate-pulse' 
+                  : 'border-surface-border text-text-secondary hover:text-text-primary'}`}
+              title="Click on the globe to relocate observer"
+              disabled={isResolving}
+            >
+              <Globe className="w-3 h-3 text-cyan" />
+              <span>{isRelocating ? 'Click Globe' : 'Relocate'}</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Relocate Mode Banner Overlay */}
       {isRelocating && (

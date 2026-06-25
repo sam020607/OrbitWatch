@@ -26,6 +26,7 @@ export default function AIAssistant() {
   const { location, locationName, issPosition, satellites } = state;
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const dragControls = useDragControls();
 
   const handlePointerDown = (e) => {
@@ -222,6 +223,10 @@ ${visibleSats || 'No satellites currently cataloged overhead.'}
       dragControls={dragControls}
       dragListener={false}
       dragMomentum={false}
+      onDragStart={() => setIsDragging(true)}
+      onDragEnd={() => {
+        setTimeout(() => setIsDragging(false), 50);
+      }}
       dragConstraints={{
         top: -window.innerHeight + 120,
         bottom: 24,
@@ -369,10 +374,14 @@ ${visibleSats || 'No satellites currently cataloged overhead.'}
       {/* ── FLOATING TRIGGER CIRCLE (FAB) ── */}
       <motion.button
         onPointerDown={handlePointerDown}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          if (!isDragging) {
+            setIsOpen(!isOpen);
+          }
+        }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="w-12 h-12 rounded-full flex items-center justify-center pointer-events-auto shadow-2xl relative border"
+        className="w-12 h-12 rounded-full flex items-center justify-center pointer-events-auto shadow-2xl relative border touch-none"
         style={{
           background: isOpen ? 'rgba(77, 141, 255, 0.2)' : 'rgba(15, 22, 38, 0.75)',
           borderColor: isOpen ? 'rgba(77, 141, 255, 0.5)' : 'rgba(255,255,255,0.08)',

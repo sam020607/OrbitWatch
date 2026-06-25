@@ -811,9 +811,9 @@ export default function Dashboard({ onReset }) {
                 }}
               />
             ) : is3DMode ? (
-              <Globe3D className="w-full h-full" />
+              <Globe3D className="w-full h-full" mobileView={mobileView} />
             ) : (
-              <GlobeMap className="w-full h-full" />
+              <GlobeMap className="w-full h-full" mobileView={mobileView} />
             )}
 
             {/* Right Sidebar Edge Handle Toggle */}

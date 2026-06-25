@@ -452,7 +452,7 @@ function GlobeMapClickLocator({ active, onMapClick }) {
  * Shows: ISS moving dot + trail, satellite markers, orbital arcs, cone of visibility, observer location.
  * Now supports Constellations view mode showing visible constellations at their sub-stellar coordinates.
  */
-export default function GlobeMap({ className = '' }) {
+export default function GlobeMap({ className = '', mobileView = 'map' }) {
   const { state, actions } = useApp();
   const { 
     location, 
@@ -959,43 +959,42 @@ export default function GlobeMap({ className = '' }) {
       </MapContainer>
 
       {/* Top-Left Cluster Container */}
-      <div className="absolute top-3 left-3 z-[1000] flex flex-col gap-2 items-start pointer-events-none">
-        {/* Row 1: Location Pill & ISS LIVE status pill */}
-        <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
-          {location && (
-            <div className="glass-panel flex items-center gap-1.5 px-2 py-1 rounded-md bg-surface/90 backdrop-blur border border-surface-border text-text-primary text-[10px] font-sans font-bold uppercase tracking-wider shadow-lg">
-              <MapPin className="w-3 h-3 text-cyan" />
-              <span>{location.name}</span>
-            </div>
-          )}
+      {mobileView === 'map' && (
+        <div className="absolute top-3 left-3 z-[1000] flex flex-col gap-2 items-start pointer-events-none">
+          {/* Row 1: Location Pill & ISS LIVE status pill */}
+          <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
+            {location && (
+              <div className="glass-panel flex items-center gap-1.5 px-2 py-1 rounded-md bg-surface/90 backdrop-blur border border-surface-border text-text-primary text-[10px] font-sans font-bold uppercase tracking-wider shadow-lg">
+                <MapPin className="w-3 h-3 text-cyan" />
+                <span>{location.name}</span>
+              </div>
+            )}
 
-          <button
-            onClick={() => setIsRelocating(prev => !prev)}
-            className={`glass-panel flex items-center gap-1.5 px-2 py-1 rounded-md bg-surface/90 backdrop-blur border transition-all text-[10px] font-sans font-bold uppercase tracking-wider shadow-lg pointer-events-auto hover:border-cyan
-              ${isRelocating 
-                ? 'border-accent-amber text-accent-amber animate-pulse' 
-                : 'border-surface-border text-text-secondary hover:text-text-primary'}`}
-            title="Click on the map to relocate observer"
-            disabled={isResolving}
-          >
-            <Globe className="w-3 h-3 text-cyan" />
-            <span>{isRelocating ? 'Click Map' : 'Relocate'}</span>
-          </button>
-          
-          {viewMode === 'satellites' && issPosition && (
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-panel border border-border shadow-lg">
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse" />
-              <span className="text-cyan text-[10px] font-sans font-bold uppercase tracking-wider">ISS LIVE</span>
-            </div>
-          )}
+            <button
+              onClick={() => setIsRelocating(prev => !prev)}
+              className={`glass-panel flex items-center gap-1.5 px-2 py-1 rounded-md bg-surface/90 backdrop-blur border transition-all text-[10px] font-sans font-bold uppercase tracking-wider shadow-lg pointer-events-auto hover:border-cyan
+                ${isRelocating 
+                  ? 'border-accent-amber text-accent-amber animate-pulse' 
+                  : 'border-surface-border text-text-secondary hover:text-text-primary'}`}
+              title="Click on the map to relocate observer"
+              disabled={isResolving}
+            >
+              <Globe className="w-3 h-3 text-cyan" />
+              <span>{isRelocating ? 'Click Map' : 'Relocate'}</span>
+            </button>
+            
+            {viewMode === 'satellites' && issPosition && (
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-panel border border-border shadow-lg">
+                <div className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse" />
+                <span className="text-cyan text-[10px] font-sans font-bold uppercase tracking-wider">ISS LIVE</span>
+              </div>
+            )}
+          </div>
         </div>
-
-
-
-      </div>
+      )}
 
       {/* Target count & Filter badge */}
-      {!isChatOpen && (
+      {mobileView === 'map' && !isChatOpen && (
         <div className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 px-2 py-1 rounded-md bg-panel border border-border shadow-lg">
           {viewMode === 'constellations' ? (
             <span className="text-cyan text-[10px] font-sans uppercase tracking-wider font-bold shrink-0">
