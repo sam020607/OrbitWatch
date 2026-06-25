@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, Fragment, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Polyline, Polygon, Circle, useMap, Popup, Pane, GeoJSON, FeatureGroup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
-import { Database, Globe, Radio, MapPin, X, Activity, Navigation } from 'lucide-react';
+import { Database, Globe, Radio, MapPin, X, Activity, Navigation, SlidersHorizontal } from 'lucide-react';
 import { useApp } from '../../context/AppContext.jsx';
 import { generateOrbitalArc, calculateConeFootprint, azimuthToCompass } from '../../utils/orbitMath.js';
 import { SAT_TYPE_CONFIG } from '../../data/mockSatellites.js';
@@ -452,7 +452,7 @@ function GlobeMapClickLocator({ active, onMapClick }) {
  * Shows: ISS moving dot + trail, satellite markers, orbital arcs, cone of visibility, observer location.
  * Now supports Constellations view mode showing visible constellations at their sub-stellar coordinates.
  */
-export default function GlobeMap({ className = '', mobileView = 'map' }) {
+export default function GlobeMap({ className = '', mobileView = 'map', showChrome = true }) {
   const { state, actions } = useApp();
   const { 
     location, 
@@ -474,6 +474,7 @@ export default function GlobeMap({ className = '', mobileView = 'map' }) {
 
   const [isRelocating, setIsRelocating] = useState(false);
   const [isResolving, setIsResolving] = useState(false);
+  const [isControlsExpanded, setIsControlsExpanded] = useState(false);
 
   const handleMapClick = useCallback(async (lat, lon) => {
     if (isResolving) return;
@@ -575,7 +576,7 @@ export default function GlobeMap({ className = '', mobileView = 'map' }) {
         zoom={location ? 4 : 2}
         className="w-full h-full"
         style={{ background: 'var(--color-space)' }}
-        zoomControl={true}
+        zoomControl={false}
         attributionControl={true}
       >
         {/* Dynamic theme tile layer */}
@@ -960,7 +961,7 @@ export default function GlobeMap({ className = '', mobileView = 'map' }) {
 
       {/* Top-Left Cluster Container */}
       {mobileView === 'map' && (
-        <div className="absolute top-3 left-3 z-[1000] flex flex-col gap-2 items-start pointer-events-none">
+        <div className="hidden lg:flex absolute top-3 left-3 z-[1000] flex-col gap-2 items-start pointer-events-none">
           {/* Row 1: Location Pill & ISS LIVE status pill */}
           <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
             {location && (
@@ -995,7 +996,7 @@ export default function GlobeMap({ className = '', mobileView = 'map' }) {
 
       {/* Target count & Filter badge */}
       {mobileView === 'map' && !isChatOpen && (
-        <div className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 px-2 py-1 rounded-md bg-panel border border-border shadow-lg">
+        <div className="hidden lg:flex absolute top-3 right-3 z-[1000] items-center gap-1.5 px-2 py-1 rounded-md bg-panel border border-border shadow-lg">
           {viewMode === 'constellations' ? (
             <span className="text-cyan text-[10px] font-sans uppercase tracking-wider font-bold shrink-0">
               <span className="font-mono">{visibleConstellations.length}</span> CONSTELLATIONS VISIBLE
@@ -1035,6 +1036,96 @@ export default function GlobeMap({ className = '', mobileView = 'map' }) {
                 <option value="all">All</option>
               </select>
             </>
+          )}
+        </div>
+      )}
+
+      {/* Collapsed Controls Toggle for Mobile */}
+      {mobileView === 'map' && (
+        <div className={`lg:hidden absolute top-3 right-3 z-[1010] flex flex-col items-end gap-2 transition-all duration-300 ${showChrome ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-12 pointer-events-none'}`}>
+          <button
+            onClick={() => setIsControlsExpanded(prev => !prev)}
+            className="w-8 h-8 rounded-md flex items-center justify-center border border-white/[0.08] bg-panel/90 backdrop-blur shadow-lg text-cyan hover:text-text-primary active:scale-95 transition-all pointer-events-auto"
+            title="Toggle observatory controls"
+          >
+            {isControlsExpanded ? <X className="w-4 h-4" /> : <SlidersHorizontal className="w-4 h-4" />}
+          </button>
+
+          {/* Expanded Dropdown Panel */}
+          {isControlsExpanded && (
+            <div className="glass-panel p-3 rounded-lg bg-surface/95 border border-white/[0.08] shadow-2xl flex flex-col gap-2.5 min-w-[200px] animate-fade-in pointer-events-auto">
+              <span className="text-[8px] font-sans text-cyan uppercase tracking-widest font-bold">Observatory Control</span>
+              
+              {/* Location display */}
+              {location && (
+                <div className="flex items-center gap-1.5 justify-between py-1 border-b border-white/[0.04]">
+                  <span className="text-muted text-[9px] uppercase tracking-wider font-semibold">Location</span>
+                  <div className="flex items-center gap-1 text-text-primary text-[10px] font-bold uppercase tracking-wider">
+                    <MapPin className="w-3 h-3 text-cyan" />
+                    <span>{location.name}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Relocate Action */}
+              <button
+                onClick={() => setIsRelocating(prev => !prev)}
+                className={`flex items-center justify-between w-full px-2 py-1 rounded border transition-all text-[9px] font-sans font-bold uppercase tracking-wider
+                  ${isRelocating 
+                    ? 'border-accent-amber text-accent-amber bg-accent-amber/10 animate-pulse' 
+                    : 'border-white/[0.08] bg-white/[0.02] text-text-secondary hover:text-text-primary hover:border-cyan'}`}
+                title="Click on the map to relocate observer"
+                disabled={isResolving}
+              >
+                <span className="flex items-center gap-1">
+                  <Globe className="w-3.5 h-3.5 text-cyan" />
+                  <span>Relocate</span>
+                </span>
+                <span className="text-[8px] text-muted">{isRelocating ? 'Click Map' : 'Change'}</span>
+              </button>
+
+              {/* ISS Live Indicator */}
+              {viewMode === 'satellites' && issPosition && (
+                <div className="flex items-center justify-between py-1 border-b border-white/[0.04]">
+                  <span className="text-muted text-[9px] uppercase tracking-wider font-semibold">ISS Status</span>
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan/10 border border-cyan/35 shadow-[0_0_8px_rgba(77,141,255,0.1)]">
+                    <div className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse" />
+                    <span className="text-cyan text-[8px] font-sans font-bold uppercase tracking-wider">LIVE</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Target/Filter Dropdown */}
+              <div className="flex flex-col gap-1 py-1">
+                <span className="text-muted text-[9px] uppercase tracking-wider font-semibold">Filter Targets</span>
+                {viewMode === 'asteroids' ? (
+                  <select
+                    value={asteroidFilter}
+                    onChange={(e) => actions.setAsteroidFilter(e.target.value)}
+                    className="text-[9px] font-sans uppercase tracking-wider font-bold bg-panel border border-white/[0.08] rounded px-1.5 py-1 text-text focus:outline-none focus:border-cyan cursor-pointer transition-colors w-full"
+                  >
+                    <option value="all">All NEAs</option>
+                    <option value="phas">Hazardous (PHAs)</option>
+                    <option value="close">Close Approaches</option>
+                  </select>
+                ) : (
+                  <select
+                    value={satelliteFilter}
+                    onChange={(e) => actions.setSatelliteFilter(e.target.value)}
+                    className="text-[9px] font-sans uppercase tracking-wider font-bold bg-panel border border-white/[0.08] rounded px-1.5 py-1 text-text focus:outline-none focus:border-cyan cursor-pointer transition-colors w-full"
+                  >
+                    <option value="major">Major</option>
+                    <option value="space-station">Stations</option>
+                    <option value="tv">TV Sats</option>
+                    <option value="gps">GPS</option>
+                    <option value="comms">Comms</option>
+                    <option value="weather">Weather</option>
+                    <option value="debris">Debris</option>
+                    <option value="all">All</option>
+                  </select>
+                )}
+              </div>
+            </div>
           )}
         </div>
       )}

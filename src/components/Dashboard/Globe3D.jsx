@@ -8,7 +8,7 @@ import { SAT_TYPE_CONFIG } from '../../data/mockSatellites.js';
 import { CONSTELLATIONS, getSubStellarPoint, getLocalCoordinates, getConstellationShape, getGMST } from '../../data/constellations.js';
 import worldData from '../../data/world.json';
 import { reverseGeocode } from '../../api/geocodeApi.js';
-import { MapPin, Globe, Loader2 } from 'lucide-react';
+import { MapPin, Globe, Loader2, SlidersHorizontal, X } from 'lucide-react';
 
 /**
  * Animated ISS marker — renders an HTML billboard dot that pulses and animates exactly like the flat map.
@@ -868,7 +868,7 @@ function SceneContent({ isRelocating, setIsRelocating, isResolving, setIsResolvi
 /**
  * Globe3D — Three.js 3D Viewport wrapper.
  */
-export default function Globe3D({ className = '', mobileView = 'map' }) {
+export default function Globe3D({ className = '', mobileView = 'map', showChrome = true }) {
   const { state, actions } = useApp();
   const {
     location,
@@ -879,6 +879,7 @@ export default function Globe3D({ className = '', mobileView = 'map' }) {
 
   const [isRelocating, setIsRelocating] = useState(false);
   const [isResolving, setIsResolving] = useState(false);
+  const [isControlsExpanded, setIsControlsExpanded] = useState(false);
 
   const sunPos = useMemo(() => {
     const pos = getSunPosition();
@@ -963,7 +964,7 @@ export default function Globe3D({ className = '', mobileView = 'map' }) {
 
       {/* Top-Left Cluster Container */}
       {mobileView === 'map' && (
-        <div className="absolute top-3 left-3 z-[1000] flex flex-col gap-2 items-start pointer-events-none">
+        <div className="hidden lg:flex absolute top-3 left-3 z-[1000] flex-col gap-2 items-start pointer-events-none">
           <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
             {location && (
               <div className="glass-panel flex items-center gap-1.5 px-2 py-1 rounded-md bg-surface/90 backdrop-blur border border-surface-border text-text-primary text-[10px] font-sans font-bold uppercase tracking-wider shadow-lg">
@@ -985,6 +986,54 @@ export default function Globe3D({ className = '', mobileView = 'map' }) {
               <span>{isRelocating ? 'Click Globe' : 'Relocate'}</span>
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Collapsed Controls Toggle for Mobile */}
+      {mobileView === 'map' && (
+        <div className={`lg:hidden absolute top-3 right-3 z-[1010] flex flex-col items-end gap-2 transition-all duration-300 ${showChrome ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-12 pointer-events-none'}`}>
+          <button
+            onClick={() => setIsControlsExpanded(prev => !prev)}
+            className="w-8 h-8 rounded-md flex items-center justify-center border border-white/[0.08] bg-panel/90 backdrop-blur shadow-lg text-cyan hover:text-text-primary active:scale-95 transition-all pointer-events-auto"
+            title="Toggle observatory controls"
+          >
+            {isControlsExpanded ? <X className="w-4 h-4" /> : <SlidersHorizontal className="w-4 h-4" />}
+          </button>
+
+          {/* Expanded Dropdown Panel */}
+          {isControlsExpanded && (
+            <div className="glass-panel p-3 rounded-lg bg-surface/95 border border-white/[0.08] shadow-2xl flex flex-col gap-2.5 min-w-[200px] animate-fade-in pointer-events-auto">
+              <span className="text-[8px] font-sans text-cyan uppercase tracking-widest font-bold">Observatory Control</span>
+              
+              {/* Location display */}
+              {location && (
+                <div className="flex items-center gap-1.5 justify-between py-1 border-b border-white/[0.04]">
+                  <span className="text-muted text-[9px] uppercase tracking-wider font-semibold">Location</span>
+                  <div className="flex items-center gap-1 text-text-primary text-[10px] font-bold uppercase tracking-wider">
+                    <MapPin className="w-3 h-3 text-cyan" />
+                    <span>{location.name}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Relocate Action */}
+              <button
+                onClick={() => setIsRelocating(prev => !prev)}
+                className={`flex items-center justify-between w-full px-2 py-1 rounded border transition-all text-[9px] font-sans font-bold uppercase tracking-wider
+                  ${isRelocating 
+                    ? 'border-accent-amber text-accent-amber bg-accent-amber/10 animate-pulse' 
+                    : 'border-white/[0.08] bg-white/[0.02] text-text-secondary hover:text-text-primary hover:border-cyan'}`}
+                title="Click on the globe to relocate observer"
+                disabled={isResolving}
+              >
+                <span className="flex items-center gap-1">
+                  <Globe className="w-3.5 h-3.5 text-cyan" />
+                  <span>Relocate</span>
+                </span>
+                <span className="text-[8px] text-muted">{isRelocating ? 'Click Globe' : 'Change'}</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
 

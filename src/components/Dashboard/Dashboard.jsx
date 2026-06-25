@@ -337,6 +337,46 @@ export default function Dashboard({ onReset }) {
     return () => window.removeEventListener('orbitwatch-chat-toggle', handleChatToggle);
   }, []);
 
+  const [showChrome, setShowChrome] = useState(true);
+  const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
+  const chromeTimeoutRef = useRef(null);
+
+  const resetChromeTimer = useCallback(() => {
+    setShowChrome(true);
+    if (chromeTimeoutRef.current) {
+      clearTimeout(chromeTimeoutRef.current);
+    }
+    // Only auto-hide on mobile devices (< 1024px)
+    if (window.innerWidth < 1024 && !isChatOpen && mobileView === 'map') {
+      chromeTimeoutRef.current = setTimeout(() => {
+        setShowChrome(false);
+      }, 3000);
+    }
+  }, [isChatOpen, mobileView]);
+
+  useEffect(() => {
+    resetChromeTimer();
+    
+    const handleActivity = () => {
+      resetChromeTimer();
+    };
+
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('mousedown', handleActivity);
+    window.addEventListener('touchstart', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+
+    return () => {
+      if (chromeTimeoutRef.current) {
+        clearTimeout(chromeTimeoutRef.current);
+      }
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('mousedown', handleActivity);
+      window.removeEventListener('touchstart', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+    };
+  }, [resetChromeTimer]);
+
   const handleNavClick = (itemId) => {
     if (itemId === 'report') {
       setIsTonightOpen(prev => {
@@ -651,8 +691,10 @@ export default function Dashboard({ onReset }) {
       {/* ── Main Application Container (Header + Content) ── */}
       <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
         {/* ── Top Navigation Bar ── */}
-        <header className="relative flex items-center gap-3 px-4 py-2.5 shrink-0"
-          style={{ zIndex: 2000, background: 'rgba(10,13,21,0.70)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <header 
+          className={`lg:relative absolute top-0 left-0 right-0 z-[2000] flex items-center gap-3 px-4 py-2.5 shrink-0 bg-gradient-to-b from-[#0a0d1a]/85 via-[#0a0d1a]/30 to-transparent lg:bg-none lg:bg-panel lg:backdrop-blur-md border-b-0 lg:border-b lg:border-white/[0.08] transition-all duration-300
+            ${showChrome ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-12 pointer-events-none'}`}
+        >
           {/* Logo (hidden on desktop) */}
           <div className="flex items-center gap-1.5 lg:hidden select-none pointer-events-none">
             <Satellite className="w-4 h-4 text-cyan animate-pulse" />
@@ -811,9 +853,9 @@ export default function Dashboard({ onReset }) {
                 }}
               />
             ) : is3DMode ? (
-              <Globe3D className="w-full h-full" mobileView={mobileView} />
+              <Globe3D className="w-full h-full" mobileView={mobileView} showChrome={showChrome} />
             ) : (
-              <GlobeMap className="w-full h-full" mobileView={mobileView} />
+              <GlobeMap className="w-full h-full" mobileView={mobileView} showChrome={showChrome} />
             )}
 
             {/* Right Sidebar Edge Handle Toggle */}
@@ -831,7 +873,9 @@ export default function Dashboard({ onReset }) {
             {!isChatOpen && (
               <button
                 onClick={() => setIs3DMode(!is3DMode)}
-                className="absolute bottom-16 lg:bottom-5 right-5 z-[1000] flex items-center gap-2 px-3 py-2 rounded-lg bg-panel border border-border text-cyan hover:border-border-light text-[11px] font-sans uppercase tracking-wider transition-all"
+                className={`absolute z-[1000] flex items-center gap-2 px-3 py-2 rounded-lg bg-panel border border-border text-cyan hover:border-border-light text-[11px] font-sans uppercase tracking-wider transition-all duration-300
+                  lg:bottom-5 lg:right-5 lg:left-auto bottom-6 left-6 right-auto
+                  ${showChrome ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12 pointer-events-none'}`}
                 title={is3DMode ? 'Switch to flat map' : 'Switch to 3D globe'}
               >
                 {is3DMode ? (
@@ -848,27 +892,78 @@ export default function Dashboard({ onReset }) {
               </button>
             )}
 
-            {/* Mobile: bottom tab bar */}
-            <div className="lg:hidden absolute bottom-0 left-0 right-0 z-[1000] bg-panel/95 backdrop-blur-md border-t border-border h-12">
-              <div className="flex h-full items-stretch justify-around px-1">
-                {MOBILE_VIEWS.map(({ id, label, icon: Icon }) => {
-                  const isActive = isTabActive(id);
-                  return (
-                    <button
-                      key={id}
-                      onClick={() => handleMobileViewChange(id)}
-                      className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors focus:outline-none py-1 min-w-0
-                        ${isActive ? 'text-cyan border-t-2 border-cyan -mt-[2px] pt-[2px]' : 'text-muted hover:text-text-primary'}`}
-                    >
-                      <Icon className="w-3.5 h-3.5 shrink-0" />
-                      <span className="text-[7.5px] sm:text-[9px] font-sans uppercase tracking-[0.02em] font-semibold truncate w-full text-center px-0.5">
-                        {label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+            {/* Mobile: Single floating action button (FAB) for navigation */}
+            <div className={`lg:hidden fixed bottom-6 right-6 z-[2010] transition-all duration-300 ${showChrome ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12 pointer-events-none'}`}>
+              <button
+                onClick={() => setIsNavMenuOpen(prev => !prev)}
+                className="w-12 h-12 rounded-full flex items-center justify-center pointer-events-auto shadow-2xl relative border text-cyan bg-[#0f1626]/85 hover:bg-[#0f1626] border-cyan/40 backdrop-blur-[16px] active:scale-95 transition-all"
+              >
+                {isNavMenuOpen ? <X className="w-5 h-5 text-cyan" /> : <Compass className="w-5 h-5 text-cyan" />}
+              </button>
             </div>
+
+            {/* Mobile Navigation Drawer Overlay */}
+            <AnimatePresence>
+              {isNavMenuOpen && (
+                <Fragment>
+                  {/* Backdrop blur */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setIsNavMenuOpen(false)}
+                    className="lg:hidden fixed inset-0 z-[2020] bg-black/60 backdrop-blur-sm"
+                  />
+                  {/* Drawer */}
+                  <motion.div
+                    initial={{ y: '100%' }}
+                    animate={{ y: 0 }}
+                    exit={{ y: '100%' }}
+                    transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                    className="lg:hidden fixed bottom-0 left-0 right-0 z-[2025] bg-[#0a0d1a]/95 border-t border-white/[0.08] rounded-t-3xl px-6 pt-5 pb-8 flex flex-col gap-4 shadow-2xl backdrop-blur-xl"
+                  >
+                    <div className="flex items-center justify-between border-b border-white/[0.04] pb-3">
+                      <div className="flex items-center gap-2">
+                        <Compass className="w-4 h-4 text-cyan animate-pulse" />
+                        <span className="font-playfair italic text-sm font-bold text-text-primary">Navigation Portal</span>
+                      </div>
+                      <button
+                        onClick={() => setIsNavMenuOpen(false)}
+                        className="text-muted hover:text-text-primary p-1"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-3 py-2">
+                      {MOBILE_VIEWS.map(({ id, label, icon: Icon }) => {
+                        const isActive = isTabActive(id);
+                        return (
+                          <button
+                            key={id}
+                            onClick={() => {
+                              handleMobileViewChange(id);
+                              setIsNavMenuOpen(false);
+                            }}
+                            className={`flex flex-col items-center justify-center p-3 rounded-2xl gap-2 transition-all border
+                              ${isActive 
+                                ? 'bg-cyan/10 border-cyan/50 text-cyan shadow-[0_0_12px_rgba(77,141,255,0.15)]' 
+                                : 'bg-white/[0.02] border-white/[0.04] text-muted hover:text-text-primary hover:border-white/[0.1]'}`}
+                          >
+                            <div className={`p-2 rounded-xl ${isActive ? 'bg-cyan/20' : 'bg-white/[0.04]'}`}>
+                              <Icon className="w-4 h-4" />
+                            </div>
+                            <span className="text-[9px] font-sans font-bold uppercase tracking-wider text-center">
+                              {label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                </Fragment>
+              )}
+            </AnimatePresence>
           </main>
 
           {/* ── Right Panel (desktop) ── */}
@@ -1057,7 +1152,7 @@ export default function Dashboard({ onReset }) {
         })()}
 
         {/* Onboard AI Assistant Chatbot */}
-        <AIAssistant />
+        <AIAssistant showChrome={showChrome} />
       </div>
     </div>
   );
