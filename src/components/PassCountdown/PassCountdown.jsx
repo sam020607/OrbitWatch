@@ -37,7 +37,7 @@ export default function PassCountdown() {
 
   if (!currentPass) {
     return (
-      <div className="flex flex-col items-center justify-center p-6 text-center">
+      <div className="flex flex-col items-center justify-center p-4 sm:p-6 text-center">
         <Timer className="w-8 h-8 text-muted mb-3 opacity-40" />
         <p className="text-muted text-sm">No pass data available</p>
         <p className="text-muted text-xs mt-1">Select a location to see ISS passes</p>
@@ -57,9 +57,9 @@ export default function PassCountdown() {
   const countdownSecs = isVisible ? secsToEnd : secsToStart;
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-3 sm:gap-4 p-3 sm:p-4">
       {/* Header */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2">
         <Timer className="w-4 h-4 text-cyan" />
         <h2 className="font-playfair italic text-2xl tracking-normal text-text">
           Next ISS Pass
@@ -171,7 +171,7 @@ export default function PassCountdown() {
 
 function StatCard({ icon, label, sub, children }) {
   return (
-    <div className="flex flex-col gap-1 px-3 py-2 rounded-lg glass-tile">
+    <div className="flex flex-col gap-1 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg glass-tile">
       <div className="flex items-center gap-1 text-muted" style={{ fontSize: 10 }}>
         {icon}
         <span className="font-sans tracking-wider uppercase font-semibold text-[10px]">{label}</span>

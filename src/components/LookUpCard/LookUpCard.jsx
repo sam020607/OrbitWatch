@@ -201,9 +201,9 @@ export default function LookUpCard() {
   if (!displayData) {
     console.log('[LookUpCard] Rendering Celestial Dashboard. APOD Data:', apodData);
     return (
-      <div className="flex flex-col gap-5 p-4">
+      <div className="flex flex-col gap-3.5 sm:gap-5 p-3 sm:p-4">
         {/* Header */}
-        <div className="flex items-center gap-2 pb-2 border-b border-white/[0.03]">
+        <div className="flex items-center gap-2 pb-1.5 border-b border-white/[0.03]">
           <Compass className="w-5 h-5 text-cyan animate-pulse" />
           <h2 className="text-sm font-playfair font-bold text-text">Look Up Menu</h2>
         </div>
@@ -211,7 +211,7 @@ export default function LookUpCard() {
         {/* Space Fun Fact */}
         <div 
           onClick={() => setActiveModal('fact')}
-          className="glass-panel p-4 flex flex-col gap-2 relative overflow-hidden transition-all duration-300 hover:border-border-light cursor-pointer hover:scale-[1.01]"
+          className="glass-panel p-3 sm:p-4 flex flex-col gap-1.5 sm:gap-2 relative overflow-hidden transition-all duration-300 hover:border-border-light cursor-pointer hover:scale-[1.01]"
         >
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-sans text-cyan tracking-[0.1em] uppercase font-bold flex items-center gap-1">
@@ -305,7 +305,7 @@ export default function LookUpCard() {
         {satelliteOfTheDay && (
           <div 
             onClick={() => setActiveModal('sat')}
-            className="glass-panel p-4 border border-border flex flex-col gap-3 relative overflow-hidden transition-all duration-300 hover:border-border-light cursor-pointer hover:scale-[1.01]"
+            className="glass-panel p-3 sm:p-4 border border-border flex flex-col gap-2 sm:gap-3 relative overflow-hidden transition-all duration-300 hover:border-border-light cursor-pointer hover:scale-[1.01]"
           >
             <div className="absolute top-0 right-0 p-2 opacity-5">
               <Compass className="w-24 h-24 text-cyan" />
@@ -546,9 +546,9 @@ export default function LookUpCard() {
   const ny = cy + r * 0.75 * Math.sin(azRad);
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-3 sm:gap-4 p-3 sm:p-4">
       {/* Header */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2">
         <Compass className="w-4 h-4 text-cyan" />
         <h2 className="font-playfair italic text-2xl tracking-normal text-text">
           {title}

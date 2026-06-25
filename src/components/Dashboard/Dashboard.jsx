@@ -21,7 +21,7 @@ import SatelliteBattles from '../../features/satellite-battles/SatelliteBattles.
 import { CONSTELLATIONS, getLocalCoordinates } from '../../data/constellations.js';
 import {
   Map, List, Star, Compass, Radio, RotateCcw,
-  Eye, EyeOff, Satellite, Settings, ChevronLeft, ChevronRight, Globe, Trophy, Activity, Flame, Moon, Zap, LogOut
+  Eye, EyeOff, Satellite, Settings, ChevronLeft, ChevronRight, Globe, Trophy, Activity, Flame, Moon, Zap, LogOut, X
 } from 'lucide-react';
 
 /** User avatar + sign-out dropdown shown in the top navigation bar */
@@ -195,6 +195,7 @@ export default function Dashboard({ onReset }) {
   useAsteroids();
 
   const [mobileView, setMobileView] = useState('map');
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [activeNav, setActiveNav] = useState(() => {
     const saved = localStorage.getItem('orbitwatch_active_nav');
     return saved || 'objects';
@@ -616,13 +617,17 @@ export default function Dashboard({ onReset }) {
         {/* ── Top Navigation Bar ── */}
         <header className="relative flex items-center gap-3 px-4 py-2.5 shrink-0"
           style={{ zIndex: 2000, background: 'rgba(10,13,21,0.70)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          {/* Logo (hidden on desktop, since rail shows it) */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <Satellite className="w-5 h-5 text-cyan animate-pulse" />
-            <span className="font-playfair font-bold text-text text-sm hidden sm:block">
-              Project <span className="text-cyan">Zenith</span>
+          {/* Logo / Control Room Button (hidden on desktop) */}
+          <button
+            onClick={() => setMobileNavOpen(true)}
+            className="flex items-center gap-1.5 lg:hidden p-1.5 rounded-lg bg-surface/80 border border-white/10 hover:bg-white/10 text-cyan hover:text-white transition-all focus:outline-none pointer-events-auto shadow-sm"
+            title="Open Control Room Menu"
+          >
+            <Satellite className="w-4 h-4 text-cyan animate-pulse" />
+            <span className="font-playfair italic text-xs font-bold text-text-primary tracking-wider uppercase">
+              Control Room
             </span>
-          </div>
+          </button>
 
           {/* Location display or inline header search */}
           {showSearch ? (
@@ -779,7 +784,7 @@ export default function Dashboard({ onReset }) {
             {!isChatOpen && activeNav !== 'battles' && (
               <button
                 onClick={toggleRightPanel}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-[1000] w-8 h-20 bg-surface rounded-l-md flex items-center justify-center text-muted hover:text-text-primary transition-all shadow-md cursor-pointer group focus:outline-none border-0"
+                className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 z-[1000] w-8 h-20 bg-surface rounded-l-md items-center justify-center text-muted hover:text-text-primary transition-all shadow-md cursor-pointer group focus:outline-none border-0"
                 title={rightPanelOpen ? "Collapse Sidebar Info" : "Expand Sidebar Info"}
               >
                 <Compass className="w-4 h-4 text-text-secondary group-hover:text-text-primary transition-colors" />
@@ -890,7 +895,113 @@ export default function Dashboard({ onReset }) {
           </aside>
         </div>
 
-        {/* ── Mobile Overlay Panels ── */}
+        {/* ── Mobile Navigation Drawer Overlay (Control Room Menu) ── */}
+        <AnimatePresence>
+          {mobileNavOpen && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setMobileNavOpen(false)}
+                className="lg:hidden fixed inset-0 z-[2999] bg-black/60 backdrop-blur-sm"
+              />
+              
+              {/* Drawer Container */}
+              <motion.div
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="lg:hidden fixed inset-y-0 left-0 w-64 z-[3000] bg-[#0d121c]/95 backdrop-blur-md border-r border-border flex flex-col h-full overflow-hidden"
+              >
+                {/* Header block with close button */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08] h-[52px] shrink-0">
+                  <div className="flex items-center gap-2">
+                    <Satellite className="w-5 h-5 text-cyan animate-pulse" />
+                    <div className="flex flex-col text-left">
+                      <span className="font-playfair italic text-[15px] font-bold text-text leading-tight">Project Zenith</span>
+                      <span className="text-[8px] font-sans uppercase tracking-[0.15em] text-muted">Control Room</span>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setMobileNavOpen(false)} 
+                    className="p-1 rounded border border-border bg-panel/30 hover:bg-panel-light text-muted hover:text-text transition-all"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {/* Nav List */}
+                <nav className="flex-1 py-4 space-y-1.5 px-3 overflow-y-auto" data-lenis-prevent>
+                  {NAV_ITEMS.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeNav === item.id;
+
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setActiveNav(item.id);
+                          localStorage.setItem('orbitwatch_active_nav', item.id);
+                          if (item.id === 'report') setMobileView('report');
+                          else if (item.id === 'lookup') setMobileView('lookup');
+                          else if (item.id === 'journal') setMobileView('journal');
+                          else if (item.id === 'objects') setMobileView('satellites');
+                          else setMobileView('map');
+                          setMobileNavOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-sans font-semibold uppercase tracking-wider transition-all
+                          ${isActive 
+                            ? 'bg-cyan text-space shadow-md font-bold' 
+                            : 'text-text-secondary hover:text-text-primary hover:bg-panel-light'}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className="w-4 h-4" />
+                          <span>{item.label}</span>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+                      </button>
+                    );
+                  })}
+
+                  <div className="pt-4 border-t border-white/[0.08] space-y-1.5">
+                    {SECONDARY_ITEMS.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeNav === item.id;
+
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            setActiveNav(item.id);
+                            localStorage.setItem('orbitwatch_active_nav', item.id);
+                            if (item.id === 'settings') setMobileView('settings');
+                            else if (item.id === 'diagnostics') setMobileView('diagnostics');
+                            setMobileNavOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-[10px] font-sans font-semibold uppercase tracking-wider transition-all
+                            ${isActive 
+                              ? 'bg-cyan/20 border border-cyan/40 text-cyan font-bold' 
+                              : 'text-text-secondary hover:text-text-primary hover:bg-panel-light border border-transparent'}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Icon className="w-3.5 h-3.5" />
+                            <span>{item.label}</span>
+                          </div>
+                          <ChevronRight className="w-3 h-3 opacity-60" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </nav>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* ── Mobile Overlay Panels (Tabs Contents) ── */}
         <AnimatePresence>
           {mobileView !== 'map' && (
             <motion.div
@@ -899,25 +1010,66 @@ export default function Dashboard({ onReset }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="lg:hidden absolute inset-x-0 bottom-12 top-14 z-[500] bg-panel border-t border-border overflow-y-auto"
+              className="lg:hidden absolute inset-x-0 bottom-12 top-14 z-[500] bg-panel border-t border-border overflow-y-auto flex flex-col h-[calc(100vh-104px)]"
             >
-              {mobileView === 'satellites' && <SatellitePanel />}
-              {mobileView === 'report' && (
-                <NightReport 
-                  activeSubItem={tonightSubItem} 
-                  onSubItemChange={(subId) => {
-                    setTonightSubItem(subId);
-                    localStorage.setItem('orbitwatch_tonight_sub_item', subId);
-                  }} 
-                />
-              )}
-              {mobileView === 'journal' && <JournalPanel />}
-              {mobileView === 'lookup' && (
-                <div className="divide-y divide-border">
-                  <PassCountdown />
-                  <LookUpCard />
+              {/* Sticky Drawer Header */}
+              <div className="sticky top-0 z-[1000] flex items-center justify-between px-4 py-3 bg-[#0d121c]/90 backdrop-blur-md border-b border-border">
+                <div className="flex items-center gap-2">
+                  {mobileView === 'satellites' && <Satellite className="w-4 h-4 text-cyan" />}
+                  {mobileView === 'report' && <Star className="w-4 h-4 text-cyan" />}
+                  {mobileView === 'journal' && <Trophy className="w-4 h-4 text-cyan" />}
+                  {mobileView === 'lookup' && <Compass className="w-4 h-4 text-cyan" />}
+                  {mobileView === 'diagnostics' && <Activity className="w-4 h-4 text-cyan" />}
+                  {mobileView === 'settings' && <Settings className="w-4 h-4 text-cyan" />}
+                  <span className="font-playfair italic text-xs font-bold text-text-primary uppercase tracking-wider">
+                    {mobileView === 'satellites' && 'Telemetry List'}
+                    {mobileView === 'report' && 'Tonight\'s Sky'}
+                    {mobileView === 'journal' && 'Sky Record Book'}
+                    {mobileView === 'lookup' && 'Look Up Details'}
+                    {mobileView === 'diagnostics' && 'System Diagnostics'}
+                    {mobileView === 'settings' && 'Core Settings'}
+                  </span>
                 </div>
-              )}
+                <button
+                  onClick={() => setMobileView('map')}
+                  className="p-1 rounded-md border border-border bg-panel/30 hover:bg-panel-light text-muted hover:text-text transition-all focus:outline-none cursor-pointer"
+                  aria-label="Close panel"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Drawer Content Area */}
+              <div className="flex-1 overflow-y-auto p-3">
+                {mobileView === 'satellites' && <SatellitePanel />}
+                {mobileView === 'report' && (
+                  <NightReport 
+                    activeSubItem={tonightSubItem} 
+                    onSubItemChange={(subId) => {
+                      setTonightSubItem(subId);
+                      localStorage.setItem('orbitwatch_tonight_sub_item', subId);
+                    }} 
+                  />
+                )}
+                {mobileView === 'journal' && <JournalPanel />}
+                {mobileView === 'lookup' && (
+                  <div className="divide-y divide-border/30 space-y-3">
+                    <PassCountdown />
+                    <div className="pt-3">
+                      <LookUpCard />
+                    </div>
+                  </div>
+                )}
+                {mobileView === 'diagnostics' && <DiagnosticsPanel />}
+                {mobileView === 'settings' && (
+                  <SettingsPanel 
+                    onReplayBriefing={() => {
+                      localStorage.removeItem('orbitwatch_briefed');
+                      onReset();
+                    }}
+                  />
+                )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
