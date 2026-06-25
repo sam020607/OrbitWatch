@@ -1032,6 +1032,20 @@ export default function Globe3D({ className = '', mobileView = 'map', showChrome
                 </span>
                 <span className="text-[8px] text-muted">{isRelocating ? 'Click Globe' : 'Change'}</span>
               </button>
+
+              {/* Visibility Cone Toggle */}
+              <div className="flex items-center justify-between py-1 border-t border-white/[0.04] mt-1.5 pt-1.5">
+                <span className="text-muted text-[9px] uppercase tracking-wider font-semibold">Visibility Cone</span>
+                <button
+                  onClick={actions.toggleConeOverlay}
+                  className={`flex items-center gap-1.5 px-2 py-0.5 rounded border transition-all text-[8px] font-sans font-bold uppercase tracking-wider
+                    ${showConeOverlay 
+                      ? 'border-cyan/45 text-cyan bg-cyan/5 shadow-[0_0_8px_rgba(77,141,255,0.1)]' 
+                      : 'border-white/[0.08] text-muted'}`}
+                >
+                  {showConeOverlay ? 'Enabled' : 'Disabled'}
+                </button>
+              </div>
             </div>
           )}
         </div>

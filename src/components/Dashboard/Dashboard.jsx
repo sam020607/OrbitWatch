@@ -799,7 +799,7 @@ export default function Dashboard({ onReset }) {
             {/* Cone toggle */}
             <button
               onClick={actions.toggleConeOverlay}
-              className={`p-1.5 rounded-md border transition-all ${showConeOverlay ? 'border-cyan/40 text-cyan bg-cyan/5' : 'border-border text-muted'}`}
+              className={`hidden lg:inline-flex p-1.5 rounded-md border transition-all ${showConeOverlay ? 'border-cyan/40 text-cyan bg-cyan/5' : 'border-border text-muted'}`}
               title="Toggle visibility cones"
             >
               {showConeOverlay ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
@@ -826,7 +826,7 @@ export default function Dashboard({ onReset }) {
             {/* Reset */}
             <button
               onClick={onReset}
-              className="p-1.5 rounded-md border border-border text-muted hover:text-text hover:border-border-light transition-all"
+              className="hidden lg:inline-flex p-1.5 rounded-md border border-border text-muted hover:text-text hover:border-border-light transition-all"
               title="Reset to landing page"
             >
               <RotateCcw className="w-4 h-4" />
@@ -1042,7 +1042,7 @@ export default function Dashboard({ onReset }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="lg:hidden absolute inset-x-0 bottom-12 top-14 z-[500] bg-panel border-t border-border overflow-y-auto flex flex-col"
+              className="lg:hidden absolute inset-x-0 bottom-0 top-14 z-[1500] bg-panel border-t border-border overflow-y-auto flex flex-col pb-16"
             >
               {/* Sticky Drawer Header */}
               <div className="sticky top-0 z-[1000] flex items-center justify-between px-4 py-3 bg-[#0d121c]/90 backdrop-blur-md border-b border-border">

@@ -233,7 +233,7 @@ ${visibleSats || 'No satellites currently cataloged overhead.'}
         left: -window.innerWidth + 120,
         right: 24
       }}
-      className={`fixed bottom-20 lg:bottom-6 right-6 z-[2000] flex flex-col items-end pointer-events-none transition-all duration-300 ${showChrome || isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12 pointer-events-none'}`}
+      className={`fixed bottom-24 lg:bottom-6 right-6 z-[2000] flex flex-col items-end pointer-events-none transition-all duration-300 ${showChrome || isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12 pointer-events-none'}`}
     >
       
       {/* ── CHAT WINDOW OVERLAY ── */}

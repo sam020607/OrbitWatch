@@ -1095,6 +1095,20 @@ export default function GlobeMap({ className = '', mobileView = 'map', showChrom
                 </div>
               )}
 
+              {/* Visibility Cone Toggle */}
+              <div className="flex items-center justify-between py-1 border-b border-white/[0.04]">
+                <span className="text-muted text-[9px] uppercase tracking-wider font-semibold">Visibility Cone</span>
+                <button
+                  onClick={actions.toggleConeOverlay}
+                  className={`flex items-center gap-1.5 px-2 py-0.5 rounded border transition-all text-[8px] font-sans font-bold uppercase tracking-wider
+                    ${showConeOverlay 
+                      ? 'border-cyan/45 text-cyan bg-cyan/5 shadow-[0_0_8px_rgba(77,141,255,0.1)]' 
+                      : 'border-white/[0.08] text-muted'}`}
+                >
+                  {showConeOverlay ? 'Enabled' : 'Disabled'}
+                </button>
+              </div>
+
               {/* Target/Filter Dropdown */}
               <div className="flex flex-col gap-1 py-1">
                 <span className="text-muted text-[9px] uppercase tracking-wider font-semibold">Filter Targets</span>
