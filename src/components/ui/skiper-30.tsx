@@ -118,7 +118,7 @@ type ColumnProps = {
 const Column = ({ images, y, className = "" }: ColumnProps) => {
   return (
     <motion.div
-      className={`relative -top-[45%] flex h-full w-1/2 md:w-1/4 min-w-[120px] sm:min-w-[200px] flex-col gap-[2vw] first:top-[-45%] [&:nth-child(2)]:top-[-95%] [&:nth-child(3)]:top-[-45%] [&:nth-child(4)]:top-[-75%] will-change-transform ${className}`}
+      className={`relative -top-[15%] md:-top-[45%] flex h-full w-1/2 md:w-1/4 min-w-[120px] sm:min-w-[200px] flex-col gap-[2vw] first:top-[-15%] md:first:top-[-45%] [&:nth-child(2)]:top-[-30%] md:[&:nth-child(2)]:top-[-95%] [&:nth-child(3)]:top-[-45%] [&:nth-child(4)]:top-[-75%] will-change-transform ${className}`}
       style={{ y }}
     >
       {images.map((src, i) => (
