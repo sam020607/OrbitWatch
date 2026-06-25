@@ -189,8 +189,7 @@ src/
 | Name | Role |
 |---|---|
 | Agarim Karnwal | Lead Developer |
-| Sam | Full Stack Developer |
-| *(+ rest of Team Phoenix)* | |
+| Samriddhi | Full Stack Developer |
 
 ---
 
