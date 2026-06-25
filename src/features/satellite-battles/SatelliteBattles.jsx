@@ -23,7 +23,7 @@ import LocationAnalysisCard from '../battle-telemetry/LocationAnalysisCard';
 import OrbitalMathWorker from '../battle-telemetry/lib/orbitalMath.worker?worker';
 import { Loader2, ShieldAlert } from 'lucide-react';
 
-export default function SatelliteBattles({ is3DMode }) {
+export default function SatelliteBattles({ is3DMode, onResetBattle }) {
   const { 
     satellites, 
     satA, 
@@ -319,7 +319,7 @@ export default function SatelliteBattles({ is3DMode }) {
                 {tleError}
               </p>
               <button 
-                onClick={() => { setSatA(null); setSatB(null); }}
+                onClick={() => { setSatA(null); setSatB(null); onResetBattle?.(); }}
                 className="mt-6 px-5 py-2 rounded-full border border-danger/40 text-[10px] font-bold uppercase tracking-wider text-danger hover:bg-danger/10 transition-all"
               >
                 Reset Battle
@@ -363,7 +363,7 @@ export default function SatelliteBattles({ is3DMode }) {
         {satA && satB && !isLoadingTle && (
           <div className="p-4 sm:p-6 pb-16 md:pb-6 shrink-0 border-t border-white/5 flex justify-center bg-[#07090e]/50 backdrop-blur-md relative z-20">
             <button 
-              onClick={() => { setSatA(null); setSatB(null); }}
+              onClick={() => { setSatA(null); setSatB(null); onResetBattle?.(); }}
               className="px-6 py-2 rounded-full border border-white/10 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white hover:border-white/30 hover:bg-white/5 transition-all"
             >
               Reset Battle

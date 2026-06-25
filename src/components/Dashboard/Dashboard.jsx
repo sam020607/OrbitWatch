@@ -800,7 +800,14 @@ export default function Dashboard({ onReset }) {
           {/* ── Center: Map / Battles ── */}
           <main className="flex-1 relative overflow-hidden">
             {activeNav === 'battles' ? (
-              <SatelliteBattles is3DMode={is3DMode} />
+              <SatelliteBattles 
+                is3DMode={is3DMode} 
+                onResetBattle={() => {
+                  setActiveNav('objects');
+                  localStorage.setItem('orbitwatch_active_nav', 'objects');
+                  setMobileView('map');
+                }}
+              />
             ) : is3DMode ? (
               <Globe3D className="w-full h-full" />
             ) : (

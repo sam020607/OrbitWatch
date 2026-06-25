@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { Bot, X, Send, Sparkles, Terminal, AlertCircle, RefreshCw, HelpCircle, Activity } from 'lucide-react';
 import { useApp } from '../../context/AppContext.jsx';
 import { getAllSourceSnapshots } from '../../services/apiMonitor.js';
@@ -26,6 +26,11 @@ export default function AIAssistant() {
   const { location, locationName, issPosition, satellites } = state;
 
   const [isOpen, setIsOpen] = useState(false);
+  const dragControls = useDragControls();
+
+  const handlePointerDown = (e) => {
+    dragControls.start(e);
+  };
   const [messages, setMessages] = useState([
     {
       role: 'model',
@@ -212,7 +217,19 @@ ${visibleSats || 'No satellites currently cataloged overhead.'}
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[2000] flex flex-col items-end pointer-events-none">
+    <motion.div 
+      drag
+      dragControls={dragControls}
+      dragListener={false}
+      dragMomentum={false}
+      dragConstraints={{
+        top: -window.innerHeight + 120,
+        bottom: 24,
+        left: -window.innerWidth + 120,
+        right: 24
+      }}
+      className="fixed bottom-6 right-6 z-[2000] flex flex-col items-end pointer-events-none"
+    >
       
       {/* ── CHAT WINDOW OVERLAY ── */}
       <AnimatePresence>
@@ -351,6 +368,7 @@ ${visibleSats || 'No satellites currently cataloged overhead.'}
 
       {/* ── FLOATING TRIGGER CIRCLE (FAB) ── */}
       <motion.button
+        onPointerDown={handlePointerDown}
         onClick={() => setIsOpen(!isOpen)}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
@@ -374,6 +392,6 @@ ${visibleSats || 'No satellites currently cataloged overhead.'}
         )}
       </motion.button>
 
-    </div>
+    </motion.div>
   );
 }
