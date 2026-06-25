@@ -207,6 +207,13 @@ export default function Dashboard({ onReset }) {
   const [is3DMode, setIs3DMode] = useState(false);
 
   const handleMobileViewChange = (id) => {
+    if (id === 'battles') {
+      setMobileView('map');
+      setActiveNav('battles');
+      localStorage.setItem('orbitwatch_active_nav', 'battles');
+      return;
+    }
+
     setMobileView(id);
     let navId = id;
     if (id === 'satellites') navId = 'objects';
@@ -215,7 +222,6 @@ export default function Dashboard({ onReset }) {
     else if (id === 'journal') navId = 'journal';
     else if (id === 'diagnostics') navId = 'diagnostics';
     else if (id === 'settings') navId = 'settings';
-    else if (id === 'battles') navId = 'battles';
     else if (id === 'map') navId = 'objects';
 
     setActiveNav(navId);
