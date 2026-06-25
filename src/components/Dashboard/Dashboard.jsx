@@ -664,7 +664,7 @@ export default function Dashboard({ onReset }) {
       <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
         {/* ── Top Navigation Bar ── */}
         <header 
-          className={`lg:relative absolute top-0 left-0 right-0 z-[2000] flex items-center gap-3 px-4 py-2.5 shrink-0 bg-gradient-to-b from-[#0a0d1a]/85 via-[#0a0d1a]/30 to-transparent lg:bg-none lg:bg-panel lg:backdrop-blur-md border-b-0 lg:border-b lg:border-white/[0.08] transition-all duration-300
+          className={`lg:relative absolute top-0 left-0 right-0 z-[2000] flex items-center gap-3 px-4 py-2.5 shrink-0 bg-gradient-to-b from-[#0a0d1a]/85 via-[#0a0d1a]/30 to-transparent lg:bg-none lg:bg-panel lg:backdrop-blur-md border-b-0 lg:border-b lg:border-white/[0.08] transition-all duration-300 pointer-events-none lg:pointer-events-auto
             ${showChrome ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-12 pointer-events-none'}`}
         >
           {/* Logo (hidden on desktop) */}
@@ -673,29 +673,31 @@ export default function Dashboard({ onReset }) {
           </div>
 
           {/* Location display or inline header search */}
-          {showSearch ? (
-            <LocationSearch
-              variant="header"
-              onLocationSelect={handleNewLocation}
-              onCancel={() => setShowSearch(false)}
-            />
-          ) : (
-            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg cursor-pointer hover:border-white/20 transition-colors glass-pill shrink-0"
-              onClick={() => setShowSearch(true)}
-              title="Click to search and change location"
-            >
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse shrink-0" />
-              <span className="font-sans text-[10px] font-semibold text-text uppercase tracking-wider shrink-0 max-w-[200px] truncate">
-                {location?.name || 'No location'}
-              </span>
-              <span className="text-muted text-[9px] font-mono hidden md:block shrink-0">
-                {location ? `${location.lat.toFixed(2)}°, ${location.lon.toFixed(2)}°` : ''}
-              </span>
-            </div>
-          )}
+          <div className="pointer-events-auto shrink-0">
+            {showSearch ? (
+              <LocationSearch
+                variant="header"
+                onLocationSelect={handleNewLocation}
+                onCancel={() => setShowSearch(false)}
+              />
+            ) : (
+              <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg cursor-pointer hover:border-white/20 transition-colors glass-pill shrink-0"
+                onClick={() => setShowSearch(true)}
+                title="Click to search and change location"
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse shrink-0" />
+                <span className="font-sans text-[10px] font-semibold text-text uppercase tracking-wider shrink-0 max-w-[200px] truncate">
+                  {location?.name || 'No location'}
+                </span>
+                <span className="text-muted text-[9px] font-mono hidden md:block shrink-0">
+                  {location ? `${location.lat.toFixed(2)}°, ${location.lon.toFixed(2)}°` : ''}
+                </span>
+              </div>
+            )}
+          </div>
 
           {/* ISS live indicator */}
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md glass-pill">
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md glass-pill pointer-events-auto">
             <div className={`w-1.5 h-1.5 rounded-full ${issPosition ? 'bg-cyan animate-pulse' : 'bg-muted'}`} />
             <span className="font-sans text-[10px] font-semibold text-muted uppercase tracking-wider hidden sm:block">
               ISS {issPosition ? 'LIVE' : 'OFFLINE'}
@@ -703,8 +705,8 @@ export default function Dashboard({ onReset }) {
           </div>
 
           {/* Centered Legend Pill */}
-          <div className="flex-1 flex justify-center items-center px-2">
-            <div className="glass-panel flex items-center gap-x-[8px] px-2 py-1 rounded-full bg-surface/90 backdrop-blur border border-surface-border shadow-md select-none shrink-0">
+          <div className="flex-1 flex justify-center items-center px-2 pointer-events-none">
+            <div className="glass-panel flex items-center gap-x-[8px] px-2 py-1 rounded-full bg-surface/90 backdrop-blur border border-surface-border shadow-md select-none shrink-0 pointer-events-auto">
               {/* Sats */}
               <div className="flex items-center gap-1 group relative cursor-pointer" title="Sats">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#4d8dff] shadow-[0_0_3px_#4d8dff80] shrink-0" />
@@ -747,7 +749,7 @@ export default function Dashboard({ onReset }) {
             </div>
           </div>
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-2 pointer-events-auto">
             {/* Control Clocks */}
             <div className="hidden md:flex items-center gap-3 mr-2 border-r border-white/[0.08] pr-3 select-none">
               <div className="flex flex-col items-end">

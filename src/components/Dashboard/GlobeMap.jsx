@@ -1090,7 +1090,7 @@ export default function GlobeMap({ className = '', mobileView = 'map', showChrom
 
       {/* Collapsed Controls Toggle for Mobile */}
       {mobileView === 'map' && (
-        <div className={`lg:hidden absolute top-3 right-3 z-[1010] flex flex-col items-end gap-2 transition-all duration-300 ${showChrome ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-12 pointer-events-none'}`}>
+        <div className={`lg:hidden absolute top-3 right-3 z-[2010] flex flex-col items-end gap-2 transition-all duration-300 ${showChrome ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-12 pointer-events-none'}`}>
           <button
             ref={mobileToggleRef}
             onPointerDown={(e) => e.stopPropagation()}
@@ -1099,10 +1099,10 @@ export default function GlobeMap({ className = '', mobileView = 'map', showChrom
               e.stopPropagation();
               setIsControlsExpanded(prev => !prev);
             }}
-            className="w-8 h-8 rounded-md flex items-center justify-center border border-white/[0.08] bg-panel/90 backdrop-blur shadow-lg text-cyan hover:text-text-primary active:scale-95 transition-all pointer-events-auto"
+            className="w-10 h-10 rounded-md flex items-center justify-center border border-white/[0.08] bg-panel/90 backdrop-blur shadow-lg text-cyan hover:text-text-primary active:scale-95 transition-all pointer-events-auto"
             title="Toggle observatory controls"
           >
-            {isControlsExpanded ? <X className="w-4 h-4" /> : <SlidersHorizontal className="w-4 h-4" />}
+            {isControlsExpanded ? <X className="w-5 h-5" /> : <SlidersHorizontal className="w-5 h-5" />}
           </button>
 
           {/* Expanded Dropdown Panel */}
