@@ -208,19 +208,7 @@ function OrbitRing({ tle, satName, color, currentLat, currentLon, currentAlt }) 
           <meshBasicMaterial color={color} transparent opacity={0.25} blending={THREE.AdditiveBlending} />
         </mesh>
         
-        {/* Sleek name label */}
-        <Html distanceFactor={6} center style={{ pointerEvents: 'none' }} y={25}>
-          <div 
-            className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold tracking-wider uppercase border text-white/90"
-            style={{ 
-              background: 'rgba(10, 14, 22, 0.85)',
-              borderColor: color + '50',
-              boxShadow: `0 0 10px ${color}33`
-            }}
-          >
-            {satName}
-          </div>
-        </Html>
+
       </mesh>
 
       {/* Ground projected coverage footprint circle */}
