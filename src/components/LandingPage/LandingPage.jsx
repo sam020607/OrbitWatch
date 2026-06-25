@@ -86,6 +86,7 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
   const { state, actions } = useApp();
   const { user, setShowAuthModal } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [method, setMethod] = useState('search'); // 'search' | 'globe'
   const [clickedCoords, setClickedCoords] = useState(null); // { lat, lon }
   const [resolvingName, setResolvingName] = useState(false);
@@ -129,9 +130,10 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
 
   useEffect(() => {
     setMounted(true);
-    
-    // The Ink Reveal timer has been moved to onViewportEnter of the card
-    // so it only starts counting down when the user actually sees the card.
+    setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Globe slow rotation interval
@@ -257,19 +259,19 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
       </header>
 
       {/* Hero Section */}
-      <div id="hero-section" className="relative w-full min-h-[85vh] pt-16 pb-16 flex flex-col justify-start items-center overflow-hidden border-b border-[var(--surface-border)] bg-[var(--bg)] transition-colors duration-300">
+      <div id="hero-section" className="relative w-full min-h-[85vh] pt-12 md:pt-16 pb-12 md:pb-16 flex flex-col justify-start items-center overflow-hidden border-b border-[var(--surface-border)] bg-[var(--bg)] transition-colors duration-300">
         
         {/* Content Container (Tightened pb) */}
-        <div className="relative w-full max-w-4xl flex-1 flex flex-col items-center justify-center px-4 pt-6 pb-6 z-10">
+        <div className="relative w-full max-w-4xl flex-1 flex flex-col items-center justify-center px-4 pt-4 md:pt-6 pb-4 md:pb-6 z-10">
           
           {/* Headline with Vaporize Effect */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-center mb-4 select-none w-full flex flex-col items-center justify-center"
+            className="text-center mb-3 md:mb-4 select-none w-full flex flex-col items-center justify-center"
           >
-            <div className="relative w-full max-w-[800px] h-[130px] md:h-[160px] flex items-center justify-center">
+            <div className="relative w-full max-w-[800px] h-[90px] sm:h-[130px] md:h-[160px] flex items-center justify-center">
               <VaporizeTextCycle
                 texts={[
                   "Know what's\noverhead.", 
@@ -279,7 +281,7 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
                 ]}
                 font={{
                   fontFamily: "'Playfair Display', serif",
-                  fontSize: "56px",
+                  fontSize: isMobile ? "32px" : "56px",
                   fontWeight: 400
                 }}
                 color="rgb(255, 255, 255)"
@@ -297,13 +299,13 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
             </div>
             
             {/* Static Subtitle always present below the vaporize title */}
-            <p className="text-white font-mono text-[10px] md:text-xs uppercase tracking-[0.25em] font-semibold mt-4 animate-fade-in flex items-center justify-center gap-2">
+            <p className="text-white font-mono text-[10px] md:text-xs uppercase tracking-[0.25em] font-semibold mt-2 md:mt-4 animate-fade-in flex items-center justify-center gap-2">
               <span className="text-cyan">Project Zenith</span>
               <span className="text-white/30">•</span>
               <span className="text-white/70 font-light">The Celestial Eye</span>
             </p>
 
-            <p className="text-[var(--text-secondary)] text-xs md:text-sm font-light max-w-md mx-auto mt-2 animate-fade-in opacity-80">
+            <p className="text-[var(--text-secondary)] text-xs md:text-sm font-light max-w-md mx-auto mt-1.5 md:mt-2 animate-fade-in opacity-80">
               Real-time satellite tracking &amp; personal sky visibility — anywhere on Earth
             </p>
           </motion.div>

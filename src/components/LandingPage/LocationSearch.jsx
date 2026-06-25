@@ -191,10 +191,10 @@ export default function LocationSearch({ onLocationSelect, variant, onQueryChang
           onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setShowDropdown(true)}
           placeholder="Enter city, country, or lat,lon coordinates..."
-          className={`w-full py-4 text-text placeholder-muted font-sans text-base backdrop-blur-md transition-all duration-200 focus:outline-none
+          className={`w-full py-3.5 sm:py-4 text-text placeholder-muted font-sans text-sm sm:text-base backdrop-blur-md transition-all duration-200 focus:outline-none
             ${isHero 
-              ? 'pl-6 pr-32 bg-[#0d1320]/70 border border-white/15 rounded-full focus:border-white/30 focus:ring-1 focus:ring-white/10' 
-              : 'pl-12 pr-24 bg-navy/80 border border-border rounded-2xl focus:border-cyan focus:ring-1 focus:ring-cyan/50'
+              ? 'pl-5 sm:pl-6 pr-24 sm:pr-32 bg-[#0d1320]/70 border border-white/15 rounded-full focus:border-white/30 focus:ring-1 focus:ring-white/10' 
+              : 'pl-10 sm:pl-12 pr-20 sm:pr-24 bg-navy/80 border border-border rounded-2xl focus:border-cyan focus:ring-1 focus:ring-cyan/50'
             }`}
           style={{ caretColor: isHero ? '#7fb3e0' : '#ff007f' }}
           autoComplete="off"
@@ -204,14 +204,14 @@ export default function LocationSearch({ onLocationSelect, variant, onQueryChang
         />
 
         {/* Buttons */}
-        <div className="absolute right-2 flex items-center gap-1.5">
+        <div className="absolute right-2 flex items-center gap-1 sm:gap-1.5">
           {query && (
             <button
               onClick={() => { setQuery(''); setResults([]); setShowDropdown(false); }}
-              className="p-2 text-muted hover:text-text transition-colors"
+              className="p-1 sm:p-2 text-muted hover:text-text transition-colors"
               aria-label="Clear search"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5 sm:w-4 h-4" />
             </button>
           )}
           
@@ -219,11 +219,11 @@ export default function LocationSearch({ onLocationSelect, variant, onQueryChang
             <>
               <button
                 onClick={handleGeolocation}
-                className="p-2 text-slate-400 hover:text-white transition-colors"
+                className="p-1 sm:p-2 text-slate-400 hover:text-white transition-colors"
                 title="Use my current location"
                 aria-label="Use current location"
               >
-                <MapPin className="w-5 h-5" />
+                <MapPin className="w-4 h-4 sm:w-5 h-5" />
               </button>
               
               <button
@@ -238,25 +238,25 @@ export default function LocationSearch({ onLocationSelect, variant, onQueryChang
                     });
                   }
                 }}
-                className="w-9 h-9 rounded-full bg-[#f5f7fa]/90 hover:bg-white text-[#070a12] flex items-center justify-center transition-all duration-200 shadow-sm active:scale-95 shrink-0"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#f5f7fa]/90 hover:bg-white text-[#070a12] flex items-center justify-center transition-all duration-200 shadow-sm active:scale-95 shrink-0"
                 title="Submit Search"
                 aria-label="Submit search"
               >
                 {isSearching ? (
-                  <Loader2 className="w-4.5 h-4.5 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 animate-spin" />
                 ) : (
-                  <Search className="w-4.5 h-4.5" />
+                  <Search className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5" />
                 )}
               </button>
             </>
           ) : (
             <button
               onClick={handleGeolocation}
-              className="p-2 text-cyan hover:text-white transition-colors"
+              className="p-1.5 sm:p-2 text-cyan hover:text-white transition-colors"
               title="Use my current location"
               aria-label="Use current location"
             >
-              <MapPin className="w-5 h-5" />
+              <MapPin className="w-4 h-4 sm:w-5 h-5" />
             </button>
           )}
         </div>
