@@ -1044,7 +1044,12 @@ export default function GlobeMap({ className = '', mobileView = 'map', showChrom
       {mobileView === 'map' && (
         <div className={`lg:hidden absolute top-3 right-3 z-[1010] flex flex-col items-end gap-2 transition-all duration-300 ${showChrome ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-12 pointer-events-none'}`}>
           <button
-            onClick={() => setIsControlsExpanded(prev => !prev)}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsControlsExpanded(prev => !prev);
+            }}
             className="w-8 h-8 rounded-md flex items-center justify-center border border-white/[0.08] bg-panel/90 backdrop-blur shadow-lg text-cyan hover:text-text-primary active:scale-95 transition-all pointer-events-auto"
             title="Toggle observatory controls"
           >
@@ -1053,7 +1058,12 @@ export default function GlobeMap({ className = '', mobileView = 'map', showChrom
 
           {/* Expanded Dropdown Panel */}
           {isControlsExpanded && (
-            <div className="glass-panel p-3 rounded-lg bg-surface/95 border border-white/[0.08] shadow-2xl flex flex-col gap-2.5 min-w-[200px] animate-fade-in pointer-events-auto">
+            <div 
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+              className="glass-panel p-3 rounded-lg bg-surface/95 border border-white/[0.08] shadow-2xl flex flex-col gap-2.5 min-w-[200px] animate-fade-in pointer-events-auto"
+            >
               <span className="text-[8px] font-sans text-cyan uppercase tracking-widest font-bold">Observatory Control</span>
               
               {/* Location display */}
