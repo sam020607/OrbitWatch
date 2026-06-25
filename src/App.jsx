@@ -8,6 +8,7 @@ import Dashboard from './components/Dashboard/Dashboard.jsx';
 import AuthPage from './components/Auth/AuthPage.jsx';
 import OnboardingBriefing from './components/Onboarding/OnboardingBriefing.jsx';
 import AboutUs from './components/AboutUs.jsx';
+import LoadingScreen from './components/LoadingScreen/LoadingScreen.jsx';
 
 function AppInner() {
   const { user, loading, showAuthModal, setShowAuthModal } = useAuth();
@@ -140,12 +141,20 @@ function AppInner() {
 }
 
 export default function App() {
+  const [loadingDone, setLoadingDone] = useState(false);
+
   return (
     <AuthProvider>
       <AppProvider>
-        <AnimatePresence mode="wait">
-          <AppInner />
-        </AnimatePresence>
+        {/* Loading screen gates everything until assets are ready */}
+        {!loadingDone && (
+          <LoadingScreen onComplete={() => setLoadingDone(true)} />
+        )}
+        {loadingDone && (
+          <AnimatePresence mode="wait">
+            <AppInner />
+          </AnimatePresence>
+        )}
       </AppProvider>
     </AuthProvider>
   );
