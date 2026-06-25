@@ -117,10 +117,13 @@ function UserAvatar() {
 
 const MOBILE_VIEWS = [
   { id: 'map', label: 'Map', icon: Map },
-  { id: 'satellites', label: 'Satellites', icon: Satellite },
-  { id: 'report', label: 'Tonight', icon: Star },
+  { id: 'satellites', label: 'Objects', icon: Satellite },
+  { id: 'battles', label: 'Battles', icon: Flame },
   { id: 'lookup', label: 'Look Up', icon: Compass },
+  { id: 'report', label: 'Tonight', icon: Star },
   { id: 'journal', label: 'Journal', icon: Trophy },
+  { id: 'diagnostics', label: 'Diags', icon: Activity },
+  { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
 const NAV_ITEMS = [
@@ -195,7 +198,6 @@ export default function Dashboard({ onReset }) {
   useAsteroids();
 
   const [mobileView, setMobileView] = useState('map');
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [activeNav, setActiveNav] = useState(() => {
     const saved = localStorage.getItem('orbitwatch_active_nav');
     return saved || 'objects';
@@ -203,6 +205,32 @@ export default function Dashboard({ onReset }) {
   const [rightPanel, setRightPanel] = useState('objects');
   const [showSearch, setShowSearch] = useState(false);
   const [is3DMode, setIs3DMode] = useState(false);
+
+  const handleMobileViewChange = (id) => {
+    setMobileView(id);
+    let navId = id;
+    if (id === 'satellites') navId = 'objects';
+    else if (id === 'report') navId = 'report';
+    else if (id === 'lookup') navId = 'lookup';
+    else if (id === 'journal') navId = 'journal';
+    else if (id === 'diagnostics') navId = 'diagnostics';
+    else if (id === 'settings') navId = 'settings';
+    else if (id === 'battles') navId = 'battles';
+    else if (id === 'map') navId = 'objects';
+
+    setActiveNav(navId);
+    localStorage.setItem('orbitwatch_active_nav', navId);
+  };
+
+  const isTabActive = (id) => {
+    if (id === 'map') {
+      return mobileView === 'map' && activeNav !== 'battles';
+    }
+    if (id === 'battles') {
+      return mobileView === 'map' && activeNav === 'battles';
+    }
+    return mobileView === id;
+  };
 
   useEffect(() => {
     if (activeNav === 'battles') {
@@ -617,17 +645,13 @@ export default function Dashboard({ onReset }) {
         {/* ── Top Navigation Bar ── */}
         <header className="relative flex items-center gap-3 px-4 py-2.5 shrink-0"
           style={{ zIndex: 2000, background: 'rgba(10,13,21,0.70)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          {/* Logo / Control Room Button (hidden on desktop) */}
-          <button
-            onClick={() => setMobileNavOpen(true)}
-            className="flex items-center gap-1.5 lg:hidden p-1.5 rounded-lg bg-surface/80 border border-white/10 hover:bg-white/10 text-cyan hover:text-white transition-all focus:outline-none pointer-events-auto shadow-sm"
-            title="Open Control Room Menu"
-          >
+          {/* Logo (hidden on desktop) */}
+          <div className="flex items-center gap-1.5 lg:hidden select-none pointer-events-none">
             <Satellite className="w-4 h-4 text-cyan animate-pulse" />
             <span className="font-playfair italic text-xs font-bold text-text-primary tracking-wider uppercase">
-              Control Room
+              Project <span className="text-cyan">Zenith</span>
             </span>
-          </button>
+          </div>
 
           {/* Location display or inline header search */}
           {showSearch ? (
@@ -813,19 +837,24 @@ export default function Dashboard({ onReset }) {
             )}
 
             {/* Mobile: bottom tab bar */}
-            <div className="lg:hidden absolute bottom-0 left-0 right-0 z-[1000]">
-              <div className="flex bg-panel border-t border-border">
-                {MOBILE_VIEWS.map(({ id, label, icon: Icon }) => (
-                  <button
-                    key={id}
-                    onClick={() => setMobileView(id)}
-                    className={`flex-1 flex flex-col items-center gap-1 py-2 transition-colors
-                      ${mobileView === id ? 'text-cyan border-t-2 border-cyan -mt-0.5' : 'text-muted'}`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span className="text-[10px] font-sans uppercase tracking-wider">{label}</span>
-                  </button>
-                ))}
+            <div className="lg:hidden absolute bottom-0 left-0 right-0 z-[1000] bg-panel/95 backdrop-blur-md border-t border-border h-12">
+              <div className="flex h-full items-stretch justify-around px-1">
+                {MOBILE_VIEWS.map(({ id, label, icon: Icon }) => {
+                  const isActive = isTabActive(id);
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => handleMobileViewChange(id)}
+                      className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors focus:outline-none py-1 min-w-0
+                        ${isActive ? 'text-cyan border-t-2 border-cyan -mt-[2px] pt-[2px]' : 'text-muted hover:text-text-primary'}`}
+                    >
+                      <Icon className="w-3.5 h-3.5 shrink-0" />
+                      <span className="text-[7.5px] sm:text-[9px] font-sans uppercase tracking-[0.02em] font-semibold truncate w-full text-center px-0.5">
+                        {label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </main>
@@ -895,111 +924,7 @@ export default function Dashboard({ onReset }) {
           </aside>
         </div>
 
-        {/* ── Mobile Navigation Drawer Overlay (Control Room Menu) ── */}
-        <AnimatePresence>
-          {mobileNavOpen && (
-            <>
-              {/* Backdrop */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setMobileNavOpen(false)}
-                className="lg:hidden fixed inset-0 z-[2999] bg-black/60 backdrop-blur-sm"
-              />
-              
-              {/* Drawer Container */}
-              <motion.div
-                initial={{ x: '-100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '-100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="lg:hidden fixed inset-y-0 left-0 w-64 z-[3000] bg-[#0d121c]/95 backdrop-blur-md border-r border-border flex flex-col h-full overflow-hidden"
-              >
-                {/* Header block with close button */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08] h-[52px] shrink-0">
-                  <div className="flex items-center gap-2">
-                    <Satellite className="w-5 h-5 text-cyan animate-pulse" />
-                    <div className="flex flex-col text-left">
-                      <span className="font-playfair italic text-[15px] font-bold text-text leading-tight">Project Zenith</span>
-                      <span className="text-[8px] font-sans uppercase tracking-[0.15em] text-muted">Control Room</span>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => setMobileNavOpen(false)} 
-                    className="p-1 rounded border border-border bg-panel/30 hover:bg-panel-light text-muted hover:text-text transition-all"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
 
-                {/* Nav List */}
-                <nav className="flex-1 py-4 space-y-1.5 px-3 overflow-y-auto" data-lenis-prevent>
-                  {NAV_ITEMS.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = activeNav === item.id;
-
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => {
-                          setActiveNav(item.id);
-                          localStorage.setItem('orbitwatch_active_nav', item.id);
-                          if (item.id === 'report') setMobileView('report');
-                          else if (item.id === 'lookup') setMobileView('lookup');
-                          else if (item.id === 'journal') setMobileView('journal');
-                          else if (item.id === 'objects') setMobileView('satellites');
-                          else setMobileView('map');
-                          setMobileNavOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-sans font-semibold uppercase tracking-wider transition-all
-                          ${isActive 
-                            ? 'bg-cyan text-space shadow-md font-bold' 
-                            : 'text-text-secondary hover:text-text-primary hover:bg-panel-light'}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Icon className="w-4 h-4" />
-                          <span>{item.label}</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 opacity-60" />
-                      </button>
-                    );
-                  })}
-
-                  <div className="pt-4 border-t border-white/[0.08] space-y-1.5">
-                    {SECONDARY_ITEMS.map((item) => {
-                      const Icon = item.icon;
-                      const isActive = activeNav === item.id;
-
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={() => {
-                            setActiveNav(item.id);
-                            localStorage.setItem('orbitwatch_active_nav', item.id);
-                            if (item.id === 'settings') setMobileView('settings');
-                            else if (item.id === 'diagnostics') setMobileView('diagnostics');
-                            setMobileNavOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-[10px] font-sans font-semibold uppercase tracking-wider transition-all
-                            ${isActive 
-                              ? 'bg-cyan/20 border border-cyan/40 text-cyan font-bold' 
-                              : 'text-text-secondary hover:text-text-primary hover:bg-panel-light border border-transparent'}`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Icon className="w-3.5 h-3.5" />
-                            <span>{item.label}</span>
-                          </div>
-                          <ChevronRight className="w-3 h-3 opacity-60" />
-                        </button>
-                      );
-                    })}
-                  </div>
-                </nav>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
 
         {/* ── Mobile Overlay Panels (Tabs Contents) ── */}
         <AnimatePresence>
