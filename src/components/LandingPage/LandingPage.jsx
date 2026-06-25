@@ -429,6 +429,10 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
                   <MapContainer
                     center={[10, globeCenter[1]]}
                     zoom={1}
+                    minZoom={1}
+                    maxZoom={3}
+                    maxBounds={[[-85, -20000], [85, 20000]]}
+                    maxBoundsViscosity={1.0}
                     className="w-full h-full"
                     style={{ background: 'var(--color-space)' }}
                     zoomControl={false}
