@@ -527,30 +527,47 @@ export default function GlobeMap({ className = '', mobileView = 'map', showChrom
   const mobilePanelRef = useRef(null);
 
   useEffect(() => {
+    const btn = mobileToggleRef.current;
+    if (!btn) return;
+
+    const handleToggle = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setIsControlsExpanded(prev => !prev);
+    };
+
     const stopEvents = [
-      'mousedown', 'mouseup', 'touchstart', 'touchend', 
-      'touchmove', 'pointerdown', 'pointerup', 'pointermove', 
+      'mousedown', 'mouseup', 'touchmove', 'pointerdown', 'pointerup', 'pointermove', 
       'dblclick', 'contextmenu', 'wheel'
     ];
     const handler = (e) => e.stopPropagation();
 
-    const btn = mobileToggleRef.current;
-    if (btn) {
-      stopEvents.forEach(evt => btn.addEventListener(evt, handler, { passive: true }));
-    }
-
-    const panel = mobilePanelRef.current;
-    if (panel) {
-      stopEvents.forEach(evt => panel.addEventListener(evt, handler, { passive: true }));
-    }
+    btn.addEventListener('click', handleToggle);
+    btn.addEventListener('touchstart', handleToggle, { passive: false });
+    stopEvents.forEach(evt => btn.addEventListener(evt, handler));
 
     return () => {
-      if (btn) {
-        stopEvents.forEach(evt => btn.removeEventListener(evt, handler));
-      }
-      if (panel) {
-        stopEvents.forEach(evt => panel.removeEventListener(evt, handler));
-      }
+      btn.removeEventListener('click', handleToggle);
+      btn.removeEventListener('touchstart', handleToggle);
+      stopEvents.forEach(evt => btn.removeEventListener(evt, handler));
+    };
+  }, [isControlsExpanded]);
+
+  useEffect(() => {
+    const panel = mobilePanelRef.current;
+    if (!panel) return;
+
+    const stopEvents = [
+      'mousedown', 'mouseup', 'touchstart', 'touchend', 'touchmove', 
+      'pointerdown', 'pointerup', 'pointermove', 
+      'dblclick', 'contextmenu', 'wheel'
+    ];
+    const handler = (e) => e.stopPropagation();
+
+    stopEvents.forEach(evt => panel.addEventListener(evt, handler, { passive: true }));
+
+    return () => {
+      stopEvents.forEach(evt => panel.removeEventListener(evt, handler));
     };
   }, [isControlsExpanded]);
 
