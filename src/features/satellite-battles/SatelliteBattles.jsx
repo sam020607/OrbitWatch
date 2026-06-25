@@ -265,8 +265,7 @@ export default function SatelliteBattles({ is3DMode }) {
       {/* RIGHT PANEL: Battle Interface */}
       <div className="w-full md:w-1/2 h-[55vh] md:h-full flex flex-col relative overflow-y-auto overflow-x-hidden scrollbar-thin bg-[#07090e]">
         
-        {/* Header / Selectors */}
-        <div className="w-full flex justify-between items-start gap-4 p-6 shrink-0 relative z-20"
+        <div className="w-full flex justify-between items-start gap-2 sm:gap-4 p-3 sm:p-6 shrink-0 relative z-20"
              style={{ background: 'linear-gradient(to bottom, rgba(7,9,14,0.95) 0%, rgba(7,9,14,0) 100%)' }}>
           <div className="flex-1">
             <SatelliteSelector 
@@ -289,7 +288,7 @@ export default function SatelliteBattles({ is3DMode }) {
         </div>
 
         {/* Content / Telemetry Dashboard */}
-        <div className="flex-1 w-full relative px-6 pb-6">
+        <div className="flex-1 w-full relative px-3 sm:px-6 pb-6">
           {!satA || !satB ? (
             /* Select Prompt */
             <div className="w-full h-full flex flex-col items-center justify-center min-h-[300px] mt-10">
@@ -362,7 +361,7 @@ export default function SatelliteBattles({ is3DMode }) {
 
         {/* Action Bar */}
         {satA && satB && !isLoadingTle && (
-          <div className="p-6 shrink-0 border-t border-white/5 flex justify-center bg-[#07090e]/50 backdrop-blur-md relative z-20">
+          <div className="p-4 sm:p-6 pb-16 md:pb-6 shrink-0 border-t border-white/5 flex justify-center bg-[#07090e]/50 backdrop-blur-md relative z-20">
             <button 
               onClick={() => { setSatA(null); setSatB(null); }}
               className="px-6 py-2 rounded-full border border-white/10 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white hover:border-white/30 hover:bg-white/5 transition-all"

@@ -51,7 +51,7 @@ export default function SatelliteSelector({
 
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative w-full h-14 rounded-xl flex items-center justify-between px-4 transition-all duration-300
+        className={`relative w-full h-11 sm:h-14 rounded-xl flex items-center justify-between px-2 sm:px-4 transition-all duration-300
           border ${isOpen ? 'border-white/40' : 'border-white/10'}`}
         style={{
           background: 'rgba(15, 22, 30, 0.8)',
@@ -59,25 +59,25 @@ export default function SatelliteSelector({
           boxShadow: selectedSat ? shadowStr : 'none'
         }}
       >
-        <div className="flex items-center gap-3 overflow-hidden">
+        <div className="flex items-center gap-1.5 sm:gap-3 overflow-hidden">
           <div 
-            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+            className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0"
             style={{ background: selectedSat ? gradientStr : 'rgba(255,255,255,0.1)' }}
           >
-            <Satellite className="w-4 h-4 text-white" />
+            <Satellite className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
           </div>
           <div className={`flex flex-col ${side === 'left' ? 'items-start' : 'items-start'} overflow-hidden`}>
-            <span className="font-playfair font-bold text-white text-base truncate">
+            <span className="font-playfair font-bold text-white text-xs sm:text-base truncate">
               {selectedSat ? selectedSat.satname : "Choose Fighter"}
             </span>
             {selectedSat && (
-              <span className="text-[10px] font-mono text-white/50 truncate">
+              <span className="text-[8px] sm:text-[10px] font-mono text-white/50 truncate">
                 NORAD: {selectedSat.satid}
               </span>
             )}
           </div>
         </div>
-        <ChevronDown className={`w-5 h-5 text-white/50 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3.5 h-3.5 sm:w-5 sm:h-5 text-white/50 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       <AnimatePresence>

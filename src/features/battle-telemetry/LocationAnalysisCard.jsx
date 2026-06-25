@@ -43,7 +43,7 @@ export default function LocationAnalysisCard({
 
   return (
     <div 
-      className="absolute bottom-4 left-4 right-4 sm:left-6 sm:bottom-6 sm:right-auto sm:w-[360px] z-[500] rounded-2xl overflow-hidden border border-white/10"
+      className="absolute bottom-2 left-2 right-2 sm:left-6 sm:bottom-6 sm:right-auto sm:w-[360px] z-[500] rounded-xl sm:rounded-2xl overflow-hidden border border-white/10"
       style={{
         background: 'rgba(10, 14, 22, 0.95)',
         backdropFilter: 'blur(20px)',
@@ -51,7 +51,7 @@ export default function LocationAnalysisCard({
       }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-white/2">
+      <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 border-b border-white/5 bg-white/2">
         <div className="flex items-center gap-2">
           <Navigation className="w-3.5 h-3.5 text-cyan" />
           <span className="text-[10px] font-mono text-white/80 font-bold uppercase tracking-wider">
@@ -67,15 +67,15 @@ export default function LocationAnalysisCard({
       </div>
 
       {/* Content */}
-      <div className="p-4 flex flex-col gap-3">
+      <div className="p-3 sm:p-4 flex flex-col gap-2 sm:gap-3">
         <p className="text-[9px] font-sans text-white/40 uppercase tracking-widest mb-1">
           Pass Prediction (Next 24h)
         </p>
 
         {/* Sat A Row */}
-        <div className="flex flex-col p-3 rounded-xl bg-[#121824]/60 border border-[#4d8dff]/10">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-[#4d8dff] font-playfair truncate max-w-[150px]">
+        <div className="flex flex-col p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-[#121824]/60 border border-[#4d8dff]/10">
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+            <span className="text-xs font-bold text-[#4d8dff] font-playfair truncate max-w-[130px] sm:max-w-[150px]">
               {satA?.satname || 'Satellite A'}
             </span>
             <span className="text-[8px] font-mono text-white/30 uppercase">FIGHTER 1</span>
@@ -109,9 +109,9 @@ export default function LocationAnalysisCard({
         </div>
 
         {/* Sat B Row */}
-        <div className="flex flex-col p-3 rounded-xl bg-[#121824]/60 border border-[#e0584f]/10">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-[#e0584f] font-playfair truncate max-w-[150px]">
+        <div className="flex flex-col p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-[#121824]/60 border border-[#e0584f]/10">
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+            <span className="text-xs font-bold text-[#e0584f] font-playfair truncate max-w-[130px] sm:max-w-[150px]">
               {satB?.satname || 'Satellite B'}
             </span>
             <span className="text-[8px] font-mono text-white/30 uppercase">FIGHTER 2</span>

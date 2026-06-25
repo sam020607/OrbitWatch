@@ -9,18 +9,18 @@ export default function ScoreBoard({ satA, satB, scoreResult }) {
   const satBName = satB?.satname || 'FIGHTER B';
 
   return (
-    <div className="w-full flex flex-col p-6 md:p-8 bg-[#0a0d15]/40 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden mt-4">
+    <div className="w-full flex flex-col p-4 sm:p-6 md:p-8 bg-[#0a0d15]/40 backdrop-blur-md border border-white/5 rounded-xl sm:rounded-2xl overflow-hidden mt-4">
       
       {/* Overall Score Header */}
       <div className="flex flex-col items-center justify-center mb-8">
         <span className="text-[10px] font-mono text-white/30 uppercase tracking-[0.25em] mb-2">Tactical Scoreboard</span>
-        <div className="flex items-center gap-6 select-none">
-          <span className="font-playfair font-black text-white/40 text-lg uppercase tracking-wider text-right max-w-[150px] truncate">
+        <div className="flex items-center gap-2 sm:gap-6 select-none">
+          <span className="font-playfair font-black text-white/40 text-xs sm:text-lg uppercase tracking-wider text-right max-w-[70px] sm:max-w-[150px] truncate">
             {satAName}
           </span>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             <span 
-              className="font-mono text-5xl font-black transition-all"
+              className="font-mono text-3xl sm:text-5xl font-black transition-all"
               style={{
                 color: overallWinner === 'A' ? '#4d8dff' : 'rgba(255,255,255,0.7)',
                 textShadow: overallWinner === 'A' ? '0 0 15px rgba(77, 141, 255, 0.6)' : 'none'
@@ -28,9 +28,9 @@ export default function ScoreBoard({ satA, satB, scoreResult }) {
             >
               {scoreA}
             </span>
-            <span className="font-sans text-white/20 text-3xl font-light">—</span>
+            <span className="font-sans text-white/20 text-xl sm:text-3xl font-light">—</span>
             <span 
-              className="font-mono text-5xl font-black transition-all"
+              className="font-mono text-3xl sm:text-5xl font-black transition-all"
               style={{
                 color: overallWinner === 'B' ? '#e0584f' : 'rgba(255,255,255,0.7)',
                 textShadow: overallWinner === 'B' ? '0 0 15px rgba(224, 88, 79, 0.6)' : 'none'
@@ -39,7 +39,7 @@ export default function ScoreBoard({ satA, satB, scoreResult }) {
               {scoreB}
             </span>
           </div>
-          <span className="font-playfair font-black text-white/40 text-lg uppercase tracking-wider text-left max-w-[150px] truncate">
+          <span className="font-playfair font-black text-white/40 text-xs sm:text-lg uppercase tracking-wider text-left max-w-[70px] sm:max-w-[150px] truncate">
             {satBName}
           </span>
         </div>

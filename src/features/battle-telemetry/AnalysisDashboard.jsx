@@ -138,7 +138,7 @@ export default function AnalysisDashboard({
   }, [overlap]);
 
   return (
-    <div className="w-full flex flex-col relative z-10 p-6 md:p-8 bg-[#0a0d15]/40 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden">
+    <div className="w-full flex flex-col relative z-10 p-4 sm:p-6 md:p-8 bg-[#0a0d15]/40 backdrop-blur-md border border-white/5 rounded-xl sm:rounded-2xl overflow-hidden">
       
       {/* Decorative radar background */}
       <div className="absolute -right-20 -bottom-20 w-80 h-80 opacity-[0.03] pointer-events-none">

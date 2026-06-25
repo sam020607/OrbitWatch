@@ -6,7 +6,7 @@ export default function BattleSummaryPanel({ summary }) {
   const { lines, verdict } = summary;
 
   return (
-    <div className="w-full flex flex-col p-6 md:p-8 bg-[#0a0d15]/40 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden mt-4">
+    <div className="w-full flex flex-col p-4 sm:p-6 md:p-8 bg-[#0a0d15]/40 backdrop-blur-md border border-white/5 rounded-xl sm:rounded-2xl overflow-hidden mt-4">
       {/* Header */}
       <div className="flex items-center gap-2 mb-4 border-b border-white/5 pb-3">
         <Terminal className="w-4 h-4 text-cyan" />
