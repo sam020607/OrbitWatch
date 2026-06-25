@@ -365,6 +365,8 @@ export default function Dashboard({ onReset }) {
       localStorage.setItem('orbitwatch_tonight_open', 'false');
     }
 
+    setRightPanelOpen(true);
+
     // Clear any selected items when switching categories
     if (selectedSatellite) actions.selectSatellite(null);
     if (selectedConstellation) actions.selectConstellation(null);
@@ -378,6 +380,8 @@ export default function Dashboard({ onReset }) {
     localStorage.setItem('orbitwatch_tonight_sub_item', subId);
     setIsTonightOpen(true);
     localStorage.setItem('orbitwatch_tonight_open', 'true');
+
+    setRightPanelOpen(true);
 
     // Clear any selected items
     if (selectedSatellite) actions.selectSatellite(null);

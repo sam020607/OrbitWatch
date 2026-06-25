@@ -874,7 +874,8 @@ export default function Globe3D({ className = '', mobileView = 'map', showChrome
     location,
     selectedSatellite,
     selectedAsteroid,
-    selectedConstellation
+    selectedConstellation,
+    showConeOverlay
   } = state;
 
   const [isRelocating, setIsRelocating] = useState(false);
