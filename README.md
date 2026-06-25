@@ -236,7 +236,7 @@ src/
 | Name | Role |
 |---|---|
 | Agarim Karnwal | Lead Developer |
-| Samriddhi | Full Stack Developer |
+| Samriddhi Upadhyay | Full Stack Developer |
 
 ---
 
