@@ -28,10 +28,16 @@ const Skiper30 = () => {
     height: typeof window !== 'undefined' ? window.innerHeight : 0,
   }));
   const [containerReady, setContainerReady] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     scrollContainerRef.current = document.querySelector('main');
     setContainerReady(true);
+    
+    setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const { scrollYProgress } = useScroll({
@@ -41,42 +47,50 @@ const Skiper30 = () => {
   });
 
   const { height } = dimension;
-  const y = useTransform(scrollYProgress, [0, 1], [0, height * 2]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, height * 3.3]);
-  const y3 = useTransform(scrollYProgress, [0, 1], [0, height * 1.25]);
-  const y4 = useTransform(scrollYProgress, [0, 1], [0, height * 3]);
+  const multiplier = isMobile ? 0.35 : 1.0;
+  const y = useTransform(scrollYProgress, [0, 1], [0, height * 2 * multiplier]);
+  const y2 = useTransform(scrollYProgress, [0, 1], [0, height * 3.3 * multiplier]);
+  const y3 = useTransform(scrollYProgress, [0, 1], [0, height * 1.25 * multiplier]);
+  const y4 = useTransform(scrollYProgress, [0, 1], [0, height * 3 * multiplier]);
 
   useEffect(() => {
     const mainEl = scrollContainerRef.current || document.querySelector('main');
     if (!mainEl) return;
 
-    const lenis = new Lenis({
-      wrapper: mainEl,
-      content: mainEl.firstElementChild as HTMLElement || mainEl,
-      smoothWheel: true,
-      lerp: 0.06,
-      syncTouch: false,
-      prevent: (node) => node.closest('[data-lenis-prevent]') !== null,
-    });
+    const isMobileDevice = window.innerWidth < 768;
 
+    // Skip Lenis on mobile to let native, hardware-accelerated momentum touch scrolling handle it smoothly
+    let lenis: Lenis | null = null;
     let rafId: number;
-    const raf = (time: number) => {
-      lenis.raf(time);
+
+    if (!isMobileDevice) {
+      lenis = new Lenis({
+        wrapper: mainEl,
+        content: mainEl.firstElementChild as HTMLElement || mainEl,
+        smoothWheel: true,
+        lerp: 0.06,
+        syncTouch: false,
+        prevent: (node) => node.closest('[data-lenis-prevent]') !== null,
+      });
+
+      const raf = (time: number) => {
+        lenis?.raf(time);
+        rafId = requestAnimationFrame(raf);
+      };
       rafId = requestAnimationFrame(raf);
-    };
+    }
 
     const resize = () => {
       setDimension({ width: window.innerWidth, height: window.innerHeight });
     };
 
     window.addEventListener("resize", resize);
-    rafId = requestAnimationFrame(raf);
     resize();
 
     return () => {
       window.removeEventListener("resize", resize);
-      cancelAnimationFrame(rafId);
-      lenis.destroy();
+      if (rafId) cancelAnimationFrame(rafId);
+      if (lenis) lenis.destroy();
     };
   }, [scrollContainerRef.current]);
 
@@ -88,8 +102,8 @@ const Skiper30 = () => {
       >
         <Column images={[images[0], images[1], images[2]]} y={y} />
         <Column images={[images[3], images[4], images[5]]} y={y2} />
-        <Column images={[images[6], images[7], images[8]]} y={y3} />
-        <Column images={[images[9], images[10], images[11]]} y={y4} />
+        <Column images={[images[6], images[7], images[8]]} y={y3} className="hidden md:flex" />
+        <Column images={[images[9], images[10], images[11]]} y={y4} className="hidden md:flex" />
       </div>
     </section>
   );
@@ -98,12 +112,13 @@ const Skiper30 = () => {
 type ColumnProps = {
   images: string[];
   y: MotionValue<number>;
+  className?: string;
 };
 
-const Column = ({ images, y }: ColumnProps) => {
+const Column = ({ images, y, className = "" }: ColumnProps) => {
   return (
     <motion.div
-      className="relative -top-[45%] flex h-full w-1/4 min-w-[120px] sm:min-w-[200px] flex-col gap-[2vw] first:top-[-45%] [&:nth-child(2)]:top-[-95%] [&:nth-child(3)]:top-[-45%] [&:nth-child(4)]:top-[-75%]"
+      className={`relative -top-[45%] flex h-full w-1/2 md:w-1/4 min-w-[120px] sm:min-w-[200px] flex-col gap-[2vw] first:top-[-45%] [&:nth-child(2)]:top-[-95%] [&:nth-child(3)]:top-[-45%] [&:nth-child(4)]:top-[-75%] will-change-transform ${className}`}
       style={{ y }}
     >
       {images.map((src, i) => (
