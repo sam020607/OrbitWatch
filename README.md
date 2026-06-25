@@ -8,7 +8,7 @@
 
 ## 🌐 Live Demo
 
-**[project-zenith.vercel.app](https://project-zenith.vercel.app)** *(or your deployed Vercel URL)*
+**[team-phoenix-project-zenith.vercel.app](https://team-phoenix-project-zenith-a3bvu74fq-phoenixprojectzenith.vercel.app/)**
 
 ---
 
