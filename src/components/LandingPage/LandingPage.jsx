@@ -14,6 +14,19 @@ import StringTune, { StringProgress, StringMagnetic } from '@fiddle-digital/stri
 import { useApp } from '../../context/AppContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 
+const VAPORIZE_TEXTS = [
+  "Know what's\noverhead.", 
+  "Track active\norbits.", 
+  "Predict visible\npasses.", 
+  "Compare satellite\npaths."
+];
+
+const VAPORIZE_ANIMATION = {
+  vaporizeDuration: 1.0,
+  fadeInDuration: 0.8,
+  waitDuration: 1.5
+};
+
 const POPULAR_LOCATIONS = [
   { name: 'New York', lat: 40.7128, lon: -74.0060 },
   { name: 'London', lat: 51.5074, lon: -0.1278 },
@@ -48,7 +61,7 @@ function GlobeClickLocator({ onClick }) {
 }
 
 // Globe animation and interaction controller
-function GlobeController({ onInteraction, center }) {
+function GlobeController({ onInteraction, isRotating }) {
   const map = useMap();
 
   useEffect(() => {
@@ -70,10 +83,27 @@ function GlobeController({ onInteraction, center }) {
   }, [map, onInteraction]);
 
   useEffect(() => {
-    if (center) {
-      map.setView(center, map.getZoom(), { animate: true, duration: 0.1 });
-    }
-  }, [center, map]);
+    if (!isRotating || !map) return;
+
+    const interval = setInterval(() => {
+      try {
+        const currentCenter = map.getCenter();
+        if (currentCenter) {
+          let nextLng = currentCenter.lng - 0.6; // Slowly rotate west-to-east
+          if (nextLng < -180) {
+            nextLng += 360;
+          } else if (nextLng > 180) {
+            nextLng -= 360;
+          }
+          map.setView([10, nextLng], map.getZoom(), { animate: false });
+        }
+      } catch (e) {
+        console.warn("Map rotation error:", e);
+      }
+    }, 80);
+
+    return () => clearInterval(interval);
+  }, [map, isRotating]);
 
   return null;
 }
@@ -125,8 +155,13 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
   const earthImg = `${import.meta.env.BASE_URL}earth_view_from_space.png`;
 
   // Auto-rotation state
-  const [globeCenter, setGlobeCenter] = useState([10, 0]);
   const [isRotating, setIsRotating] = useState(true);
+
+  const fontConfig = useMemo(() => ({
+    fontFamily: "'Playfair Display', serif",
+    fontSize: isMobile ? "32px" : "56px",
+    fontWeight: 400
+  }), [isMobile]);
 
   useEffect(() => {
     setMounted(true);
@@ -135,21 +170,6 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  // Globe slow rotation interval
-  useEffect(() => {
-    if (method !== 'globe' || !isRotating) return;
-
-    const interval = setInterval(() => {
-      setGlobeCenter(prev => {
-        const nextLng = prev[1] - 0.6; // Slowly rotate west-to-east
-        const wrappedLng = nextLng < -180 ? nextLng + 360 : nextLng;
-        return [prev[0], wrappedLng];
-      });
-    }, 80);
-
-    return () => clearInterval(interval);
-  }, [method, isRotating]);
 
   function handleLocationSelect(location) {
     actions.setLocation(location);
@@ -273,25 +293,12 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
           >
             <div className="relative w-full max-w-[800px] h-[90px] sm:h-[130px] md:h-[160px] flex items-center justify-center">
               <VaporizeTextCycle
-                texts={[
-                  "Know what's\noverhead.", 
-                  "Track active\norbits.", 
-                  "Predict visible\npasses.", 
-                  "Compare satellite\npaths."
-                ]}
-                font={{
-                  fontFamily: "'Playfair Display', serif",
-                  fontSize: isMobile ? "32px" : "56px",
-                  fontWeight: 400
-                }}
+                texts={VAPORIZE_TEXTS}
+                font={fontConfig}
                 color="rgb(255, 255, 255)"
                 spread={4}
                 density={6}
-                animation={{
-                  vaporizeDuration: 1.0,
-                  fadeInDuration: 0.8,
-                  waitDuration: 1.5
-                }}
+                animation={VAPORIZE_ANIMATION}
                 direction="left-to-right"
                 alignment="center"
                 tag={Tag.H1}
@@ -430,7 +437,7 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
                   <div className="absolute inset-0 rounded-full border border-white/5 pointer-events-none z-[1000]" />
                   
                   <MapContainer
-                    center={[10, globeCenter[1]]}
+                    center={[10, 0]}
                     zoom={1}
                     minZoom={1}
                     maxZoom={3}
@@ -447,7 +454,7 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
                       subdomains="abcd"
                     />
                     <GlobeClickLocator onClick={handleGlobeClick} />
-                    <GlobeController onInteraction={() => setIsRotating(false)} center={[10, globeCenter[1]]} />
+                    <GlobeController onInteraction={() => setIsRotating(false)} isRotating={isRotating} />
                     {clickedCoords && (
                       <Marker position={[clickedCoords.lat, clickedCoords.lon]} icon={locatorIcon} />
                     )}

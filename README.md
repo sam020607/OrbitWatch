@@ -33,7 +33,36 @@
 
 ---
 
+## 🔍 Core Feature Highlights
+
+Here is a detailed breakdown of the specialized capabilities built into **Project Zenith**:
+
+### 📍 One-Click Geolocation Coordinates Lock (`MapPin` Search)
+* **Landing Page & Header Pin**: The central search bar features a specialized GPS MapPin icon button (`MapPin`).
+* **Instant Calibration**: Clicking the pin prompts browser geolocation permission, retrieves your precise latitude and longitude, fills the search input automatically, and updates the global observer coordinates. This instantly calibrates the dashboard sky map, overhead satellite count, local countdown timers, and moon phase calculations for your exact current location.
+
+### ⏰ Local Time vs. Global/Observer Time (LCL & OBS Clocks)
+* **Synchronized Dual Clocks**: Located in the top header is a dual-clock system displaying Local Client Time (`LCL`) next to Observer Astronomical Time (`OBS`).
+* **`LCL` (Local Client Time)**: Reflects the standard system time and timezone of your browser's local computer.
+* **`OBS` (Observer Time)**: Displays timezone-corrected observer local time, computed dynamically based on the active observer coordinates' longitude offset (`UTC` offset calculations). This provides observer-accurate celestial and satellite pass synchronization.
+
+### 🌌 Constellation Sky Projection & Wikipedia Integration
+* **Real-time Stellar Mapping**: Both the 2D Leaflet Starry Map and 3D Three.js Globe render real-time constellations projected at their actual celestial coordinates.
+* **Wikipedia Redirects**: Clicking on a constellation opens a detailed popup overlay showing its abbreviation, name, and coordinate telemetry. From there, users can click **"📖 Explore on Wikipedia"** to open its official Wikipedia encyclopedia article in a new tab.
+
+### 🗺️ Starry Map Overlay & Disappearable Ambient City Lights
+* **Ambient Lighting Toggle**: The map settings controls allow you to toggle the visibility of **Ambient City Lights** on the globe/map.
+* **Smart Population Gradients**: City lights glow realistically on land surfaces representing high-density population areas. They dynamically fade and disappear in regions entering daylight or when the toggle is deactivated to provide an unobstructed view of the stars.
+* **Starry Sky Filter**: Toggles a beautiful starry space background layer with custom celestial gridlines, radar sweeps, and satellite footprints.
+
+### ☄️ Asteroid NEO Tracker & NASA JPL Redirects
+* **Close-Approach NEA Feed**: Fetches real-time Near-Earth Asteroid (NEA) reports from the NASA NeoWs API.
+* **JPL SBDB Redirects**: Selecting any asteroid from the feed displays its close-approach velocity, distance, hazard status, and a direct link to the **NASA JPL Small-Body Database** (`☄️ View JPL Small-Body Database`). This redirect lets you analyze the asteroid's full orbital diagram, physical characteristics, and telemetry charts directly on NASA's official portal.
+
+---
+
 ## Tech Stack
+
 
 | Layer | Technology |
 |---|---|
