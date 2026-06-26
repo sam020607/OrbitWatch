@@ -190,7 +190,7 @@ export default function LocationSearch({ onLocationSelect, variant, onQueryChang
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setShowDropdown(true)}
-          placeholder="Enter city, country, or lat,lon coordinates..."
+          placeholder="Enter city name or coordinates (e.g. London)..."
           className={`w-full py-3.5 sm:py-4 text-text placeholder-muted font-sans text-sm sm:text-base backdrop-blur-md transition-all duration-200 focus:outline-none
             ${isHero 
               ? 'pl-5 sm:pl-6 pr-24 sm:pr-32 bg-[#0d1320]/70 border border-white/15 rounded-full focus:border-white/30 focus:ring-1 focus:ring-white/10' 

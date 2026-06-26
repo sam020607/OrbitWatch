@@ -345,7 +345,10 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
             className="relative w-full max-w-xl flex flex-col items-center mb-4 min-h-[140px] z-30"
           >
             {method === 'search' ? (
-              <div className="w-full flex flex-col items-center gap-4">
+              <div className="w-full flex flex-col items-center gap-3.5">
+                <p className="text-[10px] font-sans text-cyan uppercase tracking-[0.2em] font-bold mb-1 animate-pulse">
+                  Initialize Tracker: Enter your location below
+                </p>
                 <LocationSearch 
                   onLocationSelect={handleLocationSelect} 
                   variant="hero" 
@@ -397,7 +400,7 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
                         }
                       }}
                     >
-                      <span className="text-[10px] font-sans tracking-[0.25em] uppercase text-[var(--text-secondary)] opacity-60 mb-0.5">explore the data</span>
+                      <span className="text-[10px] font-sans tracking-[0.25em] uppercase text-[var(--text-secondary)] opacity-60 mb-0.5">scroll to explore</span>
                       <svg 
                         className="w-4 h-4 text-[var(--text-secondary)] opacity-75" 
                         fill="none" 
@@ -507,7 +510,7 @@ export default function LandingPage({ onLocationSet, onNavigateAbout }) {
                     }
                   }}
                 >
-                  <span className="text-[10px] font-sans tracking-[0.25em] uppercase text-[var(--text-secondary)] opacity-60 mb-0.5">explore the data</span>
+                  <span className="text-[10px] font-sans tracking-[0.25em] uppercase text-[var(--text-secondary)] opacity-60 mb-0.5">scroll to explore</span>
                   <svg 
                     className="w-4 h-4 text-[var(--text-secondary)] opacity-75" 
                     fill="none" 
