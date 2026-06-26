@@ -14,21 +14,21 @@
 
 ## Features
 
-| Feature | Description |
-|---|---|
-| **Live Satellite Map** | Real-time 2D Leaflet map and 3D globe showing satellites overhead your location |
-| **ISS Tracker** | Live International Space Station position with pass predictions |
-| **Satellite Battles** | Side-by-side orbital comparison of two satellites with 3D visualization |
-| **APOD Gallery** | NASA Astronomy Picture of the Day + parallax space image gallery |
-| **NEO Tracker** | Near-Earth Object asteroid feed with live close-approach data |
-| **Tonight's Report** | Personalized sky report for your location — ISS passes, visible satellites, moon phase |
-| **Satellite Lookup** | Search any satellite by name or NORAD ID with orbital telemetry |
-| **Pass Countdown** | Next overhead pass predictions for selected satellites |
-| **Observer's Journal** | Personal log to record sky observations, persistent per-user |
-| **AURA AI Assistant** | Gemini-powered control room AI with real-time telemetry context |
-| **Auth** | Google & GitHub sign-in via Firebase Authentication |
-| **Settings Panel** | Configure API keys, theme, location, and preferences in-app |
-| **Dark / Light Theme** | Full theme toggle with persistent preference |
+| Feature | Sub-Features & Minor Details | Description |
+| :--- | :--- | :--- |
+| **Live Satellite Map** | • 2D Leaflet map & 3D Three.js Globe<br>• Atmospheric limb shaders<br>• Dynamic Earth city lights<br>• Split orbit path rendering<br>• Ambient starfield generator<br>• Decoupled details overlay cards | Renders real-time satellite locations. Includes custom vertex/fragment shaders for atmospheric glow, 240+ glowing urban points that dynamically fade out in daylight, past/future path styling, Arctic coordinate stars, and map cards that close without losing look-up selections. |
+| **ISS Tracker** | • Live SGP4/SDP4 propagation<br>• Visibility cone footprint<br>• Historic ground trail | Tracks the ISS position in real-time. Displays ground footprint visibility cones (10° minimum elevation) and its historic orbital track. |
+| **Satellite Battles** | • Background web worker propagation<br>• 24-hr Closest Encounter Solver<br>• Deterministic Battle Scoring engine<br>• Tactical summary generator<br>• Auto-open 3D mode | Side-by-side satellite comparisons. Uses a background worker for thread-safe propagation, calculates closest approach windows, scores performance (coverage area, revisit times, daily swept ground area), and generates tactical analysis bullet points client-side. |
+| **APOD Gallery** | • NASA APOD API integration<br>• Parallax telescope image gallery | Displays NASA's Astronomy Picture of the Day. Includes a 4-column parallax image archive (column count scales responsively on mobile) with custom touch scroll support. |
+| **NEO Tracker** | • Close-approach NEAs feed<br>• Potential Hazard indicators<br>• Approach timeline filtering | Displays a feed of Near-Earth Objects from NASA. Filters and highlights Potentially Hazardous Asteroids (PHAs) and close approaches. |
+| **Tonight's Sky Report** | • Local visible overhead count<br>• Moon phase calculations<br>• Local ISS pass countdowns | Provides a summary of celestial events for your coordinates. Computes overhead counts, local passes, and renders real-time moon phase drawings. |
+| **Satellite Lookup** | • NORAD ID & name search<br>• Orbital parameters telemetry | Searchable registry of all active satellites. Syncs selection dynamically with the map overlays. |
+| **Observer's Journal** | • Persistent text log entry<br>• Firebase Auth & Local Storage sync | A persistent notebook to record celestial sightings. Syncs user entries to Firebase or fallback LocalStorage. |
+| **AURA AI Assistant** | • Gemini API integration<br>• Context-aware prompting<br>• Draggable floating trigger widget | Natural language assistant. Injects observer coordinates, current satellite, and sky metrics into Gemini prompts. FAB has touch-none dragging and click-drag separation. |
+| **Interactive Onboarding** | • 7-slide briefing cards<br>• Boot loader simulator<br>• Looping background space video<br>• SVG noise CRT scanline filter | Cinematic onboarding flow. Simulates a terminal boot sequence, plays a looping background space video under an SVG noise filter, and provides a walkthrough replay setting. |
+| **Firebase Auth** | • Google & GitHub SSO<br>• Offline mock authentication fallbacks | Provides sign-in/registration. Safely triggers offline mock user sessions if API keys or Firebase environment files are missing. |
+| **Settings Panel** | • In-app API key configurator<br>• Presets & theme configuration<br>• UTC / Observer local clocks | Configures system options. Hosts the onboarding replay utility, theme toggles, and dual UTC/observer local time clocks. |
+| **Mobile Optimization** | • Edge-to-Edge Maps<br>• Navigation FAB & slide-up Portal<br>• Collapsed Sliders menu<br>• Touch-interception fixes | Adjusts layout to mobile screens. Canvases bleed under header, collapses menus responsively, and uses native `touchstart` + `click` event handling to prevent Leaflet/OrbitControls click conflicts. |
 
 ---
 
